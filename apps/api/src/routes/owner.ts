@@ -6,7 +6,7 @@ import type { Database } from '../db/index.js'
 import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
-import { tenantIsolation, getOwnerId } from '../middleware/tenant-isolation.js'
+import { tenantIsolation } from '../middleware/tenant-isolation.js'
 import { subscriptionEnforcement } from '../middleware/subscription.js'
 import { validate, createTenantSchema, createAdminUserSchema, setTenantServiceSchema, createTransactionSchema, updateTransactionStatusSchema } from '../middleware/validate.js'
 import { isValidTransition } from '../utils/transaction-state-machine.js'
@@ -116,7 +116,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.patch('/tenants/:id', validate(createTenantSchema), async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.id!
+      const tenantId = (req.params.id as string)!
       const { name } = req.body as { name: string }
 
       const [tenant] = await db
@@ -146,7 +146,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.delete('/tenants/:id', async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.id!
+      const tenantId = (req.params.id as string)!
 
       const [tenant] = await db
         .select()
@@ -175,7 +175,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.get('/tenants/:tenantId/admin-users', async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.tenantId!
+      const tenantId = (req.params.tenantId as string)!
 
       const [tenant] = await db
         .select()
@@ -214,7 +214,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.post('/tenants/:tenantId/admin-users', validate(createAdminUserSchema), async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.tenantId!
+      const tenantId = (req.params.tenantId as string)!
       const { email, phone, password } = req.body as { email: string; phone: string; password: string }
 
       const [tenant] = await db
@@ -262,9 +262,8 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
 
   router.delete('/tenants/:tenantId/admin-users/:id', async (req, res) => {
     try {
-      const ownerId = req.user!.userId
-      const tenantId = req.params.tenantId!
-      const adminId = req.params.id!
+      const tenantId = (req.params.tenantId as string)!
+      const adminId = (req.params.id as string)!
 
       const [admin] = await db
         .select()
@@ -299,7 +298,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.get('/tenants/:tenantId/services', async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.tenantId!
+      const tenantId = (req.params.tenantId as string)!
 
       const [tenant] = await db
         .select()
@@ -341,7 +340,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.post('/tenants/:tenantId/services', validate(setTenantServiceSchema), async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.tenantId!
+      const tenantId = (req.params.tenantId as string)!
       const { service_id, price, is_active } = req.body as { service_id: string; price: number; is_active: boolean }
 
       const [tenant] = await db
@@ -398,7 +397,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.get('/tenants/:tenantId/transactions', async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const tenantId = req.params.tenantId!
+      const tenantId = (req.params.tenantId as string)!
 
       const [tenant] = await db
         .select()
@@ -412,20 +411,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
       }
 
       const transactions = await db
-        .select({
-          id: schema.transactions.id,
-          tenant_id: schema.transactions.tenant_id,
-          customer_id: schema.transactions.customer_id,
-          service_id: schema.transactions.service_id,
-          created_by: schema.transactions.created_by,
-          status: schema.transactions.status,
-          total_cost: schema.transactions.total_cost,
-          additional_cost: schema.transactions.additional_cost,
-          notes: schema.transactions.notes,
-          monitoring_token: schema.transactions.monitoring_token,
-          created_at: schema.transactions.created_at,
-          updated_at: schema.transactions.updated_at,
-        })
+        .select()
         .from(schema.transactions)
         .where(and(eq(schema.transactions.tenant_id, tenantId), isNull(schema.transactions.deleted_at)))
         .orderBy(sql`${schema.transactions.created_at} DESC`)
@@ -528,21 +514,21 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      if (!isValidTransition(tx.status, status as any)) {
+      if (!isValidTransition(tx.status, status as Parameters<typeof isValidTransition>[1])) {
         res.status(400).json({ error: 'invalid_status_transition' })
         return
       }
 
       const [updated] = await db
         .update(schema.transactions)
-        .set({ status: status as any, updated_at: new Date() })
+        .set({ status: status as Parameters<typeof isValidTransition>[1], updated_at: new Date() })
         .where(eq(schema.transactions.id, txId))
         .returning()
 
       await db.insert(schema.transactionStatusLog).values({
         transaction_id: txId,
         from_status: tx.status,
-        to_status: status as any,
+        to_status: status as Parameters<typeof isValidTransition>[1],
         changed_by: ownerId,
         notes,
       })

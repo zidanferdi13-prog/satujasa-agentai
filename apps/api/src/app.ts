@@ -22,7 +22,7 @@ export function createApp(config: AppConfig) {
   app.use(cookieParser())
 
   // ─── Public routes (no auth) ──────────────────────────────────────────────
-  app.use('/api/v1', publicRoutes(db, config))
+  app.use('/api/v1', publicRoutes(db))
 
   // ─── Auth routes ──────────────────────────────────────────────────────────
   app.use('/api/v1/auth', authRoutes(db, config))

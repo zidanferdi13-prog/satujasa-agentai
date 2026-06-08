@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { eq, isNull } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 
 import type { Database } from '../db/index.js'
 import { schema } from '../db/index.js'

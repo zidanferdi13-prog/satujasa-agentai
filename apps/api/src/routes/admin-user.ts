@@ -6,9 +6,7 @@ import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { tenantIsolation, getUserTenantId } from '../middleware/tenant-isolation.js'
-import { subscriptionEnforcement } from '../middleware/subscription.js'
-import { validate, setTenantServiceSchema, createTransactionSchema, updateTransactionStatusSchema } from '../middleware/validate.js'
-import { isValidTransition } from '../utils/transaction-state-machine.js'
+import { validate, setTenantServiceSchema } from '../middleware/validate.js'
 
 export function adminUserRoutes(db: Database, config: AppConfig): Router {
   const router = Router()
@@ -16,8 +14,6 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
   router.use(authMiddleware(config))
   router.use(requireRole('admin-user'))
   router.use(tenantIsolation)
-
-  const subforcement = subscriptionEnforcement(db)
 
   // ─── Dashboard ────────────────────────────────────────────────────────────
   router.get('/dashboard', async (req, res) => {
