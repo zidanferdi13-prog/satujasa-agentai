@@ -1,36 +1,42 @@
-import type { HealthResponse, RolesResponse } from '@stnk/contracts'
+import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 
 import type { AppConfig } from './config.js'
+import { getDb } from './db/index.js'
+import { authRoutes } from './routes/auth.js'
+import { superAdminRoutes } from './routes/super-admin.js'
+import { ownerRoutes } from './routes/owner.js'
+import { adminUserRoutes } from './routes/admin-user.js'
+import { publicRoutes } from './routes/public.js'
 
 export function createApp(config: AppConfig) {
   const app = express()
+  const db = getDb(config.DATABASE_URL)
 
   app.disable('x-powered-by')
   app.use(helmet())
   app.use(cors({ origin: config.WEB_ORIGIN, credentials: true }))
   app.use(express.json({ limit: '1mb' }))
+  app.use(cookieParser())
 
-  app.get('/api/v1/health', (_request, response) => {
-    const body: HealthResponse = {
-      service: 'stnk-jasa-api',
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    }
+  // ─── Public routes (no auth) ──────────────────────────────────────────────
+  app.use('/api/v1', publicRoutes(db, config))
 
-    response.status(200).json(body)
-  })
+  // ─── Auth routes ──────────────────────────────────────────────────────────
+  app.use('/api/v1/auth', authRoutes(db, config))
 
-  app.get('/api/v1/meta/roles', (_request, response) => {
-    const body: RolesResponse = {
-      roles: ['super-admin', 'owner', 'admin-user'],
-    }
+  // ─── Super Admin routes ───────────────────────────────────────────────────
+  app.use('/api/v1/admin', superAdminRoutes(db, config))
 
-    response.status(200).json(body)
-  })
+  // ─── Owner routes ─────────────────────────────────────────────────────────
+  app.use('/api/v1/owner', ownerRoutes(db, config))
 
+  // ─── Admin User routes ────────────────────────────────────────────────────
+  app.use('/api/v1/admin-user', adminUserRoutes(db, config))
+
+  // ─── 404 fallback ─────────────────────────────────────────────────────────
   app.use((_request, response) => {
     response.status(404).json({ error: 'route_not_found' })
   })

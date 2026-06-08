@@ -8,6 +8,13 @@ const app = createApp({
   HOST: '127.0.0.1',
   PORT: 4000,
   WEB_ORIGIN: 'http://127.0.0.1:5173',
+  DATABASE_URL: 'postgres://stnk:test@127.0.0.1:5432/stnk_jasa_test',
+  JWT_SECRET: 'test-jwt-secret',
+  JWT_REFRESH_SECRET: 'test-refresh-secret',
+  JWT_EXPIRES_IN: '15m',
+  JWT_REFRESH_EXPIRES_IN: '7d',
+  BCRYPT_ROUNDS: 4,
+  BASE_URL: 'http://127.0.0.1:4000',
 })
 
 describe('STNK Jasa API', () => {
