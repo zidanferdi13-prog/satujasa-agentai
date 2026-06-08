@@ -1,76 +1,49 @@
 import { Router } from 'express'
-import { eq, and, isNull, sql, inArray } from 'drizzle-orm'
-
-function param(value: string | string[] | undefined): string {
-  return Array.isArray(value) ? value[0]! : (value ?? '')
-}
+import { eq, and, isNull, sql } from 'drizzle-orm'
+import bcrypt from 'bcrypt'
 
 import type { Database } from '../db/index.js'
 import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
-import { tenantIsolation } from '../middleware/tenant-isolation.js'
+import { tenantIsolation, getOwnerId } from '../middleware/tenant-isolation.js'
 import { subscriptionEnforcement } from '../middleware/subscription.js'
-import {
-  validate,
-  createTenantSchema,
-  updateTenantSchema,
-  createAdminUserSchema,
-  setTenantServiceSchema,
-  createTransactionSchema,
-  updateTransactionStatusSchema,
-} from '../middleware/validate.js'
+import { validate, createTenantSchema, createAdminUserSchema, setTenantServiceSchema, createTransactionSchema, updateTransactionStatusSchema } from '../middleware/validate.js'
 import { isValidTransition } from '../utils/transaction-state-machine.js'
-import { generateWaLink } from '../utils/wa-template.js'
-import type { TransactionStatus } from '@stnk/contracts'
-import bcrypt from 'bcrypt'
 
 export function ownerRoutes(db: Database, config: AppConfig): Router {
   const router = Router()
-  const enforce = subscriptionEnforcement(db)
 
   router.use(authMiddleware(config))
   router.use(requireRole('owner'))
   router.use(tenantIsolation)
 
-  // ─── Dashboard ────────────────────────────────────────────────────────────
+  const subforcement = subscriptionEnforcement(db)
 
+  // ─── Dashboard ────────────────────────────────────────────────────────────
   router.get('/dashboard', async (req, res) => {
     try {
       const ownerId = req.user!.userId
 
-      const ownerTenants = await db
-        .select()
+      const [tenantCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
         .from(schema.tenants)
         .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
-
-      const tenantIds = ownerTenants.map((t) => t.id)
-
-      if (tenantIds.length === 0) {
-        res.json({
-          total_tenants: 0,
-          total_transactions: 0,
-          active_transactions: 0,
-          total_revenue: '0',
-          revenue_per_tenant: [],
-        })
-        return
-      }
 
       const [txCount] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(schema.transactions)
-        .where(and(inArray(schema.transactions.tenant_id, tenantIds), isNull(schema.transactions.deleted_at)))
+        .where(and(eq(schema.transactions.created_by, ownerId), isNull(schema.transactions.deleted_at)))
 
       const [activeTx] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(schema.transactions)
         .where(
           and(
-            inArray(schema.transactions.tenant_id, tenantIds),
-            isNull(schema.transactions.deleted_at),
+            eq(schema.transactions.created_by, ownerId),
             sql`status NOT IN ('done', 'cancelled')`,
-          ),
+            isNull(schema.transactions.deleted_at)
+          )
         )
 
       const [revenue] = await db
@@ -78,34 +51,17 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         .from(schema.transactions)
         .where(
           and(
-            inArray(schema.transactions.tenant_id, tenantIds),
+            eq(schema.transactions.created_by, ownerId),
             eq(schema.transactions.status, 'done'),
-            isNull(schema.transactions.deleted_at),
-          ),
+            isNull(schema.transactions.deleted_at)
+          )
         )
 
-      const revenuePerTenant = await Promise.all(
-        ownerTenants.map(async (tenant) => {
-          const [r] = await db
-            .select({ total: sql<string>`COALESCE(sum(total_cost + additional_cost), 0)::text` })
-            .from(schema.transactions)
-            .where(
-              and(
-                eq(schema.transactions.tenant_id, tenant.id),
-                eq(schema.transactions.status, 'done'),
-                isNull(schema.transactions.deleted_at),
-              ),
-            )
-          return { tenant_id: tenant.id, tenant_name: tenant.name, revenue: r?.total ?? '0' }
-        }),
-      )
-
       res.json({
-        total_tenants: ownerTenants.length,
+        total_tenants: tenantCount?.count ?? 0,
         total_transactions: txCount?.count ?? 0,
         active_transactions: activeTx?.count ?? 0,
         total_revenue: revenue?.total ?? '0',
-        revenue_per_tenant: revenuePerTenant,
       })
     } catch (error) {
       console.error('Owner dashboard error:', error)
@@ -113,14 +69,20 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
-  // ─── Tenants ──────────────────────────────────────────────────────────────
-
+  // ─── Tenants ─────────────────────────────────────────────────────────────
   router.get('/tenants', async (req, res) => {
     try {
+      const ownerId = req.user!.userId
+
       const tenants = await db
-        .select()
+        .select({
+          id: schema.tenants.id,
+          name: schema.tenants.name,
+          created_at: schema.tenants.created_at,
+        })
         .from(schema.tenants)
-        .where(and(eq(schema.tenants.owner_id, req.user!.userId), isNull(schema.tenants.deleted_at)))
+        .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+
       res.json({ data: tenants })
     } catch (error) {
       console.error('List tenants error:', error)
@@ -131,33 +93,18 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.post('/tenants', validate(createTenantSchema), async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const check = await enforce.checkCanCreateTenant(ownerId)
-      if (!check.allowed) {
-        res.status(403).json({ error: check.reason })
+      const { name } = req.body as { name: string }
+
+      const canCreate = await subforcement.checkCanCreateTenant(ownerId)
+      if (!canCreate.allowed) {
+        res.status(403).json({ error: canCreate.reason })
         return
       }
 
       const [tenant] = await db
         .insert(schema.tenants)
-        .values({ name: req.body.name, owner_id: ownerId })
+        .values({ owner_id: ownerId, name })
         .returning()
-
-      // Auto-seed all default services into tenant_services
-      const defaultServices = await db
-        .select()
-        .from(schema.services)
-        .where(and(eq(schema.services.is_default, true), isNull(schema.services.deleted_at)))
-
-      if (defaultServices.length > 0) {
-        await db.insert(schema.tenantServices).values(
-          defaultServices.map((svc) => ({
-            tenant_id: tenant!.id,
-            service_id: svc.id,
-            price: '0',
-            is_active: true,
-          })),
-        )
-      }
 
       res.status(201).json(tenant)
     } catch (error) {
@@ -166,25 +113,30 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
-  router.patch('/tenants/:id', validate(updateTenantSchema), async (req, res) => {
+  router.patch('/tenants/:id', validate(createTenantSchema), async (req, res) => {
     try {
+      const ownerId = req.user!.userId
+      const tenantId = req.params.id!
+      const { name } = req.body as { name: string }
+
       const [tenant] = await db
-        .update(schema.tenants)
-        .set({ name: req.body.name, updated_at: new Date() })
-        .where(
-          and(
-            eq(schema.tenants.id, param(req.params['id'])),
-            eq(schema.tenants.owner_id, req.user!.userId),
-            isNull(schema.tenants.deleted_at),
-          ),
-        )
-        .returning()
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
 
       if (!tenant) {
         res.status(404).json({ error: 'tenant_not_found' })
         return
       }
-      res.json(tenant)
+
+      const [updated] = await db
+        .update(schema.tenants)
+        .set({ name, updated_at: new Date() })
+        .where(eq(schema.tenants.id, tenantId))
+        .returning()
+
+      res.json(updated)
     } catch (error) {
       console.error('Update tenant error:', error)
       res.status(500).json({ error: 'internal_server_error' })
@@ -193,22 +145,25 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
 
   router.delete('/tenants/:id', async (req, res) => {
     try {
+      const ownerId = req.user!.userId
+      const tenantId = req.params.id!
+
       const [tenant] = await db
-        .update(schema.tenants)
-        .set({ deleted_at: new Date() })
-        .where(
-          and(
-            eq(schema.tenants.id, param(req.params['id'])),
-            eq(schema.tenants.owner_id, req.user!.userId),
-            isNull(schema.tenants.deleted_at),
-          ),
-        )
-        .returning()
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
 
       if (!tenant) {
         res.status(404).json({ error: 'tenant_not_found' })
         return
       }
+
+      await db
+        .update(schema.tenants)
+        .set({ deleted_at: new Date() })
+        .where(eq(schema.tenants.id, tenantId))
+
       res.status(204).send()
     } catch (error) {
       console.error('Delete tenant error:', error)
@@ -216,29 +171,40 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
-  // ─── Admin Users ──────────────────────────────────────────────────────────
-
+  // ─── Admin Users ─────────────────────────────────────────────────────────
   router.get('/tenants/:tenantId/admin-users', async (req, res) => {
     try {
-      const users = await db
+      const ownerId = req.user!.userId
+      const tenantId = req.params.tenantId!
+
+      const [tenant] = await db
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
+
+      if (!tenant) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      const admins = await db
         .select({
           id: schema.users.id,
           email: schema.users.email,
           phone: schema.users.phone,
-          role: schema.users.role,
-          tenant_id: schema.users.tenant_id,
           created_at: schema.users.created_at,
         })
         .from(schema.users)
         .where(
           and(
-            eq(schema.users.owner_id, req.user!.userId),
-            eq(schema.users.tenant_id, param(req.params['tenantId'])),
             eq(schema.users.role, 'admin-user'),
-            isNull(schema.users.deleted_at),
-          ),
+            eq(schema.users.tenant_id, tenantId),
+            isNull(schema.users.deleted_at)
+          )
         )
-      res.json({ data: users })
+
+      res.json({ data: admins })
     } catch (error) {
       console.error('List admin users error:', error)
       res.status(500).json({ error: 'internal_server_error' })
@@ -248,23 +214,13 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   router.post('/tenants/:tenantId/admin-users', validate(createAdminUserSchema), async (req, res) => {
     try {
       const ownerId = req.user!.userId
-      const check = await enforce.checkCanCreateAdminUser(ownerId)
-      if (!check.allowed) {
-        res.status(403).json({ error: check.reason })
-        return
-      }
+      const tenantId = req.params.tenantId!
+      const { email, phone, password } = req.body as { email: string; phone: string; password: string }
 
-      // Verify tenant belongs to owner
       const [tenant] = await db
         .select()
         .from(schema.tenants)
-        .where(
-          and(
-            eq(schema.tenants.id, param(req.params['tenantId'])),
-            eq(schema.tenants.owner_id, ownerId),
-            isNull(schema.tenants.deleted_at),
-          ),
-        )
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
         .limit(1)
 
       if (!tenant) {
@@ -272,63 +228,66 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      const existing = await db
-        .select()
-        .from(schema.users)
-        .where(eq(schema.users.email, req.body.email))
-        .limit(1)
+      const canCreate = await subforcement.checkCanCreateAdminUser(ownerId)
+      if (!canCreate.allowed) {
+        res.status(403).json({ error: canCreate.reason })
+        return
+      }
 
+      const existing = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1)
       if (existing.length > 0) {
         res.status(409).json({ error: 'email_already_exists' })
         return
       }
 
-      const passwordHash = await bcrypt.hash(req.body.password, config.BCRYPT_ROUNDS)
-      const [user] = await db
+      const passwordHash = await bcrypt.hash(password, config.BCRYPT_ROUNDS)
+      const [admin] = await db
         .insert(schema.users)
         .values({
-          email: req.body.email,
-          phone: req.body.phone,
+          email,
+          phone,
           password_hash: passwordHash,
           role: 'admin-user',
           owner_id: ownerId,
-          tenant_id: param(req.params['tenantId']),
+          tenant_id: tenantId,
         })
         .returning()
 
-      res.status(201).json({
-        id: user!.id,
-        email: user!.email,
-        phone: user!.phone,
-        role: user!.role,
-        tenant_id: user!.tenant_id,
-        created_at: user!.created_at,
-      })
+      res.status(201).json({ id: admin!.id, email: admin!.email, phone: admin!.phone })
     } catch (error) {
       console.error('Create admin user error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
 
-  router.delete('/tenants/:tenantId/admin-users/:userId', async (req, res) => {
+  router.delete('/tenants/:tenantId/admin-users/:id', async (req, res) => {
     try {
-      const [user] = await db
-        .update(schema.users)
-        .set({ deleted_at: new Date() })
+      const ownerId = req.user!.userId
+      const tenantId = req.params.tenantId!
+      const adminId = req.params.id!
+
+      const [admin] = await db
+        .select()
+        .from(schema.users)
         .where(
           and(
-            eq(schema.users.id, param(req.params['userId'])),
-            eq(schema.users.owner_id, req.user!.userId),
-            eq(schema.users.tenant_id, param(req.params['tenantId'])),
-            isNull(schema.users.deleted_at),
-          ),
+            eq(schema.users.id, adminId),
+            eq(schema.users.tenant_id, tenantId),
+            eq(schema.users.role, 'admin-user')
+          )
         )
-        .returning()
+        .limit(1)
 
-      if (!user) {
-        res.status(404).json({ error: 'user_not_found' })
+      if (!admin) {
+        res.status(404).json({ error: 'admin_user_not_found' })
         return
       }
+
+      await db
+        .update(schema.users)
+        .set({ deleted_at: new Date() })
+        .where(eq(schema.users.id, adminId))
+
       res.status(204).send()
     } catch (error) {
       console.error('Delete admin user error:', error)
@@ -336,11 +295,24 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
-  // ─── Tenant Services / Pricing ────────────────────────────────────────────
-
+  // ─── Tenant Services ─────────────────────────────────────────────────────
   router.get('/tenants/:tenantId/services', async (req, res) => {
     try {
-      const rows = await db
+      const ownerId = req.user!.userId
+      const tenantId = req.params.tenantId!
+
+      const [tenant] = await db
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
+
+      if (!tenant) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      const services = await db
         .select({
           id: schema.tenantServices.id,
           tenant_id: schema.tenantServices.tenant_id,
@@ -351,14 +323,15 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
           is_active: schema.tenantServices.is_active,
         })
         .from(schema.tenantServices)
-        .innerJoin(schema.services, eq(schema.tenantServices.service_id, schema.services.id))
+        .innerJoin(schema.services, eq(schema.services.id, schema.tenantServices.service_id))
         .where(
           and(
-            eq(schema.tenantServices.tenant_id, param(req.params['tenantId'])),
-            isNull(schema.tenantServices.deleted_at),
-          ),
+            eq(schema.tenantServices.tenant_id, tenantId),
+            isNull(schema.tenantServices.deleted_at)
+          )
         )
-      res.json({ data: rows })
+
+      res.json({ data: services })
     } catch (error) {
       console.error('List tenant services error:', error)
       res.status(500).json({ error: 'internal_server_error' })
@@ -367,112 +340,14 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
 
   router.post('/tenants/:tenantId/services', validate(setTenantServiceSchema), async (req, res) => {
     try {
+      const ownerId = req.user!.userId
+      const tenantId = req.params.tenantId!
       const { service_id, price, is_active } = req.body as { service_id: string; price: number; is_active: boolean }
 
-      const existing = await db
-        .select()
-        .from(schema.tenantServices)
-        .where(
-          and(
-            eq(schema.tenantServices.tenant_id, param(req.params['tenantId'])),
-            eq(schema.tenantServices.service_id, service_id),
-            isNull(schema.tenantServices.deleted_at),
-          ),
-        )
-        .limit(1)
-
-      if (existing.length > 0) {
-        const [updated] = await db
-          .update(schema.tenantServices)
-          .set({ price: String(price), is_active, updated_at: new Date() })
-          .where(eq(schema.tenantServices.id, existing[0]!.id))
-          .returning()
-        res.json(updated)
-        return
-      }
-
-      const [row] = await db
-        .insert(schema.tenantServices)
-        .values({ tenant_id: param(req.params['tenantId']), service_id, price: String(price), is_active })
-        .returning()
-      res.status(201).json(row)
-    } catch (error) {
-      console.error('Set tenant service error:', error)
-      res.status(500).json({ error: 'internal_server_error' })
-    }
-  })
-
-  // ─── Transactions ─────────────────────────────────────────────────────────
-
-  router.get('/transactions', async (req, res) => {
-    try {
-      const ownerId = req.user!.userId
-      const ownerTenants = await db
-        .select({ id: schema.tenants.id })
-        .from(schema.tenants)
-        .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
-
-      const tenantIds = ownerTenants.map((t) => t.id)
-      if (tenantIds.length === 0) {
-        res.json({ data: [] })
-        return
-      }
-
-      const txs = await db
-        .select({
-          id: schema.transactions.id,
-          tenant_id: schema.transactions.tenant_id,
-          status: schema.transactions.status,
-          total_cost: schema.transactions.total_cost,
-          additional_cost: schema.transactions.additional_cost,
-          notes: schema.transactions.notes,
-          monitoring_token: schema.transactions.monitoring_token,
-          created_at: schema.transactions.created_at,
-          updated_at: schema.transactions.updated_at,
-          customer_name: schema.customers.name,
-          customer_phone: schema.customers.phone,
-          plate_number: schema.customers.plate_number,
-          service_name: schema.services.name,
-        })
-        .from(schema.transactions)
-        .innerJoin(schema.customers, eq(schema.transactions.customer_id, schema.customers.id))
-        .innerJoin(schema.services, eq(schema.transactions.service_id, schema.services.id))
-        .where(and(inArray(schema.transactions.tenant_id, tenantIds), isNull(schema.transactions.deleted_at)))
-        .orderBy(sql`${schema.transactions.created_at} DESC`)
-
-      res.json({ data: txs })
-    } catch (error) {
-      console.error('List transactions error:', error)
-      res.status(500).json({ error: 'internal_server_error' })
-    }
-  })
-
-  router.post('/transactions', validate(createTransactionSchema), async (req, res) => {
-    try {
-      const ownerId = req.user!.userId
-      const check = await enforce.checkCanCreateTransaction(ownerId)
-      if (!check.allowed) {
-        res.status(403).json({ error: check.reason })
-        return
-      }
-
-      const { tenant_id, customer_name, customer_phone, plate_number, vehicle_type, service_id, total_cost, notes } =
-        req.body as {
-          tenant_id: string
-          customer_name: string
-          customer_phone: string
-          plate_number: string
-          vehicle_type: string
-          service_id: string
-          total_cost: number
-          notes?: string
-        }
-
-      // Verify tenant belongs to owner
       const [tenant] = await db
         .select()
         .from(schema.tenants)
-        .where(and(eq(schema.tenants.id, tenant_id), eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
         .limit(1)
 
       if (!tenant) {
@@ -480,37 +355,154 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      // Upsert customer
-      const existingCustomer = await db
+      const existing = await db
         .select()
-        .from(schema.customers)
-        .where(and(eq(schema.customers.tenant_id, tenant_id), eq(schema.customers.plate_number, plate_number), isNull(schema.customers.deleted_at)))
+        .from(schema.tenantServices)
+        .where(
+          and(
+            eq(schema.tenantServices.tenant_id, tenantId),
+            eq(schema.tenantServices.service_id, service_id),
+            isNull(schema.tenantServices.deleted_at)
+          )
+        )
         .limit(1)
 
-      let customerId: string
-      if (existingCustomer.length > 0) {
-        customerId = existingCustomer[0]!.id
-      } else {
-        const [cust] = await db
-          .insert(schema.customers)
-          .values({ tenant_id, name: customer_name, phone: customer_phone, plate_number, vehicle_type })
+      if (existing.length > 0) {
+        const [updated] = await db
+          .update(schema.tenantServices)
+          .set({ price: price.toString(), is_active, updated_at: new Date() })
+          .where(eq(schema.tenantServices.id, existing[0]!.id))
           .returning()
-        customerId = cust!.id
+        res.json(updated)
+        return
       }
 
-      const [tx] = await db
-        .insert(schema.transactions)
-        .values({ tenant_id, customer_id: customerId, service_id, created_by: ownerId, total_cost: String(total_cost), notes })
+      const [ts] = await db
+        .insert(schema.tenantServices)
+        .values({
+          tenant_id: tenantId,
+          service_id,
+          price: price.toString(),
+          is_active,
+        })
         .returning()
 
+      res.status(201).json(ts)
+    } catch (error) {
+      console.error('Set tenant service error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // ─── Transactions ────────────────────────────────────────────────────────
+  router.get('/tenants/:tenantId/transactions', async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const tenantId = req.params.tenantId!
+
+      const [tenant] = await db
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
+
+      if (!tenant) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      const transactions = await db
+        .select({
+          id: schema.transactions.id,
+          tenant_id: schema.transactions.tenant_id,
+          customer_id: schema.transactions.customer_id,
+          service_id: schema.transactions.service_id,
+          created_by: schema.transactions.created_by,
+          status: schema.transactions.status,
+          total_cost: schema.transactions.total_cost,
+          additional_cost: schema.transactions.additional_cost,
+          notes: schema.transactions.notes,
+          monitoring_token: schema.transactions.monitoring_token,
+          created_at: schema.transactions.created_at,
+          updated_at: schema.transactions.updated_at,
+        })
+        .from(schema.transactions)
+        .where(and(eq(schema.transactions.tenant_id, tenantId), isNull(schema.transactions.deleted_at)))
+        .orderBy(sql`${schema.transactions.created_at} DESC`)
+
+      res.json({ data: transactions })
+    } catch (error) {
+      console.error('List transactions error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  router.post('/tenants/:tenantId/transactions', validate(createTransactionSchema), async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const tenantId = (req.params.tenantId as string)!
+      const { customer_name, customer_phone, plate_number, vehicle_type, service_id, total_cost, notes } = req.body as {
+        customer_name: string
+        customer_phone: string
+        plate_number: string
+        vehicle_type: string
+        service_id: string
+        total_cost: number
+        notes?: string
+      }
+
+      const [tenant] = await db
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenantId), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
+
+      if (!tenant) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      const canCreate = await subforcement.checkCanCreateTransaction(ownerId)
+      if (!canCreate.allowed) {
+        res.status(403).json({ error: canCreate.reason })
+        return
+      }
+
+      const customerId = (await db
+        .insert(schema.customers)
+        .values({
+          tenant_id: tenantId,
+          name: customer_name,
+          phone: customer_phone,
+          plate_number,
+          vehicle_type,
+        })
+        .returning())[0]?.id
+
+      if (!customerId) throw new Error('Failed to create customer')
+
+      const txId = (await db
+        .insert(schema.transactions)
+        .values({
+          tenant_id: tenantId,
+          customer_id: customerId,
+          service_id,
+          created_by: ownerId,
+          total_cost: total_cost.toString(),
+          notes,
+        })
+        .returning())[0]?.id
+
+      if (!txId) throw new Error('Failed to create transaction')
+
       await db.insert(schema.transactionStatusLog).values({
-        transaction_id: tx!.id,
+        transaction_id: txId,
         from_status: null,
         to_status: 'received',
         changed_by: ownerId,
-        notes: 'Transaksi dibuat',
       })
 
+      const [tx] = await db.select().from(schema.transactions).where(eq(schema.transactions.id, txId)).limit(1)
       res.status(201).json(tx)
     } catch (error) {
       console.error('Create transaction error:', error)
@@ -518,14 +510,17 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
-  router.patch('/transactions/:id/status', validate(updateTransactionStatusSchema), async (req, res) => {
+  router.patch('/tenants/:tenantId/transactions/:id/status', validate(updateTransactionStatusSchema), async (req, res) => {
     try {
-      const { status, notes } = req.body as { status: TransactionStatus; notes?: string }
+      const ownerId = req.user!.userId
+      const tenantId = (req.params.tenantId as string)!
+      const txId = (req.params.id as string)!
+      const { status, notes } = req.body as { status: string; notes?: string }
 
       const [tx] = await db
         .select()
         .from(schema.transactions)
-        .where(and(eq(schema.transactions.id, param(req.params['id'])), isNull(schema.transactions.deleted_at)))
+        .where(and(eq(schema.transactions.id, txId), eq(schema.transactions.tenant_id, tenantId)))
         .limit(1)
 
       if (!tx) {
@@ -533,38 +528,26 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      if (!isValidTransition(tx.status, status)) {
-        res.status(422).json({ error: 'invalid_status_transition', details: { from: tx.status, to: status } })
+      if (!isValidTransition(tx.status, status as any)) {
+        res.status(400).json({ error: 'invalid_status_transition' })
         return
       }
 
       const [updated] = await db
         .update(schema.transactions)
-        .set({ status, updated_at: new Date() })
-        .where(eq(schema.transactions.id, tx.id))
+        .set({ status: status as any, updated_at: new Date() })
+        .where(eq(schema.transactions.id, txId))
         .returning()
 
       await db.insert(schema.transactionStatusLog).values({
-        transaction_id: tx.id,
+        transaction_id: txId,
         from_status: tx.status,
-        to_status: status,
-        changed_by: req.user!.userId,
-        notes: notes ?? null,
+        to_status: status as any,
+        changed_by: ownerId,
+        notes,
       })
 
-      const waLink = generateWaLink({
-        customer_name: '',
-        customer_phone: '',
-        service_name: '',
-        current_status: status,
-        total_cost: updated!.total_cost,
-        additional_cost: updated!.additional_cost,
-        monitoring_token: updated!.monitoring_token,
-        tenant_name: '',
-        base_url: config.BASE_URL,
-      })
-
-      res.json({ ...updated, wa_link: waLink })
+      res.json(updated)
     } catch (error) {
       console.error('Update transaction status error:', error)
       res.status(500).json({ error: 'internal_server_error' })
