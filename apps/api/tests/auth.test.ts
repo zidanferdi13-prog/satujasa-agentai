@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { describe, expect, it, beforeAll } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createApp } from '../src/app.js'
 
 const app = createApp({
@@ -20,7 +20,7 @@ describe('Auth Routes', () => {
   const testEmail = `owner-${Date.now()}@test.local`
   const testPhone = '+6281234567890'
   const testPassword = 'Password123!'
-  let accessToken: string
+  let accessToken: string // eslint-disable-line @typescript-eslint/no-unused-vars
   let refreshToken: string
 
   // Test 1: Register owner baru → 201 + token

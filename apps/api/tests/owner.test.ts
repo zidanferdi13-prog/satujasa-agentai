@@ -147,27 +147,34 @@ describe('Owner Routes', () => {
     transactionId = response.body.id
   })
 
-  // Test 7a: PATCH /owner/transactions/:id/status → 200 + valid transition
+  // Test 7a: PATCH /owner/transactions/:id/status → 200 + valid transition (received → document_check)
   it('updates transaction status with valid transition', async () => {
     const response = await request(app)
       .patch(`/api/v1/owner/tenants/${tenantId}/transactions/${transactionId}/status`)
       .set('Authorization', `Bearer ${ownerToken}`)
       .send({
-        status: 'in_progress',
-        notes: 'Started processing',
+        status: 'document_check',
+        notes: 'Started document check',
       })
 
     expect(response.status).toBe(200)
-    expect(response.body.status).toBe('in_progress')
+    expect(response.body.status).toBe('document_check')
   })
 
   // Test 7b: PATCH /owner/transactions/:id/status → 400 invalid transition
   it('rejects invalid transaction status transition', async () => {
+    // First update to document_check
+    await request(app)
+      .patch(`/api/v1/owner/tenants/${tenantId}/transactions/${transactionId}/status`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ status: 'document_check', notes: 'Checking docs' })
+
+    // Now try invalid transition: document_check → received (not allowed)
     const response = await request(app)
       .patch(`/api/v1/owner/tenants/${tenantId}/transactions/${transactionId}/status`)
       .set('Authorization', `Bearer ${ownerToken}`)
       .send({
-        status: 'received', // Cannot go back to received from in_progress
+        status: 'received', // Cannot go back to received from document_check
       })
 
     expect(response.status).toBe(400)

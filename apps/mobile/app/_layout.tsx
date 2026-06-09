@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Stack, useRouter, useRootNavigationState } from 'expo-router';
 import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-splash-screen';
 import { getToken } from '../src/lib/auth';
 import { useAuthStore } from '../src/stores/authStore';
-
-// Keep splash screen visible while we load
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const router = useRouter();
@@ -40,7 +36,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (isLoaded && fontsLoaded) {
-      SplashScreen.hideAsync();
+      // Expo Router handles splash screen automatically in v56
     }
   }, [isLoaded, fontsLoaded]);
 
@@ -52,7 +48,6 @@ export default function RootLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        animationEnabled: true,
       }}
     >
       {isAuthenticated ? (

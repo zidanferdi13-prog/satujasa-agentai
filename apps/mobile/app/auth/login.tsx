@@ -14,12 +14,16 @@ import {
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from 'hookform/resolvers/zod';
-import api from '../../lib/api';
-import { storeToken } from '../../lib/auth';
-import { useAuthStore } from '../../stores/authStore';
-import { LoadingSpinner } from '../../components/LoadingSpinner';
-import { AuthResponse } from '@stnk/contracts';
+import { zodResolver } from '@hookform/resolvers/zod';
+import api from '@/lib/api';
+import { storeToken } from '@/lib/auth';
+import { useAuthStore } from '@/stores/authStore';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { AuthResponse, UserDTO } from '@stnk/contracts';
+
+// Helper to fix Zod resolver typing issue with @hookform/resolvers@3.x
+// Use any for the schema to bypass generic constraint
+const getZodResolver = (schema: any) => zodResolver(schema);
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid'),
@@ -27,6 +31,17 @@ const loginSchema = z.object({
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
+
+// Helper to convert AuthResponse.user to UserDTO
+const toUserDTO = (user: AuthResponse['user']): UserDTO => ({
+  id: user.id,
+  email: user.email,
+  phone: user.phone,
+  role: user.role,
+  owner_id: null,
+  tenant_id: null,
+  created_at: new Date().toISOString(),
+});
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -40,7 +55,7 @@ export default function LoginScreen() {
     formState: { errors },
     reset,
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: getZodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
 
@@ -59,8 +74,8 @@ export default function LoginScreen() {
       // Store token securely
       await storeToken(accessToken);
 
-      // Update auth state
-      setUser(user);
+      // Update auth state - convert AuthResponse.user to UserDTO
+      setUser(toUserDTO(user));
 
       // Reset form
       reset();

@@ -10,11 +10,11 @@ import {
   Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import api from '../../src/lib/api';
-import { useAuthStore } from '../../src/stores/authStore';
-import { LoadingSpinner } from '../../src/components/LoadingSpinner';
-import { ErrorState } from '../../src/components/ErrorState';
-import { SkeletonCard } from '../../src/components/SkeletonCard';
+import api from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ErrorState } from '@/components/ErrorState';
+import { SkeletonCard } from '@/components/SkeletonCard';
 import { AdminUserDashboard } from '@stnk/contracts';
 
 export default function DashboardScreen() {

@@ -9,8 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '../../../src/stores/authStore';
-import { clearTokens } from '../../../src/lib/auth';
+import { useAuthStore } from '@/stores/authStore';
+import { clearTokens } from '@/lib/auth';
 
 export default function SettingsScreen() {
   const router = useRouter();
