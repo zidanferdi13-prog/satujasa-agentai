@@ -11,12 +11,12 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import api from '../../../src/lib/api';
-import { LoadingSpinner } from '../../../src/components/LoadingSpinner';
-import { ErrorState } from '../../../src/components/ErrorState';
-import { EmptyState } from '../../../src/components/EmptyState';
-import { StatusBadge } from '../../../src/components/StatusBadge';
-import { SkeletonCard } from '../../../src/components/SkeletonCard';
+import api from '@/lib/api';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ErrorState } from '@/components/ErrorState';
+import { EmptyState } from '@/components/EmptyState';
+import { StatusBadge } from '@/components/StatusBadge';
+import { SkeletonCard } from '@/components/SkeletonCard';
 import { TransactionDTO, TransactionStatus, PaginatedResponse } from '@stnk/contracts';
 
 type TabType = 'active' | 'done' | 'cancelled';

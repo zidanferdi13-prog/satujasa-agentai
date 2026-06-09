@@ -10,9 +10,9 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
-import api from '../../../src/lib/api';
-import { LoadingSpinner } from '../../../src/components/LoadingSpinner';
-import { ErrorState } from '../../../src/components/ErrorState';
+import api from '@/lib/api';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ErrorState } from '@/components/ErrorState';
 import { TenantServiceDTO } from '@stnk/contracts';
 
 export default function ServicesScreen() {

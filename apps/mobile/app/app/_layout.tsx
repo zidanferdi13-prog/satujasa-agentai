@@ -1,6 +1,6 @@
 import React, { Text } from 'react-native';
 import { Tabs } from 'expo-router';
-import { useAuthStore } from '../../src/stores/authStore';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -25,7 +25,7 @@ export default function AppLayout() {
         options={{
           title: 'Dashboard',
           tabBarLabel: 'Dashboard',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>📊</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>📊</Text>,
         }}
       />
       <Tabs.Screen
@@ -33,7 +33,7 @@ export default function AppLayout() {
         options={{
           title: 'Berkas',
           tabBarLabel: 'Berkas',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>📋</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>📋</Text>,
         }}
       />
       <Tabs.Screen
@@ -41,7 +41,7 @@ export default function AppLayout() {
         options={{
           title: 'Harga',
           tabBarLabel: 'Harga',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>💰</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>💰</Text>,
         }}
       />
       <Tabs.Screen
@@ -49,7 +49,7 @@ export default function AppLayout() {
         options={{
           title: 'Pengaturan',
           tabBarLabel: 'Pengaturan',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 24 }}>⚙️</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>⚙️</Text>,
         }}
       />
     </Tabs>

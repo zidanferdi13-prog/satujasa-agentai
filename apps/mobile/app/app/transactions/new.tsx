@@ -14,10 +14,13 @@ import {
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from 'hookform/resolvers/zod';
-import api from '../../../src/lib/api';
-import { LoadingSpinner } from '../../../src/components/LoadingSpinner';
+import { zodResolver } from '@hookform/resolvers/zod';
+import api from '@/lib/api';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { TenantServiceDTO, CreateTransactionRequest } from '@stnk/contracts';
+
+// Helper to fix Zod resolver typing issue with @hookform/resolvers@3.x
+const getZodResolver = (schema: any) => zodResolver(schema);
 
 const createTransactionSchema = z.object({
   customer_name: z.string().min(1, 'Nama customer wajib diisi'),
@@ -47,7 +50,7 @@ export default function NewTransactionScreen() {
     setValue,
     watch,
   } = useForm<CreateTransactionFormData>({
-    resolver: zodResolver(createTransactionSchema),
+    resolver: getZodResolver(createTransactionSchema),
     defaultValues: {
       customer_name: '',
       customer_phone: '',
@@ -99,16 +102,13 @@ export default function NewTransactionScreen() {
         notes: data.notes,
       };
 
-      const response = await api.post('/admin-user/transactions', payload);
-      
-      Alert.alert('Sukses', 'Transaksi berhasil dibuat', [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
+      await api.post('/admin-user/transactions', payload);
+
+      Alert.alert('Berhasil', 'Transaksi berhasil dibuat', [
+        { text: 'OK', onPress: () => router.back() },
       ]);
-    } catch (err: any) {
-      Alert.alert('Error', err?.message || 'Gagal membuat transaksi');
+    } catch (err) {
+      Alert.alert('Error', 'Gagal membuat transaksi');
     } finally {
       setIsSubmitting(false);
     }
@@ -118,174 +118,172 @@ export default function NewTransactionScreen() {
     return <LoadingSpinner />;
   }
 
-  const selectedService = services.find((s) => s.id === selectedServiceId);
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        style={styles.container}
       >
-        <ScrollView contentContainerStyle={styles.content}>
-          <Text style={styles.sectionTitle}>Data Customer</Text>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Transaksi Baru</Text>
+            <Text style={styles.subtitle}>Input data customer dan layanan</Text>
+          </View>
 
-          <Text style={styles.label}>Nama Customer</Text>
-          <Controller
-            control={control}
-            name="customer_name"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TextInput
-                  style={[styles.input, errors.customer_name && styles.inputError]}
-                  placeholder="Nama lengkap"
-                  placeholderTextColor="#A0A0A0"
-                  value={value}
-                  onChangeText={onChange}
-                />
-                {errors.customer_name && (
-                  <Text style={styles.errorText}>{errors.customer_name.message}</Text>
-                )}
-              </>
+          <View style={styles.form}>
+            <Text style={styles.label}>Nama Customer</Text>
+            <Controller
+              control={control}
+              name="customer_name"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                  <TextInput
+                    style={[styles.input, errors.customer_name && styles.inputError]}
+                    placeholder="Nama customer"
+                    placeholderTextColor="#A0A0A0"
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    autoCapitalize="words"
+                    editable={!isSubmitting}
+                  />
+                  {errors.customer_name && (
+                    <Text style={styles.errorText}>{errors.customer_name.message}</Text>
+                  )}
+                </>
+              )}
+            />
+
+            <Text style={[styles.label, { marginTop: 20 }]}>Nomor HP</Text>
+            <Controller
+              control={control}
+              name="customer_phone"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                  <TextInput
+                    style={[styles.input, errors.customer_phone && styles.inputError]}
+                    placeholder="Nomor HP"
+                    placeholderTextColor="#A0A0A0"
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    keyboardType="phone-pad"
+                    editable={!isSubmitting}
+                  />
+                  {errors.customer_phone && (
+                    <Text style={styles.errorText}>{errors.customer_phone.message}</Text>
+                  )}
+                </>
+              )}
+            />
+
+            <Text style={[styles.label, { marginTop: 20 }]}>Plat Nomor</Text>
+            <Controller
+              control={control}
+              name="plate_number"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                  <TextInput
+                    style={[styles.input, errors.plate_number && styles.inputError]}
+                    placeholder="Plat nomor (contoh: B 1234 ABC)"
+                    placeholderTextColor="#A0A0A0"
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    autoCapitalize="characters"
+                    editable={!isSubmitting}
+                  />
+                  {errors.plate_number && (
+                    <Text style={styles.errorText}>{errors.plate_number.message}</Text>
+                  )}
+                </>
+              )}
+            />
+
+            <Text style={[styles.label, { marginTop: 20 }]}>Jenis Kendaraan</Text>
+            <TouchableOpacity
+              style={[styles.input, styles.dropdown]}
+              onPress={() => setShowVehicleDropdown(!showVehicleDropdown)}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.dropdownText}>
+                {vehicleType} {showVehicleDropdown ? '▲' : '▼'}
+              </Text>
+            </TouchableOpacity>
+            {showVehicleDropdown && (
+              <View style={styles.dropdownMenu}>
+                {['Motor' as const, 'Mobil' as const, 'Truk' as const].map((type) => (
+                  <TouchableOpacity
+                    key={type}
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setValue('vehicle_type', type);
+                      setShowVehicleDropdown(false);
+                    }}
+                  >
+                    <Text style={styles.dropdownText}>{type}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             )}
-          />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Nomor HP</Text>
-          <Controller
-            control={control}
-            name="customer_phone"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TextInput
-                  style={[styles.input, errors.customer_phone && styles.inputError]}
-                  placeholder="08xx..."
-                  placeholderTextColor="#A0A0A0"
-                  value={value}
-                  onChangeText={onChange}
-                  keyboardType="phone-pad"
-                />
-                {errors.customer_phone && (
-                  <Text style={styles.errorText}>{errors.customer_phone.message}</Text>
-                )}
-              </>
-            )}
-          />
-
-          <Text style={[styles.label, { marginTop: 16 }]}>Plat Nomor</Text>
-          <Controller
-            control={control}
-            name="plate_number"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TextInput
-                  style={[styles.input, errors.plate_number && styles.inputError]}
-                  placeholder="B 1234 ABC"
-                  placeholderTextColor="#A0A0A0"
-                  value={value}
-                  onChangeText={onChange}
-                  autoCapitalize="characters"
-                />
-                {errors.plate_number && (
-                  <Text style={styles.errorText}>{errors.plate_number.message}</Text>
-                )}
-              </>
-            )}
-          />
-
-          <Text style={styles.sectionTitle}>Kendaraan & Layanan</Text>
-
-          <Text style={styles.label}>Jenis Kendaraan</Text>
-          <TouchableOpacity
-            style={styles.dropdown}
-            onPress={() => setShowVehicleDropdown(!showVehicleDropdown)}
-          >
-            <Text style={styles.dropdownText}>{vehicleType}</Text>
-            <Text style={styles.dropdownArrow}>▼</Text>
-          </TouchableOpacity>
-          {showVehicleDropdown && (
-            <View style={styles.dropdownMenu}>
-              {['Motor', 'Mobil', 'Truk'].map((vehicle) => (
-                <TouchableOpacity
-                  key={vehicle}
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setValue('vehicle_type', vehicle as any);
-                    setShowVehicleDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{vehicle}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-
-          <Text style={[styles.label, { marginTop: 16 }]}>Pilih Layanan</Text>
-          <TouchableOpacity
-            style={styles.dropdown}
-            onPress={() => setShowServiceDropdown(!showServiceDropdown)}
-          >
-            <Text style={styles.dropdownText}>
-              {selectedService?.service_name || 'Pilih layanan'}
-            </Text>
-            <Text style={styles.dropdownArrow}>▼</Text>
-          </TouchableOpacity>
-          {showServiceDropdown && (
-            <View style={[styles.dropdownMenu, { maxHeight: 200 }]}>
-              {services
-                .filter((s) => s.is_active)
-                .map((service) => (
+            <Text style={[styles.label, { marginTop: 20 }]}>Layanan</Text>
+            <TouchableOpacity
+              style={[styles.input, styles.dropdown]}
+              onPress={() => setShowServiceDropdown(!showServiceDropdown)}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.dropdownText}>
+                {selectedServiceId ? services.find(s => s.id === selectedServiceId)?.service_name : 'Pilih layanan'}
+                {showServiceDropdown ? '▲' : '▼'}
+              </Text>
+            </TouchableOpacity>
+            {showServiceDropdown && services.length > 0 && (
+              <View style={styles.dropdownMenu}>
+                {services.map((service) => (
                   <TouchableOpacity
                     key={service.id}
                     style={styles.dropdownItem}
                     onPress={() => handleServiceSelect(service)}
                   >
-                    <Text style={styles.dropdownItemText}>
-                      {service.service_name}
-                    </Text>
-                    <Text style={styles.dropdownItemPrice}>
-                      Rp {parseInt(service.price).toLocaleString('id-ID')}
-                    </Text>
+                    <Text style={styles.dropdownText}>{service.service_name}</Text>
                   </TouchableOpacity>
                 ))}
-            </View>
-          )}
-
-          <Text style={[styles.label, { marginTop: 16 }]}>Biaya (Rp)</Text>
-          <Controller
-            control={control}
-            name="total_cost"
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TextInput
-                  style={[styles.input, errors.total_cost && styles.inputError]}
-                  placeholder="0"
-                  placeholderTextColor="#A0A0A0"
-                  value={value.toString()}
-                  onChangeText={(text) => onChange(parseInt(text) || 0)}
-                  keyboardType="number-pad"
-                />
-                {errors.total_cost && (
-                  <Text style={styles.errorText}>{errors.total_cost.message}</Text>
-                )}
-              </>
+              </View>
             )}
-          />
 
-          <Text style={[styles.label, { marginTop: 16 }]}>Catatan (opsional)</Text>
-          <Controller
-            control={control}
-            name="notes"
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Catatan tambahan..."
-                placeholderTextColor="#A0A0A0"
-                value={value}
-                onChangeText={onChange}
-                multiline
-                numberOfLines={3}
-              />
-            )}
-          />
+            <Text style={[styles.label, { marginTop: 20 }]}>Total Biaya</Text>
+            <TextInput
+              style={styles.input}
+              value={selectedServicePrice.toString()}
+              editable={false}
+              keyboardType="number-pad"
+            />
+
+            <Text style={[styles.label, { marginTop: 20 }]}>Catatan</Text>
+            <Controller
+              control={control}
+              name="notes"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <>
+                  <TextInput
+                    style={[styles.input, styles.textArea]}
+                    placeholder="Catatan tambahan (opsional)"
+                    placeholderTextColor="#A0A0A0"
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                    multiline
+                    numberOfLines={3}
+                    editable={!isSubmitting}
+                  />
+                  {errors.notes && (
+                    <Text style={styles.errorText}>{errors.notes.message}</Text>
+                  )}
+                </>
+              )}
+            />
+          </View>
 
           <TouchableOpacity
             style={[styles.button, isSubmitting && styles.buttonDisabled]}
@@ -303,68 +301,71 @@ export default function NewTransactionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F1E9' },
-  keyboardView: { flex: 1 },
-  content: { padding: 16, paddingBottom: 32 },
-  sectionTitle: {
+  safeArea: { flex: 1, backgroundColor: '#F4F1E9' },
+  container: { flex: 1 },
+  scrollContent: { flexGrow: 1, justifyContent: 'space-between', padding: 24 },
+  header: { marginBottom: 40, marginTop: 20 },
+  title: {
     color: '#16201D',
-    fontSize: 16,
+    fontFamily: 'serif',
+    fontSize: 28,
     fontWeight: '700',
-    marginBottom: 16,
-    marginTop: 8,
+    marginBottom: 8,
   },
-  label: { color: '#16201D', fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  subtitle: { color: '#8B572A', fontSize: 14, fontWeight: '600' },
+  form: { marginBottom: 40 },
+  label: {
+    color: '#16201D',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
   input: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#D5CDBF',
     borderRadius: 8,
     paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     fontSize: 14,
     color: '#16201D',
-    marginBottom: 12,
   },
-  inputError: { borderColor: '#D32F2F' },
-  errorText: { color: '#D32F2F', fontSize: 12, marginBottom: 12 },
-  textArea: { minHeight: 80, paddingTop: 12, textAlignVertical: 'top' },
+  textArea: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
   dropdown: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D5CDBF',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
     justifyContent: 'space-between',
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
   },
-  dropdownText: { color: '#16201D', fontSize: 14 },
-  dropdownArrow: { color: '#8B572A', fontSize: 12 },
+  dropdownText: {
+    fontSize: 14,
+    color: '#16201D',
+  },
   dropdownMenu: {
     backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: '#D5CDBF',
-    borderRadius: 8,
-    marginBottom: 12,
+    marginTop: 4,
+    maxHeight: 200,
+    overflow: 'hidden',
   },
   dropdownItem: {
     paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8E8E8',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    borderBottomColor: '#F0EFE9',
   },
-  dropdownItemText: { color: '#16201D', fontSize: 14 },
-  dropdownItemPrice: { color: '#174B3B', fontWeight: '600', fontSize: 13 },
+  inputError: { borderColor: '#D32F2F' },
+  errorText: { color: '#D32F2F', fontSize: 12, marginBottom: 12 },
   button: {
     backgroundColor: '#174B3B',
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 24,
+    marginTop: 20,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },

@@ -11,10 +11,10 @@ import {
   Share,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import api from '../../../src/lib/api';
-import { LoadingSpinner } from '../../../src/components/LoadingSpinner';
-import { ErrorState } from '../../../src/components/ErrorState';
-import { StatusBadge } from '../../../src/components/StatusBadge';
+import api from '@/lib/api';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ErrorState } from '@/components/ErrorState';
+import { StatusBadge } from '@/components/StatusBadge';
 import {
   TransactionDTO,
   TransactionStatus,
