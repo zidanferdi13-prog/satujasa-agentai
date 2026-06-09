@@ -4,12 +4,20 @@
   "main": "index.ts",
   "dependencies": {
     "expo": "~56.0.8",
+    "expo-router": "~3.5.16",
     "expo-status-bar": "~56.0.4",
+    "expo-secure-store": "~13.0.2",
     "react": "19.2.3",
-    "react-native": "0.85.3"
+    "react-native": "0.85.3",
+    "axios": "^1.6.5",
+    "react-hook-form": "^7.48.0",
+    "zod": "^3.22.4",
+    "zustand": "^4.4.1",
+    "@stnk/contracts": "*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "@types/react-native": "~0.85.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
