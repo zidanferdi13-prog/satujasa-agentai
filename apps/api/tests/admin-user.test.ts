@@ -26,7 +26,6 @@ describe('Admin User Routes', () => {
   let ownerToken: string
   let adminUserToken: string
   let tenantId: string
-  let adminUserId: string
 
   it('creates owner and tenant for admin-user tests', async () => {
     // Register owner
