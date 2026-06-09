@@ -8,7 +8,9 @@ import { SuperAdminDashboard } from '../features/dashboard/super-admin/Dashboard
 import { OwnersPage } from '../features/dashboard/super-admin/Owners'
 import { OwnerDetailPage } from '../features/dashboard/super-admin/OwnerDetail'
 import { OwnerDashboard } from '../features/dashboard/owner/Dashboard'
+import { OwnerServicesPage } from '../features/services/OwnerServicesPage'
 import { AdminUserDashboard } from '../features/dashboard/admin-user/Dashboard'
+import { AdminUserServicesPage } from '../features/services/AdminUserServicesPage'
 
 export const router = createBrowserRouter([
   // Public routes
@@ -29,7 +31,7 @@ export const router = createBrowserRouter([
     element: <MonitoringPage />,
   },
 
-  // Super Admin routes
+  // ─── Super Admin routes ─────────────────────────────────────────────────────
   {
     path: '/super-admin/dashboard',
     element: (
@@ -55,7 +57,7 @@ export const router = createBrowserRouter([
     ),
   },
 
-  // Owner routes
+  // ─── Owner routes ───────────────────────────────────────────────────────────
   {
     path: '/owner/dashboard',
     element: (
@@ -64,13 +66,29 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
+  {
+    path: '/owner/services',
+    element: (
+      <ProtectedRoute allowedRoles={['owner']}>
+        <OwnerServicesPage />
+      </ProtectedRoute>
+    ),
+  },
 
-  // Admin User routes
+  // ─── Admin User routes ──────────────────────────────────────────────────────
   {
     path: '/admin-user/dashboard',
     element: (
       <ProtectedRoute allowedRoles={['admin-user']}>
         <AdminUserDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/admin-user/services',
+    element: (
+      <ProtectedRoute allowedRoles={['admin-user']}>
+        <AdminUserServicesPage />
       </ProtectedRoute>
     ),
   },
