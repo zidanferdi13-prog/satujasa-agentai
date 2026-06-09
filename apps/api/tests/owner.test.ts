@@ -45,11 +45,13 @@ describe('Owner Routes', () => {
     const adminToken = adminRes.body.accessToken
 
     const servicesRes = await request(app)
-      .get('/api/v1/admin/services')
+      .get('/api/v1/admin/settings')
       .set('Authorization', `Bearer ${adminToken}`)
 
-    if (servicesRes.body.data && servicesRes.body.data.length > 0) {
-      serviceId = servicesRes.body.data[0].id
+    console.log('Services response:', JSON.stringify(servicesRes.body, null, 2))
+    if (servicesRes.body.services && servicesRes.body.services.length > 0) {
+      serviceId = servicesRes.body.services[0].id
+      console.log('Using serviceId:', serviceId)
     }
   })
 
@@ -141,6 +143,7 @@ describe('Owner Routes', () => {
         notes: 'Test transaction',
       })
 
+    console.log('Transaction creation response:', response.status, response.body)
     expect(response.status).toBe(201)
     expect(response.body).toHaveProperty('id')
     expect(response.body.status).toBe('received')

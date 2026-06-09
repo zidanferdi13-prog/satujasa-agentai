@@ -58,7 +58,6 @@ export const setTenantServiceSchema = z.object({
 
 // ─── Transaction Schemas ─────────────────────────────────────────────────────
 export const createTransactionSchema = z.object({
-  tenant_id: z.string().uuid().optional(),
   customer_name: z.string().min(1).max(255),
   customer_phone: z.string().min(8).max(20),
   plate_number: z.string().min(1).max(20),
