@@ -40,6 +40,7 @@ export const createAdminUserSchema = z.object({
   email: z.string().email(),
   phone: z.string().min(8).max(20),
   password: z.string().min(8).max(100),
+  tenant_id: z.string().uuid().optional(),
 })
 
 // ─── Subscription Schemas ────────────────────────────────────────────────────
