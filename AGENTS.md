@@ -29,7 +29,7 @@ Entry point untuk semua AI coding agents. Baca file ini pertama kali sebelum mel
 stnk-jasa/
 ├── apps/
 │   ├── api/          # Express backend (TypeScript + Drizzle + PostgreSQL)
-│   ├── web/          # React + Vite frontend (Tailwind + shadcn/ui)
+│   ├── frontend/     # Next.js 16 frontend (Tailwind + shadcn/ui + MUI)
 │   └── mobile/       # Expo + React Native (Admin User only)
 ├── packages/
 │   └── contracts/    # Shared TypeScript types, enums, DTOs (@stnk/contracts)
@@ -51,14 +51,15 @@ packages/contracts  (types dulu)
        ↓
 apps/api           (backend API)
        ↓
-apps/web           (frontend web)
-apps/mobile        (mobile app, parallel dengan web)
+apps/frontend       (Next.js frontend)
+apps/mobile         (mobile app, parallel dengan web)
 ```
 
 ## Quick Reference
 
-- API base URL dev: `http://127.0.0.1:4000`
-- Web dev: `http://127.0.0.1:5173`
+- API base URL: `https://satujasa.my.id/api/v1`
+- Production URL: `https://satujasa.my.id`
+- Frontend build: `cd apps/frontend && NODE_OPTIONS="--max-old-space-size=1536" npx next build`
 - Branch format: `agent/<role>/<task-name>`
 - All PKs: UUID v7
 - Soft delete: `deleted_at IS NULL` on all queries
