@@ -6,7 +6,7 @@ import { authStore } from '../../stores/auth'
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { setAuth, setLoading } = authStore()
+  const { setAuth } = authStore()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -16,6 +16,7 @@ export function RegisterPage() {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -28,29 +29,78 @@ export function RegisterPage() {
     setIsLoading(true)
 
     try {
-      const response = await api.post('/auth/register', formData)
+      const response = await api.post('/api/v1/auth/register', formData)
       const { data } = response
 
-      if (data.token && data.user) {
-        const role = data.user.role || 'owner'
-        setAuth(data.token, role, data.user.id)
-        setLoading(false)
-        navigate('/owner/dashboard')
+      if (data.accessToken && data.user) {
+        const user = {
+          id: data.user.id,
+          email: data.user.email,
+          name: formData.name,
+          role: data.user.role || 'owner',
+        }
+        const subscription = {
+          tier: 'free' as const,
+          max_tenants: 0,
+          max_admin_users: 0,
+        }
+        setAuth(data.accessToken, user, subscription)
+        setShowSuccess(true)
+
+        // Redirect after brief delay to show success message
+        setTimeout(() => navigate('/owner/dashboard'), 2000)
       }
     } catch (err) {
-      const message = (err as any)?.response?.data?.error?.message || 'Registration failed'
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        'Registrasi gagal. Coba lagi.'
       setFormError(message)
     } finally {
       setIsLoading(false)
     }
   }
 
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="text-4xl mb-3">✅</div>
+            <CardTitle>Akun Berhasil Dibuat!</CardTitle>
+            <CardDescription>
+              Selamat datang di STNK Jasa. Akun Anda langsung aktif dengan paket <strong>Free</strong>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+              <p className="text-sm font-medium text-amber-800 mb-2">📋 Paket Free</p>
+              <ul className="text-xs text-amber-700 space-y-1">
+                <li>• Anda bisa login dan melihat semua menu</li>
+                <li>• Belum bisa membuat tenant</li>
+                <li>• Belum bisa assign admin user</li>
+                <li>• Belum bisa input transaksi</li>
+              </ul>
+              <p className="text-xs text-amber-600 mt-3">
+                Hubungi admin untuk upgrade ke Pro, Plus, atau Expert.
+              </p>
+            </div>
+            <p className="text-sm text-slate-500 text-center">
+              Mengarahkan ke dashboard...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Daftar</CardTitle>
-          <CardDescription>Buat akun STNK Jasa Anda sebagai owner</CardDescription>
+          <CardTitle>Daftar sebagai Owner</CardTitle>
+          <CardDescription>
+            Buat akun biro jasa Anda. Akun langsung aktif dengan paket Free.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
@@ -99,7 +149,7 @@ export function RegisterPage() {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="+62..."
+                placeholder="08..."
                 disabled={isLoading}
                 required
               />
@@ -114,20 +164,21 @@ export function RegisterPage() {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder="Minimal 8 karakter"
                 disabled={isLoading}
                 required
+                minLength={8}
               />
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Loading...' : 'Daftar'}
+              {isLoading ? 'Mendaftar...' : 'Daftar Sekarang'}
             </Button>
           </form>
 
           <p className="text-sm text-slate-600 mt-4 text-center">
             Sudah punya akun?{' '}
-            <Link to="/login" className="text-primary hover:underline">
+            <Link to="/login" className="text-primary hover:underline font-medium">
               Login di sini
             </Link>
           </p>

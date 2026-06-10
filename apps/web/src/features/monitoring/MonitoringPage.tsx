@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from '../../components/ui'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../components/ui'
 import { StatusBadge } from '../../components/shared/StatusBadge'
 
 export function MonitoringPage() {

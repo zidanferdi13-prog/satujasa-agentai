@@ -6,32 +6,70 @@ import { authStore } from '../../stores/auth'
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { setAuth, setLoading, setError, isLoading, error } = authStore()
+  const { setAuth } = authStore()
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  })
+  const [isLoading, setIsLoading] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const getRedirectPath = (role: string) => {
+    switch (role) {
+      case 'super-admin':
+        return '/super-admin/dashboard'
+      case 'owner':
+        return '/owner/dashboard'
+      case 'admin-user':
+        return '/admin-user/dashboard'
+      default:
+        return '/'
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setFormError(null)
-    setLoading(true)
+    setIsLoading(true)
 
     try {
-      const response = await api.post('/auth/login', { email, password })
+      const response = await api.post('/api/v1/auth/login', formData)
       const { data } = response
 
-      if (data.token && data.user) {
-        const role = data.user.role || 'owner'
-        setAuth(data.token, role, data.user.id)
-        navigate(`/${role}/dashboard`)
+      if (data.accessToken && data.user) {
+        const user = {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.name || data.user.email,
+          role: data.user.role,
+        }
+
+        // Fetch subscription for owners
+        let subscription = undefined
+        if (data.user.role === 'owner' && data.subscription) {
+          subscription = {
+            tier: data.subscription.tier,
+            max_tenants: data.subscription.max_tenants,
+            max_admin_users: data.subscription.max_admin_users,
+          }
+        }
+
+        setAuth(data.accessToken, user, subscription)
+        navigate(getRedirectPath(data.user.role))
       }
     } catch (err) {
-      const message = (err as any)?.response?.data?.error?.message || 'Login failed'
+      const message =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+        'Login gagal. Periksa email dan password Anda.'
       setFormError(message)
-      setError(message)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
   }
 
@@ -56,8 +94,9 @@ export function LoginPage() {
               </label>
               <Input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
                 placeholder="email@example.com"
                 disabled={isLoading}
                 required
@@ -70,8 +109,9 @@ export function LoginPage() {
               </label>
               <Input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
                 placeholder="••••••••"
                 disabled={isLoading}
                 required
@@ -79,14 +119,14 @@ export function LoginPage() {
             </div>
 
             <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? 'Loading...' : 'Login'}
+              {isLoading ? 'Loading...' : 'Masuk'}
             </Button>
           </form>
 
           <p className="text-sm text-slate-600 mt-4 text-center">
             Belum punya akun?{' '}
-            <Link to="/register" className="text-primary hover:underline">
-              Daftar sekarang
+            <Link to="/register" className="text-primary hover:underline font-medium">
+              Daftar di sini
             </Link>
           </p>
         </CardContent>
