@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#F4F1E9"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTabletMode": true,
       "bundleIdentifier": "com.statujasa.mobile"
@@ -26,15 +28,20 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router"],
-    "schemes": ["myapp"],
+    "plugins": [
+      "expo-router"
+    ],
+    "schemes": [
+      "myapp"
+    ],
     "extra": {
       "router": {
         "origin": false
       },
       "eas": {
-        "projectId": "stnk-jasa-mobile"
+        "projectId": "6692f29e-9afc-4464-91d5-2e400aae3e88"
       }
-    }
+    },
+    "owner": "zidanferdi13"
   }
 }
