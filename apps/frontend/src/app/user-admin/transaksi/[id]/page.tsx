@@ -17,6 +17,11 @@ import StatusTimeline from '@/components/transactions/StatusTimeline';
 import UpdateStatusModal from '@/components/transactions/UpdateStatusModal';
 import { isFinalStatus } from '@/lib/stateMachine';
 
+function formatCurrency(value: number | string | null | undefined) {
+  const amount = Number(value ?? 0);
+  return amount.toLocaleString('id-ID');
+}
+
 export default function TransaksiDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -48,9 +53,9 @@ export default function TransaksiDetailPage() {
   }
 
   function handleWhatsApp() {
-    if (!tx) return;
+    if (!tx?.monitoring_token || !tx.customer_phone) return;
     const monitoringUrl = `${window.location.origin}/monitoring/${tx.monitoring_token}`;
-    const message = `Halo ${tx.customer_name}, berikut link monitoring status dokumen Anda:\n${monitoringUrl}`;
+    const message = `Halo ${tx.customer_name || 'Pelanggan'}, berikut link monitoring status dokumen Anda:\n${monitoringUrl}`;
     const waUrl = `https://wa.me/${tx.customer_phone.replace(/^0/, '62')}?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
   }
@@ -80,11 +85,11 @@ export default function TransaksiDetailPage() {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
           <Box>
             <Typography variant="caption" color="text.secondary">Customer</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.customer_name}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.customer_name || '-'}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">No. HP</Typography>
-            <Typography variant="body1">{tx.customer_phone}</Typography>
+            <Typography variant="body1">{tx.customer_phone || '-'}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">Plat Nomor</Typography>
@@ -96,12 +101,12 @@ export default function TransaksiDetailPage() {
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">Layanan</Typography>
-            <Typography variant="body1">{tx.service_name}</Typography>
+            <Typography variant="body1">{tx.service_name || '-'}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">Total Biaya</Typography>
             <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              Rp{tx.total_cost.toLocaleString('id-ID')}
+              Rp{formatCurrency(tx.total_cost)}
             </Typography>
           </Box>
           {tx.notes && (
@@ -120,7 +125,7 @@ export default function TransaksiDetailPage() {
             Update Status
           </Button>
         )}
-        <Button variant="outlined" onClick={handleWhatsApp} startIcon={<span className="material-symbols-outlined text-[20px]">chat</span>}>
+        <Button variant="outlined" onClick={handleWhatsApp} disabled={!tx.monitoring_token || !tx.customer_phone} startIcon={<span className="material-symbols-outlined text-[20px]">chat</span>}>
           Kirim WA
         </Button>
         <Button variant="outlined" onClick={handleCopyMonitoring} startIcon={<span className="material-symbols-outlined text-[20px]">link</span>}>

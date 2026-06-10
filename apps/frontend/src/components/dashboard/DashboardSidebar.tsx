@@ -45,7 +45,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
         onClick={onClose}
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-lg shadow-primary/20 ring-1 ring-white/80">
-          <Image src={icon} alt="" className="h-12 w-12 rounded-md" priority />
+          <Image src={icon} alt="" className="h-12 w-12 rounded-md" />
         </div>
         <div className="min-w-0">
           <p className="truncate text-headline-sm font-bold text-on-primary">STNK SatuJasa</p>

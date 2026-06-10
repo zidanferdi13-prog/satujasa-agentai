@@ -21,12 +21,12 @@ import apiClient from '@/lib/axios';
 interface OwnerDetail {
   id: string;
   email: string;
-  subscription: {
+  subscription?: {
     tier: string;
     max_tenants: number;
     max_admin_users: number;
   };
-  tenants: Array<{ id: string; name: string }>;
+  tenants?: Array<{ id: string; name: string }>;
 }
 
 interface UpdateSubscriptionPayload {
@@ -61,9 +61,9 @@ export default function OwnerDetailPage() {
   useEffect(() => {
     if (owner) {
       setForm({
-        tier: owner.subscription.tier,
-        max_tenants: owner.subscription.max_tenants,
-        max_admin_users: owner.subscription.max_admin_users,
+        tier: owner.subscription?.tier ?? 'free',
+        max_tenants: owner.subscription?.max_tenants ?? 0,
+        max_admin_users: owner.subscription?.max_admin_users ?? 0,
       });
     }
   }, [owner]);
@@ -121,7 +121,7 @@ export default function OwnerDetailPage() {
           <span className="material-symbols-outlined">arrow_back</span>
         </Button>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
-          {owner.email}
+          {owner.email || 'Owner tanpa email'}
         </Typography>
       </Box>
 
@@ -190,7 +190,7 @@ export default function OwnerDetailPage() {
               <Card key={tenant.id} variant="outlined">
                 <CardContent sx={{ py: 2 }}>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {tenant.name}
+                    {tenant.name || 'Tenant tanpa nama'}
                   </Typography>
                 </CardContent>
               </Card>

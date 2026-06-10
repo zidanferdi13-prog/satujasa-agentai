@@ -17,6 +17,13 @@ type MonitoringData = TransactionDetail & {
   tenant_name?: string;
 };
 
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('id-ID');
+}
+
 export default function MonitoringPage() {
   const { token } = useParams<{ token: string }>();
 
@@ -89,7 +96,7 @@ export default function MonitoringPage() {
             Nama Pelanggan
           </Typography>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {tx.customer_name}
+            {tx.customer_name || 'Pelanggan'}
           </Typography>
         </Box>
 
@@ -99,7 +106,7 @@ export default function MonitoringPage() {
               Plat Nomor
             </Typography>
             <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              {tx.plate_number}
+              {tx.plate_number ?? tx.vehicle_plate ?? '—'}
             </Typography>
           </Box>
           <Box>
@@ -117,7 +124,7 @@ export default function MonitoringPage() {
             Layanan
           </Typography>
           <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            {tx.service_name}
+            {tx.service_name || '—'}
           </Typography>
         </Box>
 
@@ -148,7 +155,7 @@ export default function MonitoringPage() {
               Dikirim
             </Typography>
             <Typography variant="body2">
-              {new Date(tx.created_at).toLocaleString('id-ID')}
+              {formatDateTime(tx.created_at)}
             </Typography>
           </Box>
           <Box>
@@ -156,7 +163,7 @@ export default function MonitoringPage() {
               Update Terakhir
             </Typography>
             <Typography variant="body2">
-              {new Date(tx.updated_at).toLocaleString('id-ID')}
+              {formatDateTime(tx.updated_at)}
             </Typography>
           </Box>
         </Box>

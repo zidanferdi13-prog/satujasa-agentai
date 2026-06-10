@@ -50,6 +50,8 @@ export default function RoleSection() {
             <img
               alt="Team collaboration"
               className="rounded-3xl soft-shadow grayscale hover:grayscale-0 transition-all duration-700 w-full object-cover"
+              loading="lazy"
+              decoding="async"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAnYb6OCMQJOj7BaONev5Hft-DfMOs8fbeh9w9dF4Bfp8BzrYiPnqUlKRiUfvzdDBOvNZxa4bOvplKqNxY5muKyjiGALvrjBQ_bVBjbZc8uj9NplA4Xy7xA9TysmGzueT4nMb2QLdKJYVJEytx5hPi-AxGyeWOsKpuHPLsuxenDx-WaukFOvLGtKgH5hMDydGLYPcGTPDdB3mbgBS5V9vz9d6CjBdavqcjE9JTAoJw7YRlbqBnH1nqzKHDDT0tXFeTV3u9aOKnNPlJ"
             />
             <div className="absolute -bottom-8 -right-8 p-8 bg-primary rounded-3xl text-on-primary soft-shadow hidden md:block">
