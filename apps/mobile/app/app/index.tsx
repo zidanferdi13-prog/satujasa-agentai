@@ -28,10 +28,10 @@ export default function DashboardScreen() {
   const fetchDashboard = async () => {
     try {
       setError(null);
-      const response = await api.get<{ data: AdminUserDashboard }>(
+      const response = await api.get<AdminUserDashboard>(
         '/admin-user/dashboard'
       );
-      setData(response.data.data);
+      setData(response.data);
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat dashboard');
     } finally {

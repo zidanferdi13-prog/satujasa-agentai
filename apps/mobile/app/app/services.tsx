@@ -31,7 +31,7 @@ export default function ServicesScreen() {
     try {
       setError(null);
       const response = await api.get<{ data: TenantServiceDTO[] }>(
-        '/admin-user/tenant/services'
+        '/admin-user/services'
       );
       setServices(response.data.data);
     } catch (err: any) {
@@ -46,7 +46,7 @@ export default function ServicesScreen() {
     setEditingPrice(service.price);
   };
 
-  const handleSavePrice = async (serviceId: string) => {
+  const handleSavePrice = async (service: TenantServiceDTO) => {
     setSaving(true);
     try {
       const newPrice = parseInt(editingPrice);
@@ -55,12 +55,14 @@ export default function ServicesScreen() {
         return;
       }
 
-      await api.patch(`/admin-user/tenant/services/${serviceId}`, {
+      await api.post('/admin-user/services', {
+        service_id: service.service_id,
         price: newPrice,
+        is_active: service.is_active,
       });
 
       const updated = services.map((s) =>
-        s.id === serviceId ? { ...s, price: editingPrice } : s
+        s.id === service.id ? { ...s, price: editingPrice } : s
       );
       setServices(updated);
       setEditingId(null);
@@ -74,7 +76,9 @@ export default function ServicesScreen() {
 
   const handleToggleActive = async (service: TenantServiceDTO) => {
     try {
-      await api.patch(`/admin-user/tenant/services/${service.id}`, {
+      await api.post('/admin-user/services', {
+        service_id: service.service_id,
+        price: Number(service.price),
         is_active: !service.is_active,
       });
 
@@ -131,7 +135,7 @@ export default function ServicesScreen() {
             />
             <TouchableOpacity
               style={styles.saveButton}
-              onPress={() => handleSavePrice(item.id)}
+              onPress={() => handleSavePrice(item)}
               disabled={saving}
             >
               <Text style={styles.saveButtonText}>Simpan</Text>
