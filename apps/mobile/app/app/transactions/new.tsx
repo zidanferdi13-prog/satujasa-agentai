@@ -17,7 +17,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { TenantServiceDTO, CreateTransactionRequest } from '@stnk/contracts';
+import { TenantServiceDTO } from '@stnk/contracts';
 
 // Helper to fix Zod resolver typing issue with @hookform/resolvers@3.x
 const getZodResolver = (schema: any) => zodResolver(schema);
@@ -25,7 +25,7 @@ const getZodResolver = (schema: any) => zodResolver(schema);
 const createTransactionSchema = z.object({
   customer_name: z.string().min(1, 'Nama customer wajib diisi'),
   customer_phone: z.string().min(10, 'Nomor HP tidak valid'),
-  plate_number: z.string().min(1, 'Plat nomor wajib diisi'),
+  vehicle_plate: z.string().min(3, 'Plat nomor minimal 3 karakter').max(12, 'Plat nomor maksimal 12 karakter'),
   vehicle_type: z.enum(['Motor', 'Mobil', 'Truk']),
   service_id: z.string().min(1, 'Pilih layanan'),
   total_cost: z.number().min(1, 'Biaya minimal Rp1'),
@@ -33,6 +33,16 @@ const createTransactionSchema = z.object({
 });
 
 type CreateTransactionFormData = z.infer<typeof createTransactionSchema>;
+
+interface CreateAdminTransactionPayload {
+  customer_name: string;
+  customer_phone: string;
+  vehicle_plate: string;
+  service_id: string;
+  total_cost: number;
+  additional_cost?: number;
+  notes?: string;
+}
 
 export default function NewTransactionScreen() {
   const router = useRouter();
@@ -54,7 +64,7 @@ export default function NewTransactionScreen() {
     defaultValues: {
       customer_name: '',
       customer_phone: '',
-      plate_number: '',
+      vehicle_plate: '',
       vehicle_type: 'Mobil',
       service_id: '',
       total_cost: 0,
@@ -69,7 +79,7 @@ export default function NewTransactionScreen() {
     const fetchServices = async () => {
       try {
         const response = await api.get<{ data: TenantServiceDTO[] }>(
-          '/admin-user/tenant/services'
+          '/admin-user/services'
         );
         setServices(response.data.data);
       } catch (err) {
@@ -92,11 +102,10 @@ export default function NewTransactionScreen() {
   const onSubmit = async (data: CreateTransactionFormData) => {
     setIsSubmitting(true);
     try {
-      const payload: CreateTransactionRequest = {
+      const payload: CreateAdminTransactionPayload = {
         customer_name: data.customer_name,
         customer_phone: data.customer_phone,
-        plate_number: data.plate_number,
-        vehicle_type: data.vehicle_type,
+        vehicle_plate: data.vehicle_plate,
         service_id: data.service_id,
         total_cost: data.total_cost,
         notes: data.notes,
@@ -180,11 +189,11 @@ export default function NewTransactionScreen() {
             <Text style={[styles.label, { marginTop: 20 }]}>Plat Nomor</Text>
             <Controller
               control={control}
-              name="plate_number"
+              name="vehicle_plate"
               render={({ field: { onChange, onBlur, value } }) => (
                 <>
                   <TextInput
-                    style={[styles.input, errors.plate_number && styles.inputError]}
+                    style={[styles.input, errors.vehicle_plate && styles.inputError]}
                     placeholder="Plat nomor (contoh: B 1234 ABC)"
                     placeholderTextColor="#A0A0A0"
                     onChangeText={onChange}
@@ -193,8 +202,8 @@ export default function NewTransactionScreen() {
                     autoCapitalize="characters"
                     editable={!isSubmitting}
                   />
-                  {errors.plate_number && (
-                    <Text style={styles.errorText}>{errors.plate_number.message}</Text>
+                  {errors.vehicle_plate && (
+                    <Text style={styles.errorText}>{errors.vehicle_plate.message}</Text>
                   )}
                 </>
               )}
