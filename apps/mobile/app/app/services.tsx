@@ -13,7 +13,7 @@ import {
 import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
-import { TenantServiceDTO } from '@stnk/contracts';
+import { TenantServiceDTO } from '@/contracts';
 
 export default function ServicesScreen() {
   const [services, setServices] = useState<TenantServiceDTO[]>([]);

@@ -17,7 +17,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { TenantServiceDTO } from '@stnk/contracts';
+import { TenantServiceDTO } from '@/contracts';
 
 // Helper to fix Zod resolver typing issue with @hookform/resolvers@3.x
 const getZodResolver = (schema: any) => zodResolver(schema);

@@ -19,7 +19,7 @@ import api from '@/lib/api';
 import { storeToken } from '@/lib/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { AuthResponse, UserDTO } from '@stnk/contracts';
+import { AuthResponse, UserDTO } from '@/contracts';
 
 // Helper to fix Zod resolver typing issue with @hookform/resolvers@3.x
 // Use any for the schema to bypass generic constraint

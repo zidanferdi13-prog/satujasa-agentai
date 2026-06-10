@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ApplicationRole, UserDTO } from '@stnk/contracts';
+import { ApplicationRole, UserDTO } from '@/contracts';
 
 interface AuthState {
   user: UserDTO | null;

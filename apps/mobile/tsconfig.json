@@ -22,7 +22,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@stnk/contracts": ["../../packages/contracts/src/index.ts"],
       "app/*": ["app/*"]
     }
   },

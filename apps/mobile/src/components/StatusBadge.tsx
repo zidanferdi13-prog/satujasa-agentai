@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { TransactionStatus, VALID_TRANSITIONS } from '@stnk/contracts';
+import { TransactionStatus, VALID_TRANSITIONS } from '@/contracts';
 
 const STATUS_COLORS: Record<TransactionStatus, { bg: string; text: string }> = {
   received: { bg: '#E8F5E9', text: '#2E7D32' },

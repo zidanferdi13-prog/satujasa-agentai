@@ -17,7 +17,7 @@ import { ErrorState } from '@/components/ErrorState';
 import { EmptyState } from '@/components/EmptyState';
 import { StatusBadge } from '@/components/StatusBadge';
 import { SkeletonCard } from '@/components/SkeletonCard';
-import { TransactionStatus } from '@stnk/contracts';
+import { TransactionStatus } from '@/contracts';
 
 interface AdminUserTransaction {
   id: string;

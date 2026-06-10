@@ -18,7 +18,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import {
   TransactionStatus,
   VALID_TRANSITIONS,
-} from '@stnk/contracts';
+} from '@/contracts';
 
 interface AdminUserTransaction {
   id: string;

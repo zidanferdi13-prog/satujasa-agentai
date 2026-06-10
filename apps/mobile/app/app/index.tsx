@@ -15,7 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
 import { SkeletonCard } from '@/components/SkeletonCard';
-import { AdminUserDashboard } from '@stnk/contracts';
+import { AdminUserDashboard } from '@/contracts';
 
 export default function DashboardScreen() {
   const router = useRouter();
