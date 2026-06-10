@@ -25,6 +25,8 @@ export default function SolutionSection() {
               <img
                 src={splash.src}
                 alt="Splash screen aplikasi SatuJasa"
+                loading="lazy"
+                decoding="async"
                 className="mx-auto max-h-[540px] w-full object-contain object-top"
               />
             </figure>
