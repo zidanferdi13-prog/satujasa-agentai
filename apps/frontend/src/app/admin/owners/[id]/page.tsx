@@ -70,7 +70,7 @@ export default function OwnerDetailPage() {
 
   const { mutate: updateSubscription, isPending } = useMutation({
     mutationFn: (payload: UpdateSubscriptionPayload) =>
-      apiClient.post('/admin/subscriptions', payload),
+      apiClient.post(`/admin/owners/${id}/subscription`, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-owner', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-owners'] });

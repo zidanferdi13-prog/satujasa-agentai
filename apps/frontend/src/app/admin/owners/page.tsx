@@ -50,7 +50,8 @@ export default function OwnersListPage() {
       'plus': 'warning',
       'expert': 'success',
     };
-    return colors[tier.toLowerCase()] || 'default';
+    const tierKey = (tier ?? 'FREE').toLowerCase();
+    return colors[tierKey] || 'default';
   };
 
   return (
