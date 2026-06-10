@@ -89,14 +89,15 @@ export default function TransactionDetailScreen() {
 
   const handleOpenWA = () => {
     if (!transaction) return;
-    const phone = transaction.customer_id; // Should be customer phone from API
-    const waLink = `https://wa.me/${phone}?text=Assalamu%27alaikum%20Pak/Bu%2C%20Berkas%20STNK%20Anda%20sudah%20kami%20terima.`;
-    Linking.openURL(waLink);
+    // Note: Phone number is not available in TransactionDTO
+    // In a real app, we would fetch customer details to get the phone
+    Alert.alert('Informasi Tidak Lengkap', 'Nomor HP tidak tersedia dalam data transaksi');
   };
 
   const handleCopyLink = () => {
     if (!transaction) return;
-    const monitoringLink = `https://stnk-jasa.app/monitoring/${transaction.monitoring_token}`;
+    // Use the VPS IP for monitoring link
+    const monitoringLink = `http://43.134.164.221/monitoring/${transaction.monitoring_token}`;
     Share.share({
       message: `Pantau status berkas STNK Anda di sini: ${monitoringLink}`,
       title: 'Link Monitoring Berkas',
