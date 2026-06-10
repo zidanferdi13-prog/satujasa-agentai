@@ -17,14 +17,30 @@ import { ErrorState } from '@/components/ErrorState';
 import { EmptyState } from '@/components/EmptyState';
 import { StatusBadge } from '@/components/StatusBadge';
 import { SkeletonCard } from '@/components/SkeletonCard';
-import { TransactionDTO, TransactionStatus, PaginatedResponse } from '@stnk/contracts';
+import { TransactionStatus } from '@stnk/contracts';
+
+interface AdminUserTransaction {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  vehicle_plate: string;
+  service_id: string;
+  service_name: string;
+  status: TransactionStatus;
+  total_cost: string;
+  additional_cost: string;
+  notes: string | null;
+  monitoring_token: string;
+  created_at: string;
+  updated_at: string;
+}
 
 type TabType = 'active' | 'done' | 'cancelled';
 
 export default function TransactionsListScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('active');
-  const [transactions, setTransactions] = useState<TransactionDTO[]>([]);
+  const [transactions, setTransactions] = useState<AdminUserTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,7 +59,7 @@ export default function TransactionsListScreen() {
       const statusList = statusMap[tabType];
       const statusParam = statusList.join(',');
       
-      const response = await api.get<{ data: PaginatedResponse<TransactionDTO> }>(
+      const response = await api.get<{ data: AdminUserTransaction[] }>(
         '/admin-user/transactions',
         {
           params: {
@@ -54,7 +70,7 @@ export default function TransactionsListScreen() {
           },
         }
       );
-      setTransactions(response.data.data.data);
+      setTransactions(response.data.data);
       setPage(1);
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat berkas');
@@ -91,15 +107,15 @@ export default function TransactionsListScreen() {
     </TouchableOpacity>
   );
 
-  const renderTransaction = ({ item }: { item: TransactionDTO }) => (
+  const renderTransaction = ({ item }: { item: AdminUserTransaction }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => router.push(`/transactions/${item.id}`)}
     >
       <View style={styles.cardHeader}>
         <View style={styles.cardTitle}>
-          <Text style={styles.customerName}>{item.customer_id}</Text>
-          <Text style={styles.platNumber}>Plate: {item.id.slice(0, 8)}</Text>
+          <Text style={styles.customerName}>{item.customer_name}</Text>
+          <Text style={styles.platNumber}>Plate: {item.vehicle_plate}</Text>
         </View>
         <StatusBadge status={item.status} size="small" />
       </View>
