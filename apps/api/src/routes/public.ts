@@ -28,6 +28,12 @@ export function publicRoutes(db: Database): Router {
     try {
       const token = req.params.token!
 
+      // Validate UUID format to prevent DB errors on invalid input
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(token)) {
+        res.status(404).json({ error: 'transaction_not_found' })
+        return
+      }
+
       const [tx] = await db
         .select()
         .from(schema.transactions)

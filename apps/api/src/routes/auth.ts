@@ -127,7 +127,7 @@ export function authRoutes(db: Database, config: AppConfig): Router {
       })
 
       res.status(200).json({
-        user: { id: user.id, email: user.email, phone: user.phone, role: user.role },
+        user: { id: user.id, email: user.email, phone: user.phone, role: user.role, tenant_id: user.tenant_id },
         accessToken,
         refreshToken,
       })

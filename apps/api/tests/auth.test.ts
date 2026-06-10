@@ -37,7 +37,6 @@ describe('Auth Routes', () => {
     expect(response.body.user.email).toBe(testEmail)
     expect(response.body.user.role).toBe('owner')
 
-    accessToken = response.body.accessToken
     refreshToken = response.body.refreshToken
   })
 
