@@ -1,7 +1,7 @@
 {
   "name": "@stnk/mobile",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "dependencies": {
     "expo": "~56.0.8",
     "expo-router": "~3.5.16",

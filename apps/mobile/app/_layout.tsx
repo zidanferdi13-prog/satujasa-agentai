@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Stack, useRouter, useRootNavigationState } from 'expo-router';
-import { useFonts } from 'expo-font';
+import { Stack, useRootNavigationState } from 'expo-router';
 import { getToken } from '../src/lib/auth';
 import { useAuthStore } from '../src/stores/authStore';
 
 export default function RootLayout() {
-  const router = useRouter();
   const rootNavigationState = useRootNavigationState();
   const [isLoaded, setIsLoaded] = useState(false);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
-
-  const [fontsLoaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -29,18 +23,16 @@ export default function RootLayout() {
       }
     };
 
-    if (fontsLoaded) {
-      checkAuth();
-    }
-  }, [fontsLoaded, setAuthenticated]);
+    checkAuth();
+  }, [setAuthenticated]);
 
   useEffect(() => {
-    if (isLoaded && fontsLoaded) {
+    if (isLoaded) {
       // Expo Router handles splash screen automatically in v56
     }
-  }, [isLoaded, fontsLoaded]);
+  }, [isLoaded]);
 
-  if (!isLoaded || !fontsLoaded || !rootNavigationState?.key) {
+  if (!isLoaded || !rootNavigationState?.key) {
     return null;
   }
 
