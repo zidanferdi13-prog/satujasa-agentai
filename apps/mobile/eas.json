@@ -6,7 +6,8 @@
     "preview": {
       "android": {
         "buildType": "apk"
-      }
+      },
+      "node": "22.14.0"
     },
     "production": {
       "android": {
