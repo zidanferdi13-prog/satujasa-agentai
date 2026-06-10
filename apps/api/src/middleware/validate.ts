@@ -67,6 +67,19 @@ export const createTransactionSchema = z.object({
   notes: z.string().max(1000).optional(),
 })
 
+export const createAdminTransactionSchema = z.object({
+  customer_name: z.string().min(2).max(255),
+  customer_phone: z.string().min(10).max(20).refine(
+    (v) => v.startsWith('08') || v.startsWith('+62'),
+    { message: 'Phone must start with 08 or +62' }
+  ),
+  vehicle_plate: z.string().min(3).max(12),
+  service_id: z.string().uuid(),
+  total_cost: z.number().min(0),
+  additional_cost: z.number().min(0).optional().default(0),
+  notes: z.string().max(1000).optional(),
+})
+
 export const updateTransactionStatusSchema = z.object({
   status: z.enum([
     'received',
