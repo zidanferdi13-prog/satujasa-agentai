@@ -30,38 +30,67 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         .from(schema.tenants)
         .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
 
-      const [txCount] = await db
+      const [adminUserCount] = await db
         .select({ count: sql<number>`count(*)::int` })
-        .from(schema.transactions)
-        .where(and(eq(schema.transactions.created_by, ownerId), isNull(schema.transactions.deleted_at)))
-
-      const [activeTx] = await db
-        .select({ count: sql<number>`count(*)::int` })
-        .from(schema.transactions)
+        .from(schema.users)
         .where(
           and(
-            eq(schema.transactions.created_by, ownerId),
-            sql`status NOT IN ('done', 'cancelled')`,
-            isNull(schema.transactions.deleted_at)
+            eq(schema.users.owner_id, ownerId),
+            eq(schema.users.role, 'admin-user'),
+            isNull(schema.users.deleted_at)
           )
         )
 
-      const [revenue] = await db
-        .select({ total: sql<string>`COALESCE(sum(total_cost + additional_cost), 0)::text` })
-        .from(schema.transactions)
-        .where(
-          and(
-            eq(schema.transactions.created_by, ownerId),
-            eq(schema.transactions.status, 'done'),
-            isNull(schema.transactions.deleted_at)
+      // Get all tenant IDs for this owner
+      const ownerTenants = await db
+        .select({ id: schema.tenants.id })
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+
+      const tenantIds = ownerTenants.map((t) => t.id)
+
+      let txCount = 0
+      let activeTxCount = 0
+      let totalRevenue = '0'
+
+      if (tenantIds.length > 0) {
+        const txRes = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`, isNull(schema.transactions.deleted_at)))
+        txCount = txRes[0]?.count ?? 0
+
+        const activeRes = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(
+            and(
+              sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+              sql`status NOT IN ('done', 'cancelled')`,
+              isNull(schema.transactions.deleted_at)
+            )
           )
-        )
+        activeTxCount = activeRes[0]?.count ?? 0
+
+        const revRes = await db
+          .select({ total: sql<string>`COALESCE(sum(total_cost + additional_cost), 0)::text` })
+          .from(schema.transactions)
+          .where(
+            and(
+              sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+              eq(schema.transactions.status, 'done'),
+              isNull(schema.transactions.deleted_at)
+            )
+          )
+        totalRevenue = revRes[0]?.total ?? '0'
+      }
 
       res.json({
         total_tenants: tenantCount?.count ?? 0,
-        total_transactions: txCount?.count ?? 0,
-        active_transactions: activeTx?.count ?? 0,
-        total_revenue: revenue?.total ?? '0',
+        total_admin_users: adminUserCount?.count ?? 0,
+        total_transactions: txCount,
+        active_transactions: activeTxCount,
+        total_revenue: totalRevenue,
       })
     } catch (error) {
       console.error('Owner dashboard error:', error)
@@ -83,7 +112,40 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         .from(schema.tenants)
         .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
 
-      res.json({ data: tenants })
+      // Enrich with admin-user count and active tx count per tenant
+      const enriched = await Promise.all(
+        tenants.map(async (tenant) => {
+          const [adminCount] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(schema.users)
+            .where(
+              and(
+                eq(schema.users.tenant_id, tenant.id),
+                eq(schema.users.role, 'admin-user'),
+                isNull(schema.users.deleted_at)
+              )
+            )
+
+          const [activeTxCount] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(schema.transactions)
+            .where(
+              and(
+                eq(schema.transactions.tenant_id, tenant.id),
+                sql`status NOT IN ('done', 'cancelled')`,
+                isNull(schema.transactions.deleted_at)
+              )
+            )
+
+          return {
+            ...tenant,
+            admin_user_count: adminCount?.count ?? 0,
+            active_transactions: activeTxCount?.count ?? 0,
+          }
+        })
+      )
+
+      res.json({ data: enriched })
     } catch (error) {
       console.error('List tenants error:', error)
       res.status(500).json({ error: 'internal_server_error' })
@@ -109,6 +171,56 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
       res.status(201).json(tenant)
     } catch (error) {
       console.error('Create tenant error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // GET /tenants/:id — Detail tenant with admin-users
+  router.get('/tenants/:id', async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const tenantId = (req.params.id as string)!
+
+      const [tenant] = await db
+        .select({
+          id: schema.tenants.id,
+          name: schema.tenants.name,
+          created_at: schema.tenants.created_at,
+          updated_at: schema.tenants.updated_at,
+        })
+        .from(schema.tenants)
+        .where(
+          and(
+            eq(schema.tenants.id, tenantId),
+            eq(schema.tenants.owner_id, ownerId),
+            isNull(schema.tenants.deleted_at)
+          )
+        )
+
+      if (!tenant) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      const adminUsers = await db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          phone: schema.users.phone,
+          created_at: schema.users.created_at,
+        })
+        .from(schema.users)
+        .where(
+          and(
+            eq(schema.users.tenant_id, tenantId),
+            eq(schema.users.role, 'admin-user'),
+            isNull(schema.users.deleted_at)
+          )
+        )
+
+      res.json({ ...tenant, admin_users: adminUsers })
+    } catch (error) {
+      console.error('Get tenant detail error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
@@ -172,6 +284,125 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
   })
 
   // ─── Admin Users ─────────────────────────────────────────────────────────
+
+  // GET /admin-users — Flat list of all admin-users owned by this owner
+  router.get('/admin-users', async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+
+      const admins = await db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          phone: schema.users.phone,
+          tenant_id: schema.users.tenant_id,
+          tenant_name: schema.tenants.name,
+          created_at: schema.users.created_at,
+        })
+        .from(schema.users)
+        .leftJoin(schema.tenants, eq(schema.tenants.id, schema.users.tenant_id))
+        .where(
+          and(
+            eq(schema.users.owner_id, ownerId),
+            eq(schema.users.role, 'admin-user'),
+            isNull(schema.users.deleted_at)
+          )
+        )
+
+      res.json({ data: admins })
+    } catch (error) {
+      console.error('List all admin users error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // POST /admin-users — Create admin-user (alternative flat route)
+  router.post('/admin-users', validate(createAdminUserSchema), async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const { email, phone, password, tenant_id } = req.body as { email: string; phone: string; password: string; tenant_id: string }
+
+      // Verify tenant belongs to owner
+      const [tenant] = await db
+        .select()
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.id, tenant_id), eq(schema.tenants.owner_id, ownerId)))
+        .limit(1)
+
+      if (!tenant) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      const canCreate = await subforcement.checkCanCreateAdminUser(ownerId)
+      if (!canCreate.allowed) {
+        res.status(403).json({ error: canCreate.reason })
+        return
+      }
+
+      const existing = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1)
+      if (existing.length > 0) {
+        res.status(409).json({ error: 'email_already_exists' })
+        return
+      }
+
+      const passwordHash = await bcrypt.hash(password, config.BCRYPT_ROUNDS)
+      const [admin] = await db
+        .insert(schema.users)
+        .values({
+          email,
+          phone,
+          password_hash: passwordHash,
+          role: 'admin-user',
+          owner_id: ownerId,
+          tenant_id,
+        })
+        .returning()
+
+      res.status(201).json({ id: admin!.id, email: admin!.email, phone: admin!.phone, tenant_id })
+    } catch (error) {
+      console.error('Create admin user error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // DELETE /admin-users/:id — Soft delete admin-user (flat route)
+  router.delete('/admin-users/:id', async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const adminId = (req.params.id as string)!
+
+      const [admin] = await db
+        .select()
+        .from(schema.users)
+        .where(
+          and(
+            eq(schema.users.id, adminId),
+            eq(schema.users.owner_id, ownerId),
+            eq(schema.users.role, 'admin-user'),
+            isNull(schema.users.deleted_at)
+          )
+        )
+        .limit(1)
+
+      if (!admin) {
+        res.status(404).json({ error: 'admin_user_not_found' })
+        return
+      }
+
+      await db
+        .update(schema.users)
+        .set({ deleted_at: new Date() })
+        .where(eq(schema.users.id, adminId))
+
+      res.status(204).send()
+    } catch (error) {
+      console.error('Delete admin user error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // GET /tenants/:tenantId/admin-users (legacy tenant-scoped route)
   router.get('/tenants/:tenantId/admin-users', async (req, res) => {
     try {
       const ownerId = req.user!.userId
