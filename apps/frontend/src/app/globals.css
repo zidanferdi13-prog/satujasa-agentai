@@ -1,0 +1,166 @@
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 */
+/* Tailwind v4: skip preflight to avoid MUI conflicts on auth/dashboard pages */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+@theme {
+  /* ── Global FE Theme: SatuJasa logo-aligned ── */
+  --color-primary: #0d63d8;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #0a4fb3;
+  --color-on-primary-container: #e8f1ff;
+  --color-primary-fixed: #d8e8ff;
+  --color-primary-fixed-dim: #9ec7ff;
+  --color-inverse-primary: #9ec7ff;
+  --color-on-primary-fixed: #001b3d;
+  --color-on-primary-fixed-variant: #064391;
+  --color-secondary: #13a7d8;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #d9f5ff;
+  --color-on-secondary-container: #003544;
+  --color-secondary-fixed: #c3f0ff;
+  --color-secondary-fixed-dim: #8ee0f7;
+  --color-on-secondary-fixed: #00242f;
+  --color-on-secondary-fixed-variant: #087b9f;
+  --color-tertiary: #31506f;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #e3edf8;
+  --color-on-tertiary-container: #14304b;
+  --color-tertiary-fixed: #d7e7f7;
+  --color-tertiary-fixed-dim: #b7d3ef;
+  --color-on-tertiary-fixed: #071d32;
+  --color-on-tertiary-fixed-variant: #31506f;
+  --color-background: #f4f8ff;
+  --color-on-background: #101828;
+  --color-surface: #f4f8ff;
+  --color-on-surface: #101828;
+  --color-surface-bright: #ffffff;
+  --color-surface-dim: #d8e3f0;
+  --color-surface-variant: #e4edf8;
+  --color-on-surface-variant: #526070;
+  --color-surface-tint: #0d63d8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f8fbff;
+  --color-surface-container: #edf4ff;
+  --color-surface-container-high: #e2ecf8;
+  --color-surface-container-highest: #d6e3f2;
+  --color-inverse-surface: #0b1f3a;
+  --color-inverse-on-surface: #edf6ff;
+  --color-outline: #728197;
+  --color-outline-variant: #c5d3e5;
+  --color-error: #b3261e;
+  --color-on-error: #ffffff;
+  --color-error-container: #f9dedc;
+  --color-on-error-container: #410e0b;
+
+  /* ── Spacing ── */
+  --spacing-container-max: 1280px;
+  --spacing-margin-desktop: 40px;
+  --spacing-margin-mobile: 16px;
+  --spacing-base: 8px;
+  --spacing-gutter: 24px;
+
+  /* ── Font families (all Inter) ── */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-headline-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body-lg: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-body-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-label-md: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-label-sm: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Type scale ── */
+  --text-display-lg: 48px;
+  --text-display-lg--line-height: 1.2;
+  --text-display-lg--letter-spacing: -0.02em;
+  --text-display-lg--font-weight: 700;
+  --text-headline-lg: 32px;
+  --text-headline-lg--line-height: 1.3;
+  --text-headline-lg--letter-spacing: -0.01em;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 1.4;
+  --text-headline-md--font-weight: 600;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.6;
+  --text-body-lg--font-weight: 400;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.5;
+  --text-body-md--font-weight: 400;
+  --text-label-md: 14px;
+  --text-label-md--line-height: 1.4;
+  --text-label-md--letter-spacing: 0.01em;
+  --text-label-md--font-weight: 500;
+  --text-label-sm: 12px;
+  --text-label-sm--line-height: 1.2;
+  --text-label-sm--font-weight: 600;
+
+  /* ── Border radius ── */
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+/* ── Glass card ── */
+.glass-card {
+  background: color-mix(in srgb, var(--color-surface-container-lowest) 82%, transparent);
+  backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in srgb, var(--color-outline-variant) 70%, transparent);
+}
+
+/* ── Soft shadow ── */
+.soft-shadow {
+  box-shadow: 0 24px 70px -44px rgba(13, 99, 216, 0.38);
+}
+
+/* ── Texture ── */
+.landing-texture {
+  background-image:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--color-secondary) 10%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* ── Float animation ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 7s var(--ease-in-out, ease-in-out) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float {
+    animation: none;
+  }
+}
+
+/* ── Material Symbols ── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Base ── */
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  overflow-wrap: anywhere;
+}
+

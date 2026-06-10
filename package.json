@@ -4,18 +4,16 @@
   "private": true,
   "workspaces": [
     "apps/api",
-    "apps/web",
     "apps/mobile",
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspace @stnk/api && npm run build --workspace @stnk/web",
+    "build": "npm run build --workspace @stnk/api",
+    "build:frontend": "cd apps/frontend && npm run build",
     "dev:api": "npm run dev --workspace @stnk/api",
-    "dev:web": "npm run dev --workspace @stnk/web",
-    "dev:mobile": "npm run start --workspace @stnk/mobile",
-    "lint": "npm run lint --workspace @stnk/api && npm run lint --workspace @stnk/web",
+    "lint": "npm run lint --workspace @stnk/api",
     "test": "npm run test --workspace @stnk/api",
-    "typecheck": "npm run typecheck --workspace @stnk/contracts && npm run typecheck --workspace @stnk/api && npm run typecheck --workspace @stnk/web && npm run typecheck --workspace @stnk/mobile",
+    "typecheck": "npm run typecheck --workspace @stnk/contracts && npm run typecheck --workspace @stnk/api",
     "verify": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "engines": {

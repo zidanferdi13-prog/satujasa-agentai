@@ -8,6 +8,7 @@ import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { validate, registerSchema, loginSchema } from '../middleware/validate.js'
 import { rateLimit } from '../middleware/rate-limit.js'
+import { authMiddleware } from '../middleware/auth.js'
 import type { AuthPayload } from '../middleware/auth.js'
 
 export function authRoutes(db: Database, config: AppConfig): Router {
@@ -141,6 +142,35 @@ export function authRoutes(db: Database, config: AppConfig): Router {
   router.post('/logout', (_req, res) => {
     res.clearCookie('access_token')
     res.status(200).json({ message: 'logged_out' })
+  })
+
+  // GET /auth/me — get current user from token
+  router.get('/me', authMiddleware(config), async (req, res) => {
+    try {
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, req.user!.userId))
+        .limit(1)
+
+      if (!user || user.deleted_at) {
+        res.status(404).json({ error: 'user_not_found' })
+        return
+      }
+
+      res.json({
+        id: user.id,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        tenant_id: user.tenant_id,
+        owner_id: user.owner_id,
+        created_at: user.created_at,
+      })
+    } catch (error) {
+      console.error('Me error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
   })
 
   // POST /auth/refresh

@@ -175,7 +175,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      const userId = (req as any).user.id as string
+      const userId = (req as any).user.userId as string
       const { customer_name, customer_phone, vehicle_plate, service_id, total_cost, additional_cost, notes } = req.body
 
       // Find or create customer
@@ -394,7 +394,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      const userId = (req as any).user.id as string
+      const userId = (req as any).user.userId as string
       const id = param(req.params.id)
       const { status: newStatus, notes } = req.body as { status: TransactionStatus; notes?: string }
 
