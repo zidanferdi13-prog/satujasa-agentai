@@ -12,9 +12,10 @@ import StatusBadge from '@/components/transactions/StatusBadge';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
 import type { TransactionDetail } from '@/types/transaction';
 
-interface MonitoringData {
-  transaction: TransactionDetail;
-}
+type MonitoringData = TransactionDetail & {
+  status_history?: TransactionDetail['status_logs'];
+  tenant_name?: string;
+};
 
 export default function MonitoringPage() {
   const { token } = useParams<{ token: string }>();
@@ -23,12 +24,13 @@ export default function MonitoringPage() {
     queryKey: ['monitoring', token],
     queryFn: () =>
       apiClient
-        .get(`/public/monitoring/${token}`)
+        .get(`/monitoring/${token}`)
         .then((r) => r.data?.data ?? r.data),
     enabled: !!token,
   });
 
-  const tx = data?.transaction;
+  const tx = data;
+  const statusLogs = tx?.status_logs ?? tx?.status_history ?? [];
   const isDone = tx?.status === 'done';
   const isCancelled = tx?.status === 'cancelled';
 
@@ -135,7 +137,7 @@ export default function MonitoringPage() {
         Riwayat Pembaruan
       </Typography>
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-        <StatusTimeline logs={tx.status_logs ?? []} />
+        <StatusTimeline logs={statusLogs} />
       </Paper>
 
       {/* Meta Info */}
