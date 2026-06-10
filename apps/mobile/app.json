@@ -6,22 +6,17 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F4F1E9"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTabletMode": true,
       "bundleIdentifier": "com.statujasa.mobile"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F4F1E9"
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#F4F1E9",
+        "backgroundImage": "./assets/android-icon-background.png"
       },
       "package": "com.statujasa.mobile"
     },
@@ -31,9 +26,6 @@
     "plugins": [
       "expo-router"
     ],
-    "schemes": [
-      "myapp"
-    ],
     "extra": {
       "router": {
         "origin": false
@@ -42,6 +34,7 @@
         "projectId": "6692f29e-9afc-4464-91d5-2e400aae3e88"
       }
     },
-    "owner": "zidanferdi13"
+    "owner": "zidanferdi13",
+    "scheme": "myapp"
   }
 }
