@@ -88,7 +88,7 @@ export default function TransaksiDetailPage() {
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">Plat Nomor</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.plate_number}</Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.vehicle_plate ?? tx.plate_number ?? '-'}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" color="text.secondary">Kendaraan</Typography>

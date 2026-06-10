@@ -105,7 +105,7 @@ export default function TransaksiListPage() {
                 {data?.data?.map((tx) => (
                   <TableRow key={tx.id} hover sx={{ cursor: 'pointer' }} component={Link} href={`/user-admin/transaksi/${tx.id}`}>
                     <TableCell>{tx.customer_name}</TableCell>
-                    <TableCell>{tx.plate_number}</TableCell>
+                    <TableCell>{tx.vehicle_plate ?? tx.plate_number ?? '-'}</TableCell>
                     <TableCell>{tx.service_name}</TableCell>
                     <TableCell><StatusBadge status={tx.status} /></TableCell>
                     <TableCell>{new Date(tx.created_at).toLocaleDateString('id-ID')}</TableCell>

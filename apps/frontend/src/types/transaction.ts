@@ -12,8 +12,9 @@ export interface Transaction {
   id: string;
   customer_name: string;
   customer_phone: string;
-  plate_number: string;
-  vehicle_type: string;
+  plate_number?: string;
+  vehicle_plate?: string;
+  vehicle_type?: string;
   service_id: string;
   service_name: string;
   status: TransactionStatus;
