@@ -16,15 +16,32 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
 import { StatusBadge } from '@/components/StatusBadge';
 import {
-  TransactionDTO,
   TransactionStatus,
   VALID_TRANSITIONS,
 } from '@stnk/contracts';
 
+interface AdminUserTransaction {
+  id: string;
+  customer_name: string;
+  customer_phone: string;
+  vehicle_plate: string;
+  service_id: string;
+  service_name: string;
+  service_code?: string;
+  status: TransactionStatus;
+  total_cost: string;
+  additional_cost: string;
+  notes: string | null;
+  monitoring_token: string;
+  created_by?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [transaction, setTransaction] = useState<TransactionDTO | null>(null);
+  const [transaction, setTransaction] = useState<AdminUserTransaction | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -33,10 +50,10 @@ export default function TransactionDetailScreen() {
     if (!id) return;
     try {
       setError(null);
-      const response = await api.get<{ data: TransactionDTO }>(
+      const response = await api.get<AdminUserTransaction>(
         `/admin-user/transactions/${id}`
       );
-      setTransaction(response.data.data);
+      setTransaction(response.data);
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat detail berkas');
     } finally {
@@ -71,14 +88,14 @@ export default function TransactionDetailScreen() {
     if (!transaction) return;
     setUpdatingStatus(true);
     try {
-      const response = await api.patch<{ data: TransactionDTO }>(
+      const response = await api.patch<Partial<AdminUserTransaction>>(
         `/admin-user/transactions/${transaction.id}/status`,
         {
           status: newStatus,
           notes: notes || undefined,
         }
       );
-      setTransaction(response.data.data);
+      setTransaction({ ...transaction, ...response.data });
       Alert.alert('Sukses', 'Status berhasil diperbarui');
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Gagal update status');
@@ -89,15 +106,15 @@ export default function TransactionDetailScreen() {
 
   const handleOpenWA = () => {
     if (!transaction) return;
-    // Note: Phone number is not available in TransactionDTO
-    // In a real app, we would fetch customer details to get the phone
-    Alert.alert('Informasi Tidak Lengkap', 'Nomor HP tidak tersedia dalam data transaksi');
+    api
+      .get<{ wa_link: string }>(`/admin-user/transactions/${transaction.id}/wa-link`)
+      .then((response) => Linking.openURL(response.data.wa_link))
+      .catch((err: any) => Alert.alert('Error', err?.message || 'Gagal membuka WhatsApp'));
   };
 
   const handleCopyLink = () => {
     if (!transaction) return;
-    // Use the VPS IP for monitoring link
-    const monitoringLink = `http://43.134.164.221/monitoring/${transaction.monitoring_token}`;
+    const monitoringLink = `https://satujasa.my.id/monitoring/${transaction.monitoring_token}`;
     Share.share({
       message: `Pantau status berkas STNK Anda di sini: ${monitoringLink}`,
       title: 'Link Monitoring Berkas',
