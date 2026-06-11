@@ -8,6 +8,38 @@ export type TransactionStatus =
   | 'done'
   | 'cancelled';
 
+export interface FeeDetail {
+  component_code: string;
+  component_name?: string;
+  amount: number;
+  is_editable?: boolean;
+  source?: string;
+}
+
+export interface FeeRequirement {
+  componentCode: string;
+  componentName: string;
+  defaultAmount: string;
+  amount: string;
+  isEditable: boolean;
+  source: string;
+  sortOrder: number;
+}
+
+export interface DocRequirement {
+  documentCode: string;
+  documentName: string;
+  isRequired: boolean;
+  sortOrder: number;
+}
+
+export interface DocumentChecklist {
+  document_code: string;
+  document_name: string;
+  is_required?: boolean;
+  is_checked?: boolean;
+}
+
 export interface Transaction {
   id: string;
   customer_name: string;
@@ -18,10 +50,12 @@ export interface Transaction {
   service_id: string;
   service_name: string;
   status: TransactionStatus;
-  total_cost: number;
+  total_cost?: number;
   additional_cost: number;
   notes: string;
   monitoring_token: string;
+  fee_details?: FeeDetail[];
+  document_checklists?: DocumentChecklist[];
   created_at: string;
   updated_at: string;
 }
@@ -38,15 +72,17 @@ export interface TransactionDetail extends Transaction {
 }
 
 export interface CreateTransactionPayload {
-  customer: {
-    name: string;
-    phone: string;
-    plate_number: string;
-    vehicle_type: string;
-  };
+  customer_name: string;
+  customer_phone: string;
+  vehicle_plate: string;
+  vehicle_type_code: string;
   service_id: string;
-  total_cost: number;
+  province_code: string;
+  city_code?: string;
+  city_name?: string;
+  tax_due_date?: string;
   notes?: string;
+  fee_details: FeeDetail[];
 }
 
 export interface UpdateStatusPayload {
