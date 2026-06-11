@@ -213,6 +213,17 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
+      const [tenantService] = await db
+        .select({ price: schema.tenantServices.price })
+        .from(schema.tenantServices)
+        .where(and(
+          eq(schema.tenantServices.tenant_id, tenantId),
+          eq(schema.tenantServices.service_id, service_id),
+          eq(schema.tenantServices.is_active, true),
+          isNull(schema.tenantServices.deleted_at)
+        ))
+        .limit(1)
+
       const feeRows = await db
         .select({
           componentCode: schema.feeComponents.code,
@@ -238,15 +249,19 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         ))
         .orderBy(schema.serviceDocumentRequirements.sort_order)
 
-      const fees = feeRows.map((fee) => ({
-        componentCode: fee.componentCode,
-        componentName: fee.componentName,
-        defaultAmount: '0.00',
-        amount: '0.00',
-        isEditable: true,
-        source: 'component_template',
-        sortOrder: fee.sortOrder,
-      }))
+      const fees = feeRows.map((fee) => {
+        const isJasaBiro = fee.componentCode === 'JASA_BIRO'
+        const defaultAmount = isJasaBiro ? (tenantService?.price ?? '0.00') : '0.00'
+        return {
+          componentCode: fee.componentCode,
+          componentName: fee.componentName,
+          defaultAmount,
+          amount: defaultAmount,
+          isEditable: true,
+          source: isJasaBiro ? 'tenant_pricing' : 'component_template',
+          sortOrder: fee.sortOrder,
+        }
+      })
 
       res.json({
         service,
@@ -319,19 +334,34 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
       if (useFeeSnapshot || body.additional_cost > 0) {
         const components = await db.select().from(schema.feeComponents).where(isNull(schema.feeComponents.deleted_at))
+        const tenantService = await db
+          .select({ price: schema.tenantServices.price })
+          .from(schema.tenantServices)
+          .where(and(
+            eq(schema.tenantServices.tenant_id, tenantId),
+            eq(schema.tenantServices.service_id, body.service_id),
+            eq(schema.tenantServices.is_active, true),
+            isNull(schema.tenantServices.deleted_at)
+          ))
+          .limit(1)
+          .then((rows) => rows[0])
 
         snapshotRows = Array.from(requestedCodes).map((code) => {
           const input = feeInput.find((item) => item.component_code === code)
           const component = components.find((item) => item.code === code)
-          const amount = code === 'BIAYA_TAMBAHAN' && !input ? body.additional_cost : (input?.amount ?? 0)
+          const isJasaBiro = code === 'JASA_BIRO'
+          const defaultAmount = isJasaBiro ? (tenantService?.price ?? '0') : '0'
+          const amount = code === 'BIAYA_TAMBAHAN' && !input
+            ? body.additional_cost
+            : (input?.amount ?? Number(defaultAmount))
           return {
             fee_component_id: component?.id ?? null,
             component_code: code,
             component_name: component?.name ?? code,
-            default_amount: '0',
+            default_amount: defaultAmount.toString(),
             amount: amount.toString(),
             is_editable: true,
-            source: 'manual',
+            source: isJasaBiro ? 'tenant_pricing' : 'manual',
             sort_order: component?.sort_order ?? 999,
             notes: input?.notes,
           }
