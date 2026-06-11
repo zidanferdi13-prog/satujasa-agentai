@@ -1,5 +1,4 @@
-import React from 'react';
-import { ColorValue, Text } from 'react-native';
+import React, { Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -26,7 +25,7 @@ export default function AppLayout() {
         options={{
           title: 'Dashboard',
           tabBarLabel: 'Dashboard',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>📊</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>📊</Text>,
         }}
       />
       <Tabs.Screen
@@ -34,7 +33,7 @@ export default function AppLayout() {
         options={{
           title: 'Berkas',
           tabBarLabel: 'Berkas',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>📋</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>📋</Text>,
         }}
       />
       <Tabs.Screen
@@ -42,7 +41,7 @@ export default function AppLayout() {
         options={{
           title: 'Harga',
           tabBarLabel: 'Harga',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>💰</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>💰</Text>,
         }}
       />
       <Tabs.Screen
@@ -50,7 +49,7 @@ export default function AppLayout() {
         options={{
           title: 'Pengaturan',
           tabBarLabel: 'Pengaturan',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>⚙️</Text>,
+          tabBarIcon: ({ color }: { color: string }) => <Text style={{ color, fontSize: 24 }}>⚙️</Text>,
         }}
       />
     </Tabs>
