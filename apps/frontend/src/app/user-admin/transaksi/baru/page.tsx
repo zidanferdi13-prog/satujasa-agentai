@@ -15,6 +15,7 @@ import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
+import InputAdornment from '@mui/material/InputAdornment';
 import apiClient from '@/lib/axios';
 import type { CreateTransactionPayload, DocRequirement, FeeRequirement } from '@/types/transaction';
 
@@ -52,6 +53,11 @@ const JAVA_LOCATIONS = [
 
 function formatCurrency(value: number | string | null | undefined) {
   return Number(value ?? 0).toLocaleString('id-ID');
+}
+
+function normalizeFeeAmount(value: string | number | null | undefined) {
+  const amount = Number(value ?? 0);
+  return amount === 0 ? '' : String(value);
 }
 
 export default function TransaksiBaru() {
@@ -119,7 +125,12 @@ export default function TransaksiBaru() {
 
   useEffect(() => {
     if (requirements?.fees) {
-      setFeeRows(requirements.fees.map((fee) => ({ ...fee, amount: fee.amount ?? fee.defaultAmount })));
+      setFeeRows(
+        requirements.fees.map((fee) => ({
+          ...fee,
+          amount: normalizeFeeAmount(fee.amount ?? fee.defaultAmount),
+        })),
+      );
     }
   }, [requirements]);
 
@@ -222,9 +233,20 @@ export default function TransaksiBaru() {
               <Box key={fee.componentCode} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, alignItems: 'center', py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Box>
                   <Typography variant="body2" sx={{ fontWeight: 600 }}>{fee.componentName}</Typography>
-                  <Chip size="small" label={fee.isEditable ? 'Dapat diedit' : 'Biaya sistem / locked'} color={fee.isEditable ? 'default' : 'primary'} sx={{ mt: 0.75 }} />
+                  <Chip size="small" label={fee.isEditable ? 'Manual editable' : 'Tidak dapat diedit'} color={fee.isEditable ? 'success' : 'default'} variant="outlined" sx={{ mt: 0.75 }} />
                 </Box>
-                <TextField type="number" size="small" value={fee.amount} disabled={!fee.isEditable} onChange={(e) => handleFeeChange(fee.componentCode, e.target.value)} slotProps={{ htmlInput: { min: 0 } }} />
+                <TextField
+                  type="number"
+                  size="small"
+                  value={fee.amount}
+                  placeholder="Rp 0"
+                  disabled={!fee.isEditable}
+                  onChange={(e) => handleFeeChange(fee.componentCode, e.target.value)}
+                  slotProps={{
+                    input: { startAdornment: <InputAdornment position="start">Rp</InputAdornment> },
+                    htmlInput: { min: 0 },
+                  }}
+                />
               </Box>
             ))}
             {!!feeRows.length && <Typography variant="h6" sx={{ mt: 2, textAlign: 'right', fontWeight: 800 }}>Preview Total: Rp{formatCurrency(totalPreview)}</Typography>}
