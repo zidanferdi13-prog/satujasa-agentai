@@ -186,8 +186,8 @@ export default function NewTransactionScreen() {
               {requirementError && <Text style={styles.errorText}>{requirementError}</Text>}
               {!requirementsLoading && fees.map((fee) => (
                 <View key={fee.componentCode} style={styles.feeRow}>
-                  <View style={styles.feeInfo}><Text style={styles.feeName}>{fee.componentName}</Text><Text style={styles.helperText}>{fee.source === 'tenant_pricing' ? 'Biaya sistem terkunci' : fee.componentCode}</Text></View>
-                  <TextInput style={[styles.feeInput, !fee.isEditable && styles.lockedInput]} value={money(fee.amount)} onChangeText={(text) => handleFeeChange(fee.componentCode, text)} editable={fee.isEditable && !isSubmitting} keyboardType="number-pad" />
+                  <View style={styles.feeInfo}><Text style={styles.feeName}>{fee.componentName}</Text><Text style={styles.helperText}>{fee.componentCode === 'JASA_BIRO' ? 'Biaya jasa — default dari layanan' : fee.componentCode}</Text></View>
+                  <TextInput style={[styles.feeInput, !(fee.componentCode === 'JASA_BIRO' ? true : fee.isEditable) && styles.lockedInput]} value={money(fee.amount)} onChangeText={(text) => handleFeeChange(fee.componentCode, text)} editable={(fee.componentCode === 'JASA_BIRO' ? true : fee.isEditable) && !isSubmitting} keyboardType="number-pad" />
                 </View>
               ))}
               <View style={styles.totalRow}><Text style={styles.totalLabel}>Preview Total</Text><Text style={styles.totalValue}>{money(totalPreview)}</Text></View>
