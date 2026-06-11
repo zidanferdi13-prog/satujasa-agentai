@@ -5,8 +5,6 @@ import { DEFAULT_SERVICES } from '@stnk/contracts'
 import type { Database } from './index.js'
 import { schema } from './index.js'
 
-const javaProvinceCodes = ['JKT', 'BANTEN', 'JABAR', 'JATENG', 'DIY', 'JATIM']
-
 const vehicleTypes = [
   { code: 'MOTOR', name: 'Motor', price_group: 'R2_R3', sort_order: 10 },
   { code: 'MOBIL', name: 'Mobil', price_group: 'R4_PLUS', sort_order: 20 },
@@ -34,20 +32,6 @@ const feeComponents = [
   ['BIAYA_TAMBAHAN', 'Biaya Tambahan', true, 800],
   ['JASA_BIRO', 'Jasa Biro', false, 900],
 ] as const
-
-const serviceFeeMap: Record<string, string[]> = {
-  'perpanjang-tahunan': ['PKB_POKOK', 'PKB_DENDA', 'OPSEN_PKB_POKOK', 'OPSEN_PKB_DENDA', 'SWDKLLJ_POKOK', 'SWDKLLJ_DENDA', 'BIAYA_TAMBAHAN'],
-  'perpanjang-5tahun': ['PKB_POKOK', 'PKB_DENDA', 'OPSEN_PKB_POKOK', 'OPSEN_PKB_DENDA', 'SWDKLLJ_POKOK', 'SWDKLLJ_DENDA', 'PNBP_STNK', 'PNBP_TNKB', 'CEK_FISIK', 'BIAYA_TAMBAHAN'],
-  'balik-nama': ['BBNKB', 'PKB_POKOK', 'SWDKLLJ_POKOK', 'PNBP_STNK', 'PNBP_TNKB', 'CEK_FISIK', 'BIAYA_TAMBAHAN'],
-  'mutasi-keluar': ['SURAT_MUTASI', 'CEK_FISIK', 'BIAYA_TAMBAHAN'],
-  'mutasi-masuk': ['SURAT_MUTASI', 'BBNKB', 'PKB_POKOK', 'SWDKLLJ_POKOK', 'PNBP_STNK', 'PNBP_TNKB', 'CEK_FISIK', 'BIAYA_TAMBAHAN'],
-  'stnk-hilang': ['SURAT_KEHILANGAN', 'PENGUMUMAN_KEHILANGAN', 'PNBP_STNK', 'BIAYA_TAMBAHAN'],
-  'bpkb-hilang': ['SURAT_KEHILANGAN', 'PENGUMUMAN_KEHILANGAN', 'BPKB', 'BIAYA_TAMBAHAN'],
-  'rubah-warna': ['PNBP_STNK', 'PNBP_TNKB', 'CEK_FISIK', 'BIAYA_TAMBAHAN'],
-  'kendaraan-baru': ['BBNKB', 'PKB_POKOK', 'SWDKLLJ_POKOK', 'PNBP_STNK', 'PNBP_TNKB', 'BPKB', 'BIAYA_TAMBAHAN'],
-  'blokir-unblokir': ['BIAYA_TAMBAHAN'],
-  'nopol-pilihan': ['PNBP_TNKB', 'BIAYA_TAMBAHAN'],
-}
 
 const defaultDocuments: Array<{ documentCode: string; documentName: string; sortOrder: number }> = [
   { documentCode: 'KTP_ASLI', documentName: 'KTP Asli Pemilik', sortOrder: 10 },
@@ -126,42 +110,8 @@ export async function seed(db: Database, bcryptRounds = 10) {
   console.log('✓ MVP fee components seeded')
 
   const services = await db.select().from(schema.services).where(isNull(schema.services.deleted_at))
-  const vehicles = await db.select().from(schema.vehicleTypes).where(isNull(schema.vehicleTypes.deleted_at))
-  const components = await db.select().from(schema.feeComponents).where(isNull(schema.feeComponents.deleted_at))
 
   for (const service of services) {
-    const componentCodes = serviceFeeMap[service.code] ?? ['BIAYA_TAMBAHAN']
-    for (const vehicle of vehicles) {
-      for (const provinceCode of javaProvinceCodes) {
-        for (const code of componentCodes) {
-          const component = components.find((item) => item.code === code)
-          if (!component) continue
-          const existing = await db
-            .select()
-            .from(schema.feeRules)
-            .where(and(
-              eq(schema.feeRules.service_id, service.id),
-              eq(schema.feeRules.vehicle_type_id, vehicle.id),
-              eq(schema.feeRules.fee_component_id, component.id),
-              eq(schema.feeRules.province_code, provinceCode),
-              isNull(schema.feeRules.deleted_at)
-            ))
-            .limit(1)
-          if (existing.length === 0) {
-            await db.insert(schema.feeRules).values({
-              service_id: service.id,
-              vehicle_type_id: vehicle.id,
-              fee_component_id: component.id,
-              province_code: provinceCode,
-              default_amount: '0',
-              source: 'master',
-              sort_order: component.sort_order,
-            })
-          }
-        }
-      }
-    }
-
     for (const document of defaultDocuments) {
       const existing = await db
         .select()
@@ -183,7 +133,7 @@ export async function seed(db: Database, bcryptRounds = 10) {
       }
     }
   }
-  console.log('✓ MVP Java province fee rules and document requirements seeded')
+  console.log('✓ MVP document requirements seeded')
 
   return { superAdminId }
 }
