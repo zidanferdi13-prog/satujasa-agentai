@@ -10,6 +10,7 @@ import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
+import Chip from '@mui/material/Chip';
 import apiClient from '@/lib/axios';
 import type { TransactionDetail, UpdateStatusPayload } from '@/types/transaction';
 import StatusBadge from '@/components/transactions/StatusBadge';
@@ -116,6 +117,54 @@ export default function TransaksiDetailPage() {
             </Box>
           )}
         </Box>
+      </Paper>
+
+      {/* Fee snapshot */}
+      <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+          Rincian Biaya
+        </Typography>
+        {tx.fee_details?.length ? (
+          <Box>
+            {tx.fee_details.map((fee) => (
+              <Box key={fee.component_code} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {fee.component_name ?? fee.component_code}
+                  </Typography>
+                  <Chip size="small" label={fee.is_editable === false ? 'Biaya sistem / locked' : fee.source ?? 'Snapshot'} sx={{ mt: 0.75 }} />
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, textAlign: { xs: 'left', md: 'right' } }}>
+                  Rp{formatCurrency(fee.amount)}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Alert severity="info">Belum ada snapshot rincian biaya.</Alert>
+        )}
+      </Paper>
+
+      {/* Document checklist snapshot */}
+      <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+          Checklist Dokumen
+        </Typography>
+        {tx.document_checklists?.length ? (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {tx.document_checklists.map((doc) => (
+              <Chip
+                key={doc.document_code}
+                icon={<span className="material-symbols-outlined text-[18px]">{doc.is_checked ? 'check_circle' : 'radio_button_unchecked'}</span>}
+                label={`${doc.document_name}${doc.is_required ? ' (wajib)' : ''}`}
+                color={doc.is_checked ? 'success' : 'default'}
+                variant={doc.is_checked ? 'filled' : 'outlined'}
+              />
+            ))}
+          </Box>
+        ) : (
+          <Alert severity="info">Belum ada snapshot checklist dokumen.</Alert>
+        )}
       </Paper>
 
       {/* Actions */}
