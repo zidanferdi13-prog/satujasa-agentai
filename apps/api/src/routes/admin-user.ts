@@ -224,7 +224,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         ))
         .limit(1)
 
-      const feeRows = await db
+      const feeRuleSelect = () => db
         .select({
           componentId: schema.feeComponents.id,
           componentCode: schema.feeComponents.code,
@@ -236,6 +236,9 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         })
         .from(schema.feeRules)
         .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
+
+      let feeRulesProvinceCode = province_code
+      let feeRows = await feeRuleSelect()
         .where(and(
           eq(schema.feeRules.service_id, service_id),
           eq(schema.feeRules.vehicle_type_id, vehicleType.id),
@@ -244,6 +247,19 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
           isNull(schema.feeComponents.deleted_at)
         ))
         .orderBy(schema.feeRules.sort_order)
+
+      if (feeRows.length === 0 && province_code !== 'JABAR') {
+        feeRows = await feeRuleSelect()
+          .where(and(
+            eq(schema.feeRules.service_id, service_id),
+            eq(schema.feeRules.vehicle_type_id, vehicleType.id),
+            eq(schema.feeRules.province_code, 'JABAR'),
+            isNull(schema.feeRules.deleted_at),
+            isNull(schema.feeComponents.deleted_at)
+          ))
+          .orderBy(schema.feeRules.sort_order)
+        feeRulesProvinceCode = 'JABAR'
+      }
 
       const documents = await db
         .select({
@@ -283,6 +299,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         service,
         vehicleType: { code: vehicleType.code, name: vehicleType.name, priceGroup: vehicleType.price_group },
         provinceCode: province_code,
+        feeRulesProvinceCode,
         cityCode: city_code ?? null,
         fees: fees.sort((a, b) => a.sortOrder - b.sortOrder),
         documents,
@@ -350,12 +367,14 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
       if (useFeeSnapshot || body.additional_cost > 0) {
         const components = await db.select().from(schema.feeComponents).where(isNull(schema.feeComponents.deleted_at))
-        const rules = vehicleTypeCode
-          ? await db
-            .select({ componentCode: schema.feeComponents.code, defaultAmount: schema.feeRules.default_amount, source: schema.feeRules.source, sortOrder: schema.feeRules.sort_order })
-            .from(schema.feeRules)
-            .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
-            .innerJoin(schema.vehicleTypes, eq(schema.vehicleTypes.id, schema.feeRules.vehicle_type_id))
+        const ruleSelect = () => db
+          .select({ componentCode: schema.feeComponents.code, defaultAmount: schema.feeRules.default_amount, source: schema.feeRules.source, sortOrder: schema.feeRules.sort_order })
+          .from(schema.feeRules)
+          .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
+          .innerJoin(schema.vehicleTypes, eq(schema.vehicleTypes.id, schema.feeRules.vehicle_type_id))
+
+        let rules = vehicleTypeCode
+          ? await ruleSelect()
             .where(and(
               eq(schema.feeRules.service_id, body.service_id),
               eq(schema.vehicleTypes.code, vehicleTypeCode),
@@ -363,6 +382,15 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
               isNull(schema.feeRules.deleted_at)
             ))
           : []
+        if (rules.length === 0 && vehicleTypeCode && provinceCode !== 'JABAR') {
+          rules = await ruleSelect()
+            .where(and(
+              eq(schema.feeRules.service_id, body.service_id),
+              eq(schema.vehicleTypes.code, vehicleTypeCode),
+              eq(schema.feeRules.province_code, 'JABAR'),
+              isNull(schema.feeRules.deleted_at)
+            ))
+        }
         const tenantService = await db.select().from(schema.tenantServices).where(and(
           eq(schema.tenantServices.tenant_id, tenantId),
           eq(schema.tenantServices.service_id, body.service_id),
