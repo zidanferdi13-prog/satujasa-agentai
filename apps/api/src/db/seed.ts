@@ -53,6 +53,7 @@ const defaultDocuments: Array<{ documentCode: string; documentName: string; sort
   { documentCode: 'BPKB_ASLI', documentName: 'BPKB Asli', sortOrder: 30 },
 ]
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function upsertByCode<T extends { code: string }>(db: Database, table: any, value: T) {
   const existing = await db.select().from(table).where(eq(table.code, value.code)).limit(1)
   if (existing.length === 0) {
