@@ -75,10 +75,30 @@ export const createAdminTransactionSchema = z.object({
     { message: 'Phone must start with 08 or +62' }
   ),
   vehicle_plate: z.string().min(3).max(12),
+  vehicle_type_code: z.string().min(1).max(50).optional(),
   service_id: z.string().uuid(),
-  total_cost: z.number().min(0),
+  province_code: z.string().min(1).max(50).optional().default('JABAR'),
+  city_code: z.string().max(50).optional(),
+  city_name: z.string().max(255).optional(),
+  tax_due_date: z.string().date().optional(),
+  total_cost: z.number().min(0).optional(),
   additional_cost: z.number().min(0).optional().default(0),
   notes: z.string().max(1000).optional(),
+  fee_details: z.array(z.object({
+    component_code: z.string().min(1).max(100),
+    amount: z.number().min(0),
+    notes: z.string().max(1000).optional(),
+  })).optional(),
+}).refine((value) => value.fee_details || value.total_cost !== undefined, {
+  message: 'total_cost is required when fee_details is not provided',
+  path: ['total_cost'],
+})
+
+export const transactionRequirementsQuerySchema = z.object({
+  service_id: z.string().uuid(),
+  vehicle_type_code: z.string().min(1).max(50),
+  province_code: z.string().min(1).max(50).optional().default('JABAR'),
+  city_code: z.string().max(50).optional(),
 })
 
 export const updateTransactionStatusSchema = z.object({

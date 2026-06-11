@@ -6,13 +6,24 @@ import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { tenantIsolation, getUserTenantId } from '../middleware/tenant-isolation.js'
-import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateTransactionStatusSchema } from '../middleware/validate.js'
+import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateTransactionStatusSchema, transactionRequirementsQuerySchema } from '../middleware/validate.js'
 import { isValidTransition, getAllowedTransitions } from '../lib/state-machine.js'
 import type { TransactionStatus } from '../lib/state-machine.js'
 import { generateWaLink } from '../lib/wa-link.js'
 
 function param(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0]! : (value ?? '')
+}
+
+type FeeDetailInput = {
+  component_code: string
+  amount: number
+  notes?: string
+}
+
+function moneySum(items: Array<{ amount: string }>): string {
+  const total = items.reduce((sum, item) => sum + Number(item.amount), 0)
+  return total.toFixed(2)
 }
 
 export function adminUserRoutes(db: Database, config: AppConfig): Router {
@@ -166,6 +177,122 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
   // ─── Transactions ───────────────────────────────────────────────────────────
 
+  // GET /transactions/requirements — Fee and checklist requirements
+  router.get('/transactions/requirements', async (req, res) => {
+    try {
+      const tenantId = getUserTenantId(req)
+      if (!tenantId) {
+        res.status(403).json({ error: 'no_tenant_assigned' })
+        return
+      }
+
+      const parsed = transactionRequirementsQuerySchema.safeParse(req.query)
+      if (!parsed.success) {
+        res.status(400).json({ error: 'validation_error', details: parsed.error.flatten() })
+        return
+      }
+      const { service_id, vehicle_type_code, province_code, city_code } = parsed.data
+
+      const [service] = await db
+        .select({ id: schema.services.id, code: schema.services.code, name: schema.services.name })
+        .from(schema.services)
+        .where(and(eq(schema.services.id, service_id), isNull(schema.services.deleted_at)))
+        .limit(1)
+      if (!service) {
+        res.status(404).json({ error: 'service_not_found' })
+        return
+      }
+
+      const [vehicleType] = await db
+        .select()
+        .from(schema.vehicleTypes)
+        .where(and(eq(schema.vehicleTypes.code, vehicle_type_code), isNull(schema.vehicleTypes.deleted_at)))
+        .limit(1)
+      if (!vehicleType) {
+        res.status(404).json({ error: 'vehicle_type_not_found' })
+        return
+      }
+
+      const [tenantService] = await db
+        .select()
+        .from(schema.tenantServices)
+        .where(and(
+          eq(schema.tenantServices.tenant_id, tenantId),
+          eq(schema.tenantServices.service_id, service_id),
+          eq(schema.tenantServices.is_active, true),
+          isNull(schema.tenantServices.deleted_at)
+        ))
+        .limit(1)
+
+      const feeRows = await db
+        .select({
+          componentId: schema.feeComponents.id,
+          componentCode: schema.feeComponents.code,
+          componentName: schema.feeComponents.name,
+          defaultAmount: schema.feeRules.default_amount,
+          isEditable: schema.feeComponents.is_editable,
+          source: schema.feeRules.source,
+          sortOrder: schema.feeRules.sort_order,
+        })
+        .from(schema.feeRules)
+        .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
+        .where(and(
+          eq(schema.feeRules.service_id, service_id),
+          eq(schema.feeRules.vehicle_type_id, vehicleType.id),
+          eq(schema.feeRules.province_code, province_code),
+          isNull(schema.feeRules.deleted_at),
+          isNull(schema.feeComponents.deleted_at)
+        ))
+        .orderBy(schema.feeRules.sort_order)
+
+      const documents = await db
+        .select({
+          documentCode: schema.serviceDocumentRequirements.document_code,
+          documentName: schema.serviceDocumentRequirements.document_name,
+          isRequired: schema.serviceDocumentRequirements.is_required,
+          sortOrder: schema.serviceDocumentRequirements.sort_order,
+        })
+        .from(schema.serviceDocumentRequirements)
+        .where(and(
+          eq(schema.serviceDocumentRequirements.service_id, service_id),
+          isNull(schema.serviceDocumentRequirements.deleted_at)
+        ))
+        .orderBy(schema.serviceDocumentRequirements.sort_order)
+
+      const fees = feeRows.map((fee) => ({
+        componentCode: fee.componentCode,
+        componentName: fee.componentName,
+        defaultAmount: fee.defaultAmount,
+        amount: fee.defaultAmount,
+        isEditable: fee.isEditable,
+        source: fee.source,
+        sortOrder: fee.sortOrder,
+      }))
+      const jasaBiroAmount = tenantService?.price ?? '0.00'
+      fees.push({
+        componentCode: 'JASA_BIRO',
+        componentName: 'Jasa Biro',
+        defaultAmount: jasaBiroAmount,
+        amount: jasaBiroAmount,
+        isEditable: false,
+        source: 'tenant_pricing',
+        sortOrder: 900,
+      })
+
+      res.json({
+        service,
+        vehicleType: { code: vehicleType.code, name: vehicleType.name, priceGroup: vehicleType.price_group },
+        provinceCode: province_code,
+        cityCode: city_code ?? null,
+        fees: fees.sort((a, b) => a.sortOrder - b.sortOrder),
+        documents,
+      })
+    } catch (error) {
+      console.error('Transaction requirements error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   // POST /transactions — Create
   router.post('/transactions', validate(createAdminTransactionSchema), async (req, res) => {
     try {
@@ -175,21 +302,25 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      const userId = (req as any).user.userId as string
-      const { customer_name, customer_phone, vehicle_plate, service_id, total_cost, additional_cost, notes } = req.body
+      const userId = req.user!.userId
+      const body = req.body as {
+        customer_name: string; customer_phone: string; vehicle_plate: string; service_id: string
+        vehicle_type_code?: string; province_code?: string; city_code?: string; city_name?: string
+        tax_due_date?: string; total_cost?: number; additional_cost: number; notes?: string
+        fee_details?: FeeDetailInput[]
+      }
+      const provinceCode = body.province_code ?? 'JABAR'
+      const vehicleTypeCode = body.vehicle_type_code ?? ''
 
-      // Find or create customer
       let customer = await db
         .select()
         .from(schema.customers)
-        .where(
-          and(
-            eq(schema.customers.tenant_id, tenantId),
-            eq(schema.customers.phone, customer_phone),
-            eq(schema.customers.plate_number, vehicle_plate),
-            isNull(schema.customers.deleted_at)
-          )
-        )
+        .where(and(
+          eq(schema.customers.tenant_id, tenantId),
+          eq(schema.customers.phone, body.customer_phone),
+          eq(schema.customers.plate_number, body.vehicle_plate),
+          isNull(schema.customers.deleted_at)
+        ))
         .limit(1)
         .then((rows) => rows[0])
 
@@ -198,31 +329,116 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
           .insert(schema.customers)
           .values({
             tenant_id: tenantId,
-            name: customer_name,
-            phone: customer_phone,
-            plate_number: vehicle_plate,
-            vehicle_type: '',
+            name: body.customer_name,
+            phone: body.customer_phone,
+            plate_number: body.vehicle_plate,
+            vehicle_type: vehicleTypeCode,
           })
           .returning()
         customer = created!
       }
 
-      // Create transaction
-      const [tx] = await db
-        .insert(schema.transactions)
-        .values({
-          tenant_id: tenantId,
-          customer_id: customer.id,
-          service_id,
-          created_by: userId,
-          status: 'received',
-          total_cost: total_cost.toString(),
-          additional_cost: (additional_cost ?? 0).toString(),
-          notes: notes ?? null,
-        })
-        .returning()
+      const feeInput = body.fee_details ?? []
+      const useFeeSnapshot = feeInput.length > 0
+      const requestedCodes = new Set(feeInput.map((item) => item.component_code))
+      if (body.additional_cost > 0) requestedCodes.add('BIAYA_TAMBAHAN')
 
-      // Log initial status
+      let snapshotRows: Array<{
+        fee_component_id: string | null; component_code: string; component_name: string
+        default_amount: string; amount: string; is_editable: boolean; source: string; sort_order: number; notes?: string
+      }> = []
+
+      if (useFeeSnapshot || body.additional_cost > 0) {
+        const components = await db.select().from(schema.feeComponents).where(isNull(schema.feeComponents.deleted_at))
+        const rules = vehicleTypeCode
+          ? await db
+            .select({ componentCode: schema.feeComponents.code, defaultAmount: schema.feeRules.default_amount, source: schema.feeRules.source, sortOrder: schema.feeRules.sort_order })
+            .from(schema.feeRules)
+            .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
+            .innerJoin(schema.vehicleTypes, eq(schema.vehicleTypes.id, schema.feeRules.vehicle_type_id))
+            .where(and(
+              eq(schema.feeRules.service_id, body.service_id),
+              eq(schema.vehicleTypes.code, vehicleTypeCode),
+              eq(schema.feeRules.province_code, provinceCode),
+              isNull(schema.feeRules.deleted_at)
+            ))
+          : []
+        const tenantService = await db.select().from(schema.tenantServices).where(and(
+          eq(schema.tenantServices.tenant_id, tenantId),
+          eq(schema.tenantServices.service_id, body.service_id),
+          isNull(schema.tenantServices.deleted_at)
+        )).limit(1).then((rows) => rows[0])
+
+        snapshotRows = Array.from(requestedCodes).map((code) => {
+          const input = feeInput.find((item) => item.component_code === code)
+          const component = components.find((item) => item.code === code)
+          const rule = rules.find((item) => item.componentCode === code)
+          const tenantAmount = code === 'JASA_BIRO' ? tenantService?.price : undefined
+          const amount = code === 'BIAYA_TAMBAHAN' && !input ? body.additional_cost : (input?.amount ?? Number(tenantAmount ?? rule?.defaultAmount ?? 0))
+          return {
+            fee_component_id: component?.id ?? null,
+            component_code: code,
+            component_name: component?.name ?? code,
+            default_amount: (tenantAmount ?? rule?.defaultAmount ?? '0').toString(),
+            amount: amount.toString(),
+            is_editable: component?.is_editable ?? true,
+            source: code === 'JASA_BIRO' ? 'tenant_pricing' : (rule?.source ?? 'manual'),
+            sort_order: component?.sort_order ?? rule?.sortOrder ?? 999,
+            notes: input?.notes,
+          }
+        }).sort((a, b) => a.sort_order - b.sort_order)
+      }
+
+      const totalCost = snapshotRows.length > 0 ? moneySum(snapshotRows) : (body.total_cost ?? 0).toString()
+      const additionalCost = snapshotRows.length > 0 ? '0' : body.additional_cost.toString()
+
+      const [tx] = await db.insert(schema.transactions).values({
+        tenant_id: tenantId,
+        customer_id: customer.id,
+        service_id: body.service_id,
+        created_by: userId,
+        status: 'received',
+        total_cost: totalCost,
+        additional_cost: additionalCost,
+        notes: body.notes ?? null,
+      }).returning()
+
+      let item = null
+      if (snapshotRows.length > 0 || vehicleTypeCode) {
+        const [createdItem] = await db.insert(schema.transactionItems).values({
+          transaction_id: tx!.id,
+          service_id: body.service_id,
+          vehicle_type_code: vehicleTypeCode || null,
+          province_code: provinceCode,
+          city_code: body.city_code ?? null,
+          city_name: body.city_name ?? null,
+          tax_due_date: body.tax_due_date ? new Date(body.tax_due_date) : null,
+        }).returning()
+        item = createdItem!
+
+        if (snapshotRows.length > 0) {
+          await db.insert(schema.transactionItemFeeDetails).values(snapshotRows.map((row) => ({
+            transaction_item_id: item!.id,
+            ...row,
+          })))
+        }
+
+        const documents = await db.select().from(schema.serviceDocumentRequirements).where(and(
+          eq(schema.serviceDocumentRequirements.service_id, body.service_id),
+          isNull(schema.serviceDocumentRequirements.deleted_at)
+        ))
+        if (documents.length > 0) {
+          await db.insert(schema.transactionItemDocumentChecklists).values(documents.map((doc) => ({
+            transaction_item_id: item!.id,
+            document_code: doc.document_code,
+            document_name: doc.document_name,
+            is_required: doc.is_required,
+            is_checked: false,
+            sort_order: doc.sort_order,
+          })))
+        }
+      }
+
       await db.insert(schema.transactionStatusLog).values({
         transaction_id: tx!.id,
         from_status: null,
@@ -231,12 +447,20 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         notes: 'Transaction created',
       })
 
+      const savedFees = item ? await db.select().from(schema.transactionItemFeeDetails).where(eq(schema.transactionItemFeeDetails.transaction_item_id, item.id)) : []
+      const savedDocuments = item ? await db.select().from(schema.transactionItemDocumentChecklists).where(eq(schema.transactionItemDocumentChecklists.transaction_item_id, item.id)) : []
+
       res.status(201).json({
         ...tx,
-        customer_name,
-        customer_phone,
-        vehicle_plate,
+        total_cost: totalCost,
+        additional_cost: additionalCost,
+        customer_name: body.customer_name,
+        customer_phone: body.customer_phone,
+        vehicle_plate: body.vehicle_plate,
         monitoring_token: tx!.monitoring_token,
+        item,
+        fee_details: savedFees,
+        document_checklists: savedDocuments,
       })
     } catch (error) {
       console.error('Create transaction error:', error)
@@ -270,7 +494,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
       ]
 
       if (status) {
-        conditions.push(eq(schema.transactions.status, status as any))
+        conditions.push(eq(schema.transactions.status, status as TransactionStatus))
       }
 
       if (search) {
@@ -378,7 +602,32 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         .where(eq(schema.transactionStatusLog.transaction_id, id))
         .orderBy(schema.transactionStatusLog.created_at)
 
-      res.json({ ...tx, status_logs: statusLogs })
+      const items = await db
+        .select()
+        .from(schema.transactionItems)
+        .where(and(eq(schema.transactionItems.transaction_id, id), isNull(schema.transactionItems.deleted_at)))
+
+      const feeDetails = items.length > 0
+        ? await db
+          .select()
+          .from(schema.transactionItemFeeDetails)
+          .where(sql`${schema.transactionItemFeeDetails.transaction_item_id} IN (${sql.join(items.map((item) => sql`${item.id}`), sql`, `)})`)
+        : []
+
+      const documentChecklists = items.length > 0
+        ? await db
+          .select()
+          .from(schema.transactionItemDocumentChecklists)
+          .where(sql`${schema.transactionItemDocumentChecklists.transaction_item_id} IN (${sql.join(items.map((item) => sql`${item.id}`), sql`, `)})`)
+        : []
+
+      res.json({
+        ...tx,
+        status_logs: statusLogs,
+        items,
+        fee_details: feeDetails,
+        document_checklists: documentChecklists,
+      })
     } catch (error) {
       console.error('Get transaction error:', error)
       res.status(500).json({ error: 'internal_server_error' })
@@ -394,7 +643,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      const userId = (req as any).user.userId as string
+      const userId = req.user!.userId
       const id = param(req.params.id)
       const { status: newStatus, notes } = req.body as { status: TransactionStatus; notes?: string }
 

@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { describe, expect, it, beforeAll, beforeEach, afterAll } from 'vitest'
+import { describe, expect, it, beforeAll, beforeEach } from 'vitest'
 import { createApp } from '../src/app.js'
 
 const app = createApp({
@@ -19,7 +19,6 @@ const app = createApp({
 describe('Admin User Routes', () => {
   let ownerToken: string
   let adminUserToken: string
-  let adminUserId: string
   let tenantId: string
   let adminUserEmail: string
   let serviceId: string
@@ -68,7 +67,7 @@ describe('Admin User Routes', () => {
         phone: '+628****9001',
         password: adminUserPassword,
       })
-    adminUserId = createAdminRes.body.id
+    expect(createAdminRes.body.id).toBeTruthy()
 
     // Get services to find a valid service_id
     const servicesRes = await request(app)
@@ -134,7 +133,82 @@ describe('Admin User Routes', () => {
     expect(response.body.service_id).toBe(serviceId)
   })
 
-  // Test 5: Block access to other tenant → 403
+  // Test 5: Requirements endpoint returns fees and document checklist
+  it('returns fee and checklist requirements for transaction creation', async () => {
+    if (!serviceId) {
+      console.log('No service_id available, skipping test')
+      return
+    }
+
+    await request(app)
+      .post('/api/v1/admin-user/services')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ service_id: serviceId, price: 75000, is_active: true })
+
+    const response = await request(app)
+      .get('/api/v1/admin-user/transactions/requirements')
+      .query({ service_id: serviceId, vehicle_type_code: 'MOTOR', province_code: 'JABAR' })
+      .set('Authorization', `Bearer ${adminUserToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.service.id).toBe(serviceId)
+    expect(response.body.vehicleType.code).toBe('MOTOR')
+    expect(Array.isArray(response.body.fees)).toBe(true)
+    expect(Array.isArray(response.body.documents)).toBe(true)
+    expect(response.body.fees).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          componentCode: 'JASA_BIRO',
+          defaultAmount: '75000.00',
+          source: 'tenant_pricing',
+        }),
+      ])
+    )
+  })
+
+  // Test 6: Create transaction with fee_details snapshots submitted amounts
+  it('creates transaction snapshots and calculates total from fee detail amounts', async () => {
+    if (!serviceId) {
+      console.log('No service_id available, skipping test')
+      return
+    }
+
+    const response = await request(app)
+      .post('/api/v1/admin-user/transactions')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({
+        customer_name: 'Budi Fee',
+        customer_phone: '081234567890',
+        vehicle_plate: 'D1234ABC',
+        vehicle_type_code: 'MOTOR',
+        service_id: serviceId,
+        province_code: 'JABAR',
+        city_code: 'BDG',
+        city_name: 'Bandung',
+        tax_due_date: '2026-12-31',
+        total_cost: 999999,
+        fee_details: [
+          { component_code: 'PKB_POKOK', amount: 100000 },
+          { component_code: 'SWDKLLJ_POKOK', amount: 35000 },
+          { component_code: 'JASA_BIRO', amount: 75000 },
+        ],
+      })
+
+    expect(response.status).toBe(201)
+    expect(response.body.total_cost).toBe('210000.00')
+    expect(response.body.additional_cost).toBe('0')
+    expect(response.body.item).toEqual(expect.objectContaining({ vehicle_type_code: 'MOTOR' }))
+    expect(response.body.fee_details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ component_code: 'PKB_POKOK', amount: '100000.00' }),
+        expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', amount: '35000.00' }),
+        expect.objectContaining({ component_code: 'JASA_BIRO', amount: '75000.00' }),
+      ])
+    )
+    expect(Array.isArray(response.body.document_checklists)).toBe(true)
+  })
+
+  // Test 7: Block access to other tenant → 403
   it('blocks admin-user access to other tenant services', async () => {
     const otherTenantId = '01ARZ3NDEKTSV4RRFFQ69G5FAV'
     const response = await request(app)
