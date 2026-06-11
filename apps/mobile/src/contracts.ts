@@ -206,74 +206,11 @@ export interface CreateTransactionRequest {
   tenant_id?: string
   customer_name: string
   customer_phone: string
-  vehicle_plate: string
-  vehicle_type_code?: VehicleTypeCode
-  province_code?: string
-  city_code?: string
-  city_name?: string
-  tax_due_date?: string
+  plate_number: string
+  vehicle_type: string
   service_id: string
-  total_cost?: number
-  additional_cost?: number
-  fee_details?: CreateTransactionFeeDetail[]
+  total_cost: number
   notes?: string
-}
-
-export const vehicleTypeCodes = ['MOTOR', 'MOBIL', 'PICKUP', 'TRUK', 'BUS', 'LAINNYA'] as const
-export type VehicleTypeCode = (typeof vehicleTypeCodes)[number]
-
-export interface TransactionRequirementFee {
-  componentCode: string
-  componentName: string
-  defaultAmount: string
-  amount: string
-  isEditable: boolean
-  source: string
-  sortOrder: number
-}
-
-export interface TransactionRequirementDocument {
-  documentCode: string
-  documentName: string
-  isRequired: boolean
-  sortOrder: number
-}
-
-export interface TransactionRequirementsResponse {
-  service: { id: string; code: string; name: string }
-  vehicleType: { code: VehicleTypeCode; name: string; priceGroup: string }
-  provinceCode: string
-  cityCode: string | null
-  fees: TransactionRequirementFee[]
-  documents: TransactionRequirementDocument[]
-}
-
-export interface CreateTransactionFeeDetail {
-  component_code: string
-  amount: number
-}
-
-export interface TransactionFeeSnapshot {
-  id: string
-  transaction_item_id: string
-  component_code: string
-  component_name: string
-  default_amount: string
-  amount: string
-  is_editable: boolean
-  source: string
-  sort_order: number
-  notes: string | null
-}
-
-export interface TransactionDocumentChecklistSnapshot {
-  id: string
-  transaction_item_id: string
-  document_code: string
-  document_name: string
-  is_required: boolean
-  is_checked: boolean
-  sort_order: number
 }
 
 export interface UpdateTransactionStatusRequest {
