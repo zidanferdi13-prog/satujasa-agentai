@@ -6,21 +6,17 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F4F1E9"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTabletMode": true,
+      "supportsTablet": true,
       "bundleIdentifier": "com.statujasa.mobile"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
         "backgroundColor": "#F4F1E9"
       },
       "package": "com.statujasa.mobile"
@@ -31,9 +27,7 @@
     "plugins": [
       "expo-router"
     ],
-    "schemes": [
-      "myapp"
-    ],
+    "scheme": "stnkjasa",
     "extra": {
       "router": {
         "origin": false
