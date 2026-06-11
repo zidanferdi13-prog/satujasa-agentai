@@ -5,6 +5,8 @@ import { DEFAULT_SERVICES } from '@stnk/contracts'
 import type { Database } from './index.js'
 import { schema } from './index.js'
 
+const javaProvinceCodes = ['JKT', 'BANTEN', 'JABAR', 'JATENG', 'DIY', 'JATIM']
+
 const vehicleTypes = [
   { code: 'MOTOR', name: 'Motor', price_group: 'R2_R3', sort_order: 10 },
   { code: 'MOBIL', name: 'Mobil', price_group: 'R4_PLUS', sort_order: 20 },
@@ -130,30 +132,32 @@ export async function seed(db: Database, bcryptRounds = 10) {
   for (const service of services) {
     const componentCodes = serviceFeeMap[service.code] ?? ['BIAYA_TAMBAHAN']
     for (const vehicle of vehicles) {
-      for (const code of componentCodes) {
-        const component = components.find((item) => item.code === code)
-        if (!component) continue
-        const existing = await db
-          .select()
-          .from(schema.feeRules)
-          .where(and(
-            eq(schema.feeRules.service_id, service.id),
-            eq(schema.feeRules.vehicle_type_id, vehicle.id),
-            eq(schema.feeRules.fee_component_id, component.id),
-            eq(schema.feeRules.province_code, 'JABAR'),
-            isNull(schema.feeRules.deleted_at)
-          ))
-          .limit(1)
-        if (existing.length === 0) {
-          await db.insert(schema.feeRules).values({
-            service_id: service.id,
-            vehicle_type_id: vehicle.id,
-            fee_component_id: component.id,
-            province_code: 'JABAR',
-            default_amount: '0',
-            source: 'master',
-            sort_order: component.sort_order,
-          })
+      for (const provinceCode of javaProvinceCodes) {
+        for (const code of componentCodes) {
+          const component = components.find((item) => item.code === code)
+          if (!component) continue
+          const existing = await db
+            .select()
+            .from(schema.feeRules)
+            .where(and(
+              eq(schema.feeRules.service_id, service.id),
+              eq(schema.feeRules.vehicle_type_id, vehicle.id),
+              eq(schema.feeRules.fee_component_id, component.id),
+              eq(schema.feeRules.province_code, provinceCode),
+              isNull(schema.feeRules.deleted_at)
+            ))
+            .limit(1)
+          if (existing.length === 0) {
+            await db.insert(schema.feeRules).values({
+              service_id: service.id,
+              vehicle_type_id: vehicle.id,
+              fee_component_id: component.id,
+              province_code: provinceCode,
+              default_amount: '0',
+              source: 'master',
+              sort_order: component.sort_order,
+            })
+          }
         }
       }
     }
@@ -179,7 +183,7 @@ export async function seed(db: Database, bcryptRounds = 10) {
       }
     }
   }
-  console.log('✓ MVP fee rules and document requirements seeded')
+  console.log('✓ MVP Java province fee rules and document requirements seeded')
 
   return { superAdminId }
 }

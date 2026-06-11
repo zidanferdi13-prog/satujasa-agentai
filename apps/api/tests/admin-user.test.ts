@@ -73,7 +73,8 @@ describe('Admin User Routes', () => {
     const servicesRes = await request(app)
       .get('/api/v1/public/services')
     if (servicesRes.body && servicesRes.body.length > 0) {
-      serviceId = servicesRes.body[0].id
+      const fiveYearService = servicesRes.body.find((service: { code: string }) => service.code === 'perpanjang-5tahun')
+      serviceId = fiveYearService?.id ?? servicesRes.body[0].id
     }
   })
 
@@ -166,6 +167,34 @@ describe('Admin User Routes', () => {
     )
   })
 
+  it('returns official fee rows for JKT requirements plus JASA_BIRO', async () => {
+    if (!serviceId) {
+      console.log('No service_id available, skipping test')
+      return
+    }
+
+    await request(app)
+      .post('/api/v1/admin-user/services')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ service_id: serviceId, price: 75000, is_active: true })
+
+    const response = await request(app)
+      .get('/api/v1/admin-user/transactions/requirements')
+      .query({ service_id: serviceId, vehicle_type_code: 'MOTOR', province_code: 'JKT' })
+      .set('Authorization', `Bearer ${adminUserToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.provinceCode).toBe('JKT')
+    expect(response.body.feeRulesProvinceCode).toBe('JKT')
+    expect(response.body.fees.length).toBeGreaterThan(1)
+    expect(response.body.fees).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ componentCode: 'PKB_POKOK', source: 'master' }),
+        expect.objectContaining({ componentCode: 'JASA_BIRO', source: 'tenant_pricing' }),
+      ])
+    )
+  })
+
   // Test 6: Create transaction with fee_details snapshots submitted amounts
   it('creates transaction snapshots and calculates total from fee detail amounts', async () => {
     if (!serviceId) {
@@ -208,7 +237,51 @@ describe('Admin User Routes', () => {
     expect(Array.isArray(response.body.document_checklists)).toBe(true)
   })
 
-  // Test 7: Block access to other tenant → 403
+  it('creates JKT transaction snapshots with official rows and stores selected province', async () => {
+    if (!serviceId) {
+      console.log('No service_id available, skipping test')
+      return
+    }
+
+    const response = await request(app)
+      .post('/api/v1/admin-user/transactions')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({
+        customer_name: 'Budi JKT Fee',
+        customer_phone: '081234567891',
+        vehicle_plate: 'B1234ABC',
+        vehicle_type_code: 'MOTOR',
+        service_id: serviceId,
+        province_code: 'JKT',
+        city_code: 'JKTSEL',
+        city_name: 'Jakarta Selatan',
+        tax_due_date: '2026-12-31',
+        total_cost: 999999,
+        fee_details: [
+          { component_code: 'PKB_POKOK', amount: 100000 },
+          { component_code: 'SWDKLLJ_POKOK', amount: 35000 },
+          { component_code: 'PNBP_STNK', amount: 100000 },
+          { component_code: 'PNBP_TNKB', amount: 60000 },
+          { component_code: 'JASA_BIRO', amount: 75000 },
+        ],
+      })
+
+    expect(response.status).toBe(201)
+    expect(response.body.total_cost).toBe('370000.00')
+    expect(response.body.item).toEqual(expect.objectContaining({ province_code: 'JKT', city_code: 'JKTSEL' }))
+    expect(response.body.fee_details.length).toBeGreaterThan(1)
+    expect(response.body.fee_details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ component_code: 'PKB_POKOK', source: 'master' }),
+        expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', source: 'master' }),
+        expect.objectContaining({ component_code: 'PNBP_STNK', source: 'master' }),
+        expect.objectContaining({ component_code: 'PNBP_TNKB', source: 'master' }),
+        expect.objectContaining({ component_code: 'JASA_BIRO', source: 'tenant_pricing' }),
+      ])
+    )
+  })
+
+  // Test 8: Block access to other tenant → 403
   it('blocks admin-user access to other tenant services', async () => {
     const otherTenantId = '01ARZ3NDEKTSV4RRFFQ69G5FAV'
     const response = await request(app)
