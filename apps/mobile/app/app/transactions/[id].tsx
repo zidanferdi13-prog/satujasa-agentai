@@ -16,6 +16,8 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
 import { StatusBadge } from '@/components/StatusBadge';
 import {
+  TransactionDocumentChecklistSnapshot,
+  TransactionFeeSnapshot,
   TransactionStatus,
   VALID_TRANSITIONS,
 } from '@/contracts';
@@ -36,6 +38,8 @@ interface AdminUserTransaction {
   created_by?: string;
   created_at: string;
   updated_at: string;
+  fee_details?: TransactionFeeSnapshot[];
+  document_checklists?: TransactionDocumentChecklistSnapshot[];
 }
 
 export default function TransactionDetailScreen() {
@@ -179,6 +183,46 @@ export default function TransactionDetailScreen() {
           )}
         </View>
 
+        {transaction.fee_details && transaction.fee_details.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Rincian Biaya Tersimpan</Text>
+            {transaction.fee_details
+              .slice()
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((fee) => (
+                <View key={fee.id} style={styles.snapshotRow}>
+                  <View style={styles.snapshotInfo}>
+                    <Text style={styles.snapshotTitle}>{fee.component_name}</Text>
+                    <Text style={styles.snapshotMeta}>
+                      {fee.source === 'tenant_pricing' ? 'Biaya sistem' : fee.component_code}
+                    </Text>
+                  </View>
+                  <Text style={styles.snapshotAmount}>
+                    Rp {parseInt(fee.amount).toLocaleString('id-ID')}
+                  </Text>
+                </View>
+              ))}
+          </View>
+        )}
+
+        {transaction.document_checklists && transaction.document_checklists.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Checklist Dokumen</Text>
+            {transaction.document_checklists
+              .slice()
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((doc) => (
+                <View key={doc.id} style={styles.checklistRow}>
+                  <Text style={styles.checklistIcon}>{doc.is_checked ? '☑' : '☐'}</Text>
+                  <View style={styles.snapshotInfo}>
+                    <Text style={styles.snapshotTitle}>{doc.document_name}</Text>
+                    <Text style={styles.snapshotMeta}>{doc.is_required ? 'Wajib' : 'Opsional'}</Text>
+                  </View>
+                </View>
+              ))}
+          </View>
+        )}
+
         {transaction.notes && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Catatan</Text>
@@ -249,6 +293,26 @@ const styles = StyleSheet.create({
   },
   infoLabel: { color: '#65706B', fontSize: 13 },
   infoValue: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  snapshotRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F4F1E9',
+  },
+  snapshotInfo: { flex: 1, paddingRight: 12 },
+  snapshotTitle: { color: '#16201D', fontWeight: '700', fontSize: 13 },
+  snapshotMeta: { color: '#65706B', fontSize: 12, marginTop: 2 },
+  snapshotAmount: { color: '#174B3B', fontWeight: '800', fontSize: 13 },
+  checklistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F4F1E9',
+  },
+  checklistIcon: { color: '#174B3B', fontSize: 18, marginRight: 12 },
   notes: { color: '#16201D', fontSize: 13, lineHeight: 20 },
   statusButton: {
     backgroundColor: '#F4F1E9',
