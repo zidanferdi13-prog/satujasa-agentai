@@ -161,6 +161,13 @@ describe('Admin User Routes', () => {
       expect.arrayContaining([
         expect.objectContaining({
           componentCode: 'JASA_BIRO',
+          defaultAmount: '75000.00',
+          amount: '75000.00',
+          isEditable: true,
+          source: 'tenant_pricing',
+        }),
+        expect.objectContaining({
+          componentCode: 'PKB_POKOK',
           defaultAmount: '0.00',
           amount: '0.00',
           isEditable: true,
@@ -192,7 +199,7 @@ describe('Admin User Routes', () => {
     expect(response.body.fees).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ componentCode: 'PKB_POKOK', source: 'component_template', isEditable: true, amount: '0.00' }),
-        expect.objectContaining({ componentCode: 'JASA_BIRO', source: 'component_template', isEditable: true, amount: '0.00' }),
+        expect.objectContaining({ componentCode: 'JASA_BIRO', source: 'tenant_pricing', isEditable: true, amount: '75000.00' }),
       ])
     )
   })
@@ -221,19 +228,19 @@ describe('Admin User Routes', () => {
         fee_details: [
           { component_code: 'PKB_POKOK', amount: 100000 },
           { component_code: 'SWDKLLJ_POKOK', amount: 35000 },
-          { component_code: 'JASA_BIRO', amount: 75000 },
+          { component_code: 'JASA_BIRO', amount: 65000 },
         ],
       })
 
     expect(response.status).toBe(201)
-    expect(response.body.total_cost).toBe('210000.00')
+    expect(response.body.total_cost).toBe('200000.00')
     expect(response.body.additional_cost).toBe('0')
     expect(response.body.item).toEqual(expect.objectContaining({ vehicle_type_code: 'MOTOR' }))
     expect(response.body.fee_details).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ component_code: 'PKB_POKOK', amount: '100000.00' }),
         expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', amount: '35000.00' }),
-        expect.objectContaining({ component_code: 'JASA_BIRO', amount: '75000.00' }),
+        expect.objectContaining({ component_code: 'JASA_BIRO', default_amount: '75000.00', amount: '65000.00', source: 'tenant_pricing' }),
       ])
     )
     expect(Array.isArray(response.body.document_checklists)).toBe(true)
@@ -278,7 +285,7 @@ describe('Admin User Routes', () => {
         expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', source: 'manual', default_amount: '0.00' }),
         expect.objectContaining({ component_code: 'PNBP_STNK', source: 'manual', default_amount: '0.00' }),
         expect.objectContaining({ component_code: 'PNBP_TNKB', source: 'manual', default_amount: '0.00' }),
-        expect.objectContaining({ component_code: 'JASA_BIRO', source: 'manual', default_amount: '0.00' }),
+        expect.objectContaining({ component_code: 'JASA_BIRO', source: 'tenant_pricing', default_amount: '75000.00', amount: '75000.00' }),
       ])
     )
   })
