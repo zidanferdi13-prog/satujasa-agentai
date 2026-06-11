@@ -213,53 +213,16 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      const [tenantService] = await db
-        .select()
-        .from(schema.tenantServices)
-        .where(and(
-          eq(schema.tenantServices.tenant_id, tenantId),
-          eq(schema.tenantServices.service_id, service_id),
-          eq(schema.tenantServices.is_active, true),
-          isNull(schema.tenantServices.deleted_at)
-        ))
-        .limit(1)
-
-      const feeRuleSelect = () => db
+      const feeRows = await db
         .select({
-          componentId: schema.feeComponents.id,
           componentCode: schema.feeComponents.code,
           componentName: schema.feeComponents.name,
-          defaultAmount: schema.feeRules.default_amount,
-          isEditable: schema.feeComponents.is_editable,
-          source: schema.feeRules.source,
-          sortOrder: schema.feeRules.sort_order,
+          sortOrder: schema.feeComponents.sort_order,
         })
-        .from(schema.feeRules)
-        .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
+        .from(schema.feeComponents)
+        .where(isNull(schema.feeComponents.deleted_at))
+        .orderBy(schema.feeComponents.sort_order)
 
-      let feeRulesProvinceCode = province_code
-      let feeRows = await feeRuleSelect()
-        .where(and(
-          eq(schema.feeRules.service_id, service_id),
-          eq(schema.feeRules.vehicle_type_id, vehicleType.id),
-          eq(schema.feeRules.province_code, province_code),
-          isNull(schema.feeRules.deleted_at),
-          isNull(schema.feeComponents.deleted_at)
-        ))
-        .orderBy(schema.feeRules.sort_order)
-
-      if (feeRows.length === 0 && province_code !== 'JABAR') {
-        feeRows = await feeRuleSelect()
-          .where(and(
-            eq(schema.feeRules.service_id, service_id),
-            eq(schema.feeRules.vehicle_type_id, vehicleType.id),
-            eq(schema.feeRules.province_code, 'JABAR'),
-            isNull(schema.feeRules.deleted_at),
-            isNull(schema.feeComponents.deleted_at)
-          ))
-          .orderBy(schema.feeRules.sort_order)
-        feeRulesProvinceCode = 'JABAR'
-      }
 
       const documents = await db
         .select({
@@ -278,28 +241,17 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
       const fees = feeRows.map((fee) => ({
         componentCode: fee.componentCode,
         componentName: fee.componentName,
-        defaultAmount: fee.defaultAmount,
-        amount: fee.defaultAmount,
-        isEditable: fee.isEditable,
-        source: fee.source,
+        defaultAmount: '0.00',
+        amount: '0.00',
+        isEditable: true,
+        source: 'component_template',
         sortOrder: fee.sortOrder,
       }))
-      const jasaBiroAmount = tenantService?.price ?? '0.00'
-      fees.push({
-        componentCode: 'JASA_BIRO',
-        componentName: 'Jasa Biro',
-        defaultAmount: jasaBiroAmount,
-        amount: jasaBiroAmount,
-        isEditable: false,
-        source: 'tenant_pricing',
-        sortOrder: 900,
-      })
 
       res.json({
         service,
         vehicleType: { code: vehicleType.code, name: vehicleType.name, priceGroup: vehicleType.price_group },
         provinceCode: province_code,
-        feeRulesProvinceCode,
         cityCode: city_code ?? null,
         fees: fees.sort((a, b) => a.sortOrder - b.sortOrder),
         documents,
@@ -367,51 +319,20 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
       if (useFeeSnapshot || body.additional_cost > 0) {
         const components = await db.select().from(schema.feeComponents).where(isNull(schema.feeComponents.deleted_at))
-        const ruleSelect = () => db
-          .select({ componentCode: schema.feeComponents.code, defaultAmount: schema.feeRules.default_amount, source: schema.feeRules.source, sortOrder: schema.feeRules.sort_order })
-          .from(schema.feeRules)
-          .innerJoin(schema.feeComponents, eq(schema.feeComponents.id, schema.feeRules.fee_component_id))
-          .innerJoin(schema.vehicleTypes, eq(schema.vehicleTypes.id, schema.feeRules.vehicle_type_id))
-
-        let rules = vehicleTypeCode
-          ? await ruleSelect()
-            .where(and(
-              eq(schema.feeRules.service_id, body.service_id),
-              eq(schema.vehicleTypes.code, vehicleTypeCode),
-              eq(schema.feeRules.province_code, provinceCode),
-              isNull(schema.feeRules.deleted_at)
-            ))
-          : []
-        if (rules.length === 0 && vehicleTypeCode && provinceCode !== 'JABAR') {
-          rules = await ruleSelect()
-            .where(and(
-              eq(schema.feeRules.service_id, body.service_id),
-              eq(schema.vehicleTypes.code, vehicleTypeCode),
-              eq(schema.feeRules.province_code, 'JABAR'),
-              isNull(schema.feeRules.deleted_at)
-            ))
-        }
-        const tenantService = await db.select().from(schema.tenantServices).where(and(
-          eq(schema.tenantServices.tenant_id, tenantId),
-          eq(schema.tenantServices.service_id, body.service_id),
-          isNull(schema.tenantServices.deleted_at)
-        )).limit(1).then((rows) => rows[0])
 
         snapshotRows = Array.from(requestedCodes).map((code) => {
           const input = feeInput.find((item) => item.component_code === code)
           const component = components.find((item) => item.code === code)
-          const rule = rules.find((item) => item.componentCode === code)
-          const tenantAmount = code === 'JASA_BIRO' ? tenantService?.price : undefined
-          const amount = code === 'BIAYA_TAMBAHAN' && !input ? body.additional_cost : (input?.amount ?? Number(tenantAmount ?? rule?.defaultAmount ?? 0))
+          const amount = code === 'BIAYA_TAMBAHAN' && !input ? body.additional_cost : (input?.amount ?? 0)
           return {
             fee_component_id: component?.id ?? null,
             component_code: code,
             component_name: component?.name ?? code,
-            default_amount: (tenantAmount ?? rule?.defaultAmount ?? '0').toString(),
+            default_amount: '0',
             amount: amount.toString(),
-            is_editable: component?.is_editable ?? true,
-            source: code === 'JASA_BIRO' ? 'tenant_pricing' : (rule?.source ?? 'manual'),
-            sort_order: component?.sort_order ?? rule?.sortOrder ?? 999,
+            is_editable: true,
+            source: 'manual',
+            sort_order: component?.sort_order ?? 999,
             notes: input?.notes,
           }
         }).sort((a, b) => a.sort_order - b.sort_order)

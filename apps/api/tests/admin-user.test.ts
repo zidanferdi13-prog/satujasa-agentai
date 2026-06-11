@@ -134,8 +134,8 @@ describe('Admin User Routes', () => {
     expect(response.body.service_id).toBe(serviceId)
   })
 
-  // Test 5: Requirements endpoint returns fees and document checklist
-  it('returns fee and checklist requirements for transaction creation', async () => {
+  // Test 5: Requirements endpoint returns all manual fee components and document checklist
+  it('returns all manual fee components for transaction creation', async () => {
     if (!serviceId) {
       console.log('No service_id available, skipping test')
       return
@@ -156,18 +156,21 @@ describe('Admin User Routes', () => {
     expect(response.body.vehicleType.code).toBe('MOTOR')
     expect(Array.isArray(response.body.fees)).toBe(true)
     expect(Array.isArray(response.body.documents)).toBe(true)
+    expect(response.body.fees.length).toBeGreaterThanOrEqual(16)
     expect(response.body.fees).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           componentCode: 'JASA_BIRO',
-          defaultAmount: '75000.00',
-          source: 'tenant_pricing',
+          defaultAmount: '0.00',
+          amount: '0.00',
+          isEditable: true,
+          source: 'component_template',
         }),
       ])
     )
   })
 
-  it('returns official fee rows for JKT requirements plus JASA_BIRO', async () => {
+  it('returns manual fee components for JKT without fee rules dependency', async () => {
     if (!serviceId) {
       console.log('No service_id available, skipping test')
       return
@@ -185,12 +188,11 @@ describe('Admin User Routes', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.provinceCode).toBe('JKT')
-    expect(response.body.feeRulesProvinceCode).toBe('JKT')
     expect(response.body.fees.length).toBeGreaterThan(1)
     expect(response.body.fees).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ componentCode: 'PKB_POKOK', source: 'master' }),
-        expect.objectContaining({ componentCode: 'JASA_BIRO', source: 'tenant_pricing' }),
+        expect.objectContaining({ componentCode: 'PKB_POKOK', source: 'component_template', isEditable: true, amount: '0.00' }),
+        expect.objectContaining({ componentCode: 'JASA_BIRO', source: 'component_template', isEditable: true, amount: '0.00' }),
       ])
     )
   })
@@ -237,7 +239,7 @@ describe('Admin User Routes', () => {
     expect(Array.isArray(response.body.document_checklists)).toBe(true)
   })
 
-  it('creates JKT transaction snapshots with official rows and stores selected province', async () => {
+  it('creates JKT transaction snapshots with manual fee rows and stores selected province', async () => {
     if (!serviceId) {
       console.log('No service_id available, skipping test')
       return
@@ -272,11 +274,11 @@ describe('Admin User Routes', () => {
     expect(response.body.fee_details.length).toBeGreaterThan(1)
     expect(response.body.fee_details).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ component_code: 'PKB_POKOK', source: 'master' }),
-        expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', source: 'master' }),
-        expect.objectContaining({ component_code: 'PNBP_STNK', source: 'master' }),
-        expect.objectContaining({ component_code: 'PNBP_TNKB', source: 'master' }),
-        expect.objectContaining({ component_code: 'JASA_BIRO', source: 'tenant_pricing' }),
+        expect.objectContaining({ component_code: 'PKB_POKOK', source: 'manual', default_amount: '0.00' }),
+        expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', source: 'manual', default_amount: '0.00' }),
+        expect.objectContaining({ component_code: 'PNBP_STNK', source: 'manual', default_amount: '0.00' }),
+        expect.objectContaining({ component_code: 'PNBP_TNKB', source: 'manual', default_amount: '0.00' }),
+        expect.objectContaining({ component_code: 'JASA_BIRO', source: 'manual', default_amount: '0.00' }),
       ])
     )
   })
