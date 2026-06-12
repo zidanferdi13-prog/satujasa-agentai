@@ -34,6 +34,7 @@ export interface DocRequirement {
 }
 
 export interface DocumentChecklist {
+  id?: string;
   document_code: string;
   document_name: string;
   is_required?: boolean;
