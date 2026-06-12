@@ -6,7 +6,13 @@ export type TransactionStatus =
   | 'processing'
   | 'at_samsat'
   | 'done'
-  | 'cancelled';
+  | 'cancelled'
+  | 'DRAFT'
+  | 'DOKUMEN_DITERIMA'
+  | 'PROSES_SAMSAT'
+  | 'MENUNGGU_PEMBAYARAN'
+  | 'SELESAI'
+  | 'DIBATALKAN';
 
 export interface FeeDetail {
   component_code: string;

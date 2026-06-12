@@ -9,6 +9,12 @@ export const STATUS_TRANSITIONS: Record<TransactionStatus, TransactionStatus[]> 
   at_samsat: ['done', 'cancelled'],
   done: [],
   cancelled: [],
+  DRAFT: ['DOKUMEN_DITERIMA', 'DIBATALKAN'],
+  DOKUMEN_DITERIMA: ['PROSES_SAMSAT', 'DIBATALKAN'],
+  PROSES_SAMSAT: ['MENUNGGU_PEMBAYARAN', 'DIBATALKAN'],
+  MENUNGGU_PEMBAYARAN: ['SELESAI', 'DIBATALKAN'],
+  SELESAI: [],
+  DIBATALKAN: [],
 };
 
 export function getNextStatuses(current: TransactionStatus): TransactionStatus[] {
@@ -16,7 +22,7 @@ export function getNextStatuses(current: TransactionStatus): TransactionStatus[]
 }
 
 export function isFinalStatus(status: TransactionStatus): boolean {
-  return status === 'done' || status === 'cancelled';
+  return status === 'done' || status === 'cancelled' || status === 'SELESAI' || status === 'DIBATALKAN';
 }
 
 export const STATUS_LABELS: Record<TransactionStatus, string> = {
@@ -28,6 +34,12 @@ export const STATUS_LABELS: Record<TransactionStatus, string> = {
   at_samsat: 'Di Samsat',
   done: 'Selesai',
   cancelled: 'Dibatalkan',
+  DRAFT: 'Draft',
+  DOKUMEN_DITERIMA: 'Dokumen Diterima',
+  PROSES_SAMSAT: 'Proses Samsat',
+  MENUNGGU_PEMBAYARAN: 'Menunggu Pembayaran',
+  SELESAI: 'Selesai',
+  DIBATALKAN: 'Dibatalkan',
 };
 
 export const STATUS_COLORS: Record<TransactionStatus, string> = {
@@ -39,4 +51,10 @@ export const STATUS_COLORS: Record<TransactionStatus, string> = {
   at_samsat: 'secondary',
   done: 'success',
   cancelled: 'error',
+  DRAFT: 'default',
+  DOKUMEN_DITERIMA: 'info',
+  PROSES_SAMSAT: 'warning',
+  MENUNGGU_PEMBAYARAN: 'warning',
+  SELESAI: 'success',
+  DIBATALKAN: 'error',
 };
