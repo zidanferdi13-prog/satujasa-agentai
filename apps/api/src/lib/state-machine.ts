@@ -1,24 +1,20 @@
 // ─── Transaction State Machine ────────────────────────────────────────────────
 
 export type TransactionStatus =
-  | 'received'
-  | 'document_check'
-  | 'payment_pending'
-  | 'processing'
-  | 'at_samsat'
-  | 'needs_revision'
-  | 'done'
-  | 'cancelled'
+  | 'DRAFT'
+  | 'DOKUMEN_DITERIMA'
+  | 'PROSES_SAMSAT'
+  | 'MENUNGGU_PEMBAYARAN'
+  | 'SELESAI'
+  | 'DIBATALKAN'
 
 const TRANSITIONS: Record<TransactionStatus, TransactionStatus[]> = {
-  received: ['document_check', 'cancelled'],
-  document_check: ['payment_pending', 'needs_revision', 'cancelled'],
-  needs_revision: ['document_check', 'cancelled'],
-  payment_pending: ['processing', 'cancelled'],
-  processing: ['at_samsat', 'cancelled'],
-  at_samsat: ['done', 'cancelled'],
-  done: [],
-  cancelled: [],
+  DRAFT: ['DOKUMEN_DITERIMA', 'DIBATALKAN'],
+  DOKUMEN_DITERIMA: ['PROSES_SAMSAT', 'DIBATALKAN'],
+  PROSES_SAMSAT: ['MENUNGGU_PEMBAYARAN', 'DIBATALKAN'],
+  MENUNGGU_PEMBAYARAN: ['SELESAI', 'DIBATALKAN'],
+  SELESAI: [],
+  DIBATALKAN: [],
 }
 
 export function isValidTransition(from: TransactionStatus, to: TransactionStatus): boolean {

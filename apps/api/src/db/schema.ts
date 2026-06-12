@@ -13,6 +13,12 @@ export const statusEnum = pgEnum('transaction_status', [
   'needs_revision',
   'done',
   'cancelled',
+  'DRAFT',
+  'DOKUMEN_DITERIMA',
+  'PROSES_SAMSAT',
+  'MENUNGGU_PEMBAYARAN',
+  'SELESAI',
+  'DIBATALKAN',
 ])
 
 // ─── Users ───────────────────────────────────────────────────────────────────
@@ -97,7 +103,8 @@ export const transactions = pgTable('transactions', {
   customer_id: uuid('customer_id').notNull().references(() => customers.id),
   service_id: uuid('service_id').notNull().references(() => services.id),
   created_by: uuid('created_by').notNull().references(() => users.id),
-  status: statusEnum('status').notNull().default('received'),
+  status: statusEnum('status').notNull().default('DRAFT'),
+  status_updated_at: timestamp('status_updated_at', { withTimezone: true }),
   total_cost: numeric('total_cost', { precision: 12, scale: 2 }).notNull().default('0'),
   additional_cost: numeric('additional_cost', { precision: 12, scale: 2 }).notNull().default('0'),
   notes: text('notes'),

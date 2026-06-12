@@ -125,14 +125,12 @@ export const updateTransactionFeesSchema = z.object({
 
 export const updateTransactionStatusSchema = z.object({
   status: z.enum([
-    'received',
-    'document_check',
-    'payment_pending',
-    'processing',
-    'at_samsat',
-    'needs_revision',
-    'done',
-    'cancelled',
+    'DRAFT',
+    'DOKUMEN_DITERIMA',
+    'PROSES_SAMSAT',
+    'MENUNGGU_PEMBAYARAN',
+    'SELESAI',
+    'DIBATALKAN',
   ]),
   notes: z.string().max(1000).optional(),
 })

@@ -1,0 +1,12 @@
+ALTER TYPE transaction_status ADD VALUE IF NOT EXISTS 'DRAFT';
+ALTER TYPE transaction_status ADD VALUE IF NOT EXISTS 'DOKUMEN_DITERIMA';
+ALTER TYPE transaction_status ADD VALUE IF NOT EXISTS 'PROSES_SAMSAT';
+ALTER TYPE transaction_status ADD VALUE IF NOT EXISTS 'MENUNGGU_PEMBAYARAN';
+ALTER TYPE transaction_status ADD VALUE IF NOT EXISTS 'SELESAI';
+ALTER TYPE transaction_status ADD VALUE IF NOT EXISTS 'DIBATALKAN';
+
+ALTER TABLE transactions
+  ADD COLUMN IF NOT EXISTS status_updated_at timestamp with time zone;
+
+ALTER TABLE transactions
+  ALTER COLUMN status SET DEFAULT 'DRAFT';

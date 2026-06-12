@@ -745,21 +745,24 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      if (!isValidTransition(tx.status, status as Parameters<typeof isValidTransition>[1])) {
+      const currentStatus = tx.status as Parameters<typeof isValidTransition>[0]
+      const nextStatus = status as Parameters<typeof isValidTransition>[1]
+      if (!isValidTransition(currentStatus, nextStatus)) {
         res.status(400).json({ error: 'invalid_status_transition' })
         return
       }
 
+      const statusUpdatedAt = new Date()
       const [updated] = await db
         .update(schema.transactions)
-        .set({ status: status as Parameters<typeof isValidTransition>[1], updated_at: new Date() })
+        .set({ status: nextStatus, status_updated_at: statusUpdatedAt, updated_at: statusUpdatedAt })
         .where(eq(schema.transactions.id, txId))
         .returning()
 
       await db.insert(schema.transactionStatusLog).values({
         transaction_id: txId,
-        from_status: tx.status,
-        to_status: status as Parameters<typeof isValidTransition>[1],
+        from_status: currentStatus,
+        to_status: nextStatus,
         changed_by: ownerId,
         notes,
       })
