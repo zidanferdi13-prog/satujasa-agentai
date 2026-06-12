@@ -233,6 +233,7 @@ describe('Admin User Routes', () => {
       })
 
     expect(response.status).toBe(201)
+    expect(response.body.status).toBe('DRAFT')
     expect(response.body.total_cost).toBe('200000.00')
     expect(response.body.additional_cost).toBe('0')
     expect(response.body.item).toEqual(expect.objectContaining({ vehicle_type_code: 'MOTOR' }))
@@ -286,6 +287,39 @@ describe('Admin User Routes', () => {
     expect(duplicateFeeResponse.status).toBe(400)
     expect(duplicateFeeResponse.body.error).toBe('duplicate_fee_component')
 
+    const validStatusResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/status`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ status: 'DOKUMEN_DITERIMA' })
+    expect(validStatusResponse.status).toBe(200)
+    expect(validStatusResponse.body).toEqual(expect.objectContaining({
+      id: response.body.id,
+      status: 'DOKUMEN_DITERIMA',
+      previous_status: 'DRAFT',
+    }))
+    expect(validStatusResponse.body.status_updated_at).toBeTruthy()
+
+    const noOpStatusResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/status`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ status: 'DOKUMEN_DITERIMA' })
+    expect(noOpStatusResponse.status).toBe(400)
+    expect(noOpStatusResponse.body.error).toBe('already_in_status')
+
+    const invalidStatusResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/status`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ status: 'SELESAI' })
+    expect(invalidStatusResponse.status).toBe(400)
+    expect(invalidStatusResponse.body.error).toBe('invalid_status_transition')
+    expect(invalidStatusResponse.body.details).toEqual({ from: 'DOKUMEN_DITERIMA', to: 'SELESAI' })
+
+    const detailAfterStatusUpdate = await request(app)
+      .get(`/api/v1/admin-user/transactions/${response.body.id}`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+    expect(detailAfterStatusUpdate.status).toBe(200)
+    expect(detailAfterStatusUpdate.body.status).toBe('DOKUMEN_DITERIMA')
+    expect(detailAfterStatusUpdate.body.status_updated_at).toBeTruthy()
     expect(Array.isArray(response.body.document_checklists)).toBe(true)
     const checklist = response.body.document_checklists[0]
     expect(checklist).toBeTruthy()

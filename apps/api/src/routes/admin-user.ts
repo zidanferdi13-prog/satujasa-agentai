@@ -7,7 +7,7 @@ import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { tenantIsolation, getUserTenantId } from '../middleware/tenant-isolation.js'
 import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateDocumentChecklistSchema, updateTransactionFeesSchema, updateTransactionStatusSchema, transactionRequirementsQuerySchema } from '../middleware/validate.js'
-import { isValidTransition, getAllowedTransitions } from '../lib/state-machine.js'
+import { isValidTransition } from '../lib/state-machine.js'
 import type { TransactionStatus } from '../lib/state-machine.js'
 import { generateWaLink } from '../lib/wa-link.js'
 
@@ -376,7 +376,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         customer_id: customer.id,
         service_id: body.service_id,
         created_by: userId,
-        status: 'received',
+        status: 'DRAFT',
         total_cost: totalCost,
         additional_cost: additionalCost,
         notes: body.notes ?? null,
@@ -500,6 +500,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
           service_id: schema.transactions.service_id,
           service_name: schema.services.name,
           status: schema.transactions.status,
+          status_updated_at: schema.transactions.status_updated_at,
           total_cost: schema.transactions.total_cost,
           additional_cost: schema.transactions.additional_cost,
           notes: schema.transactions.notes,
@@ -551,6 +552,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
           service_name: schema.services.name,
           service_code: schema.services.code,
           status: schema.transactions.status,
+          status_updated_at: schema.transactions.status_updated_at,
           total_cost: schema.transactions.total_cost,
           additional_cost: schema.transactions.additional_cost,
           notes: schema.transactions.notes,
@@ -790,23 +792,26 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
       const currentStatus = tx.status as TransactionStatus
 
+      if (currentStatus === newStatus) {
+        res.status(400).json({ error: 'already_in_status', details: { status: newStatus } })
+        return
+      }
+
       // Validate transition
       if (!isValidTransition(currentStatus, newStatus)) {
-        res.status(422).json({
-          error: 'invalid_transition',
-          details: {
-            from: currentStatus,
-            to: newStatus,
-            allowed: getAllowedTransitions(currentStatus),
-          },
+        res.status(400).json({
+          error: 'invalid_status_transition',
+          details: { from: currentStatus, to: newStatus },
         })
         return
       }
 
+      const statusUpdatedAt = new Date()
+
       // Update status
       const [updated] = await db
         .update(schema.transactions)
-        .set({ status: newStatus, updated_at: new Date() })
+        .set({ status: newStatus, status_updated_at: statusUpdatedAt, updated_at: statusUpdatedAt })
         .where(eq(schema.transactions.id, id))
         .returning()
 
@@ -819,7 +824,12 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
         notes: notes ?? null,
       })
 
-      res.json(updated)
+      res.json({
+        id: updated!.id,
+        status: updated!.status,
+        status_updated_at: updated!.status_updated_at,
+        previous_status: currentStatus,
+      })
     } catch (error) {
       console.error('Update transaction status error:', error)
       res.status(500).json({ error: 'internal_server_error' })
