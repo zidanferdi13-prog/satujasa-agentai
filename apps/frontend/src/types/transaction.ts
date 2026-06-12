@@ -12,6 +12,7 @@ export interface FeeDetail {
   component_code: string;
   component_name?: string;
   amount: number;
+  default_amount?: number | string;
   is_editable?: boolean;
   source?: string;
 }

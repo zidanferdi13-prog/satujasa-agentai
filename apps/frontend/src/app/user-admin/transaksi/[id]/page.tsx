@@ -13,8 +13,14 @@ import Snackbar from '@mui/material/Snackbar';
 import Chip from '@mui/material/Chip';
 import Checkbox from '@mui/material/Checkbox';
 import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 import apiClient from '@/lib/axios';
-import type { DocumentChecklist, TransactionDetail, UpdateStatusPayload } from '@/types/transaction';
+import type { DocumentChecklist, FeeDetail, TransactionDetail, UpdateStatusPayload } from '@/types/transaction';
 import StatusBadge from '@/components/transactions/StatusBadge';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
 import UpdateStatusModal from '@/components/transactions/UpdateStatusModal';
@@ -25,11 +31,20 @@ function formatCurrency(value: number | string | null | undefined) {
   return amount.toLocaleString('id-ID');
 }
 
+function normalizeEditableAmount(value: number | string | null | undefined) {
+  const amount = Number(value ?? 0);
+  return amount === 0 ? '' : String(value);
+}
+
+type EditableFeeRow = FeeDetail & { amountInput: string };
+
 export default function TransaksiDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
+  const [feeModalOpen, setFeeModalOpen] = useState(false);
+  const [editableFeeRows, setEditableFeeRows] = useState<EditableFeeRow[]>([]);
   const [toast, setToast] = useState('');
   const [errorToast, setErrorToast] = useState('');
 
@@ -61,6 +76,55 @@ export default function TransaksiDetailPage() {
       setErrorToast(message ?? 'Gagal mengupdate checklist dokumen');
     },
   });
+
+  const feeTotalPreview = editableFeeRows.reduce(
+    (sum, fee) => sum + Number(fee.amountInput || 0),
+    0,
+  );
+
+  const { mutate: updateFees, isPending: isSavingFees } = useMutation({
+    mutationFn: (feeDetails: { componentCode: string; amount: number }[]) =>
+      apiClient.patch(`/admin-user/transactions/${id}/fees`, { feeDetails }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transaction', id] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setFeeModalOpen(false);
+      setToast('Rincian biaya berhasil diupdate');
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setErrorToast(message ?? 'Gagal mengupdate rincian biaya');
+    },
+  });
+
+  function openFeeEditor() {
+    setEditableFeeRows(
+      (tx?.fee_details ?? []).map((fee) => ({
+        ...fee,
+        amountInput: normalizeEditableAmount(fee.amount),
+      })),
+    );
+    setFeeModalOpen(true);
+  }
+
+  function handleFeeAmountChange(componentCode: string, value: string) {
+    setEditableFeeRows((prev) =>
+      prev.map((fee) => (fee.component_code === componentCode ? { ...fee, amountInput: value } : fee)),
+    );
+  }
+
+  function handleSaveFees() {
+    if (editableFeeRows.some((fee) => Number.isNaN(Number(fee.amountInput)) || Number(fee.amountInput) < 0)) {
+      setErrorToast('Nominal biaya tidak valid');
+      return;
+    }
+    updateFees(
+      editableFeeRows.map((fee) => ({
+        componentCode: fee.component_code,
+        amount: Number(fee.amountInput || 0),
+      })),
+    );
+  }
 
   function getChecklistKey(doc: DocumentChecklist) {
     return doc.id ?? doc.document_code;
@@ -149,9 +213,14 @@ export default function TransaksiDetailPage() {
 
       {/* Fee snapshot */}
       <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Rincian Biaya
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+            Rincian Biaya
+          </Typography>
+          <Button size="small" variant="outlined" onClick={openFeeEditor} disabled={!tx.fee_details?.length}>
+            Edit Biaya
+          </Button>
+        </Box>
         {tx.fee_details?.length ? (
           <Box>
             {tx.fee_details.map((fee) => (
@@ -258,6 +327,46 @@ export default function TransaksiDetailPage() {
         currentStatus={tx.status}
         isPending={isPending}
       />
+
+      <Dialog open={feeModalOpen} onClose={() => !isSavingFees && setFeeModalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Edit Biaya</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 1 }}>
+            {editableFeeRows.map((fee) => (
+              <Box key={fee.component_code} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, alignItems: 'center', py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {fee.component_name ?? fee.component_code}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {fee.default_amount !== undefined ? `Referensi: Rp${formatCurrency(fee.default_amount)}` : fee.component_code}
+                  </Typography>
+                </Box>
+                <TextField
+                  type="number"
+                  size="small"
+                  value={fee.amountInput}
+                  placeholder="Rp 0"
+                  onChange={(e) => handleFeeAmountChange(fee.component_code, e.target.value)}
+                  slotProps={{
+                    input: { startAdornment: <InputAdornment position="start">Rp</InputAdornment> },
+                    htmlInput: { min: 0 },
+                  }}
+                />
+              </Box>
+            ))}
+            <Typography variant="h6" sx={{ mt: 2, textAlign: 'right', fontWeight: 800 }}>
+              Preview Total: Rp{formatCurrency(feeTotalPreview)}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setFeeModalOpen(false)} disabled={isSavingFees}>Batal</Button>
+          <Button variant="contained" onClick={handleSaveFees} disabled={isSavingFees}>
+            {isSavingFees ? 'Menyimpan...' : 'Simpan Biaya'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Toast */}
       <Snackbar
