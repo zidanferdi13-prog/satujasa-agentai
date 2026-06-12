@@ -368,14 +368,12 @@ export default function TransactionDetailScreen() {
 
 function getStatusLabel(status: TransactionStatus): string {
   const labels: Record<TransactionStatus, string> = {
-    received: 'Diterima',
-    document_check: 'Cek Dokumen',
-    payment_pending: 'Menunggu Bayar',
-    processing: 'Proses',
-    at_samsat: 'Di Samsat',
-    needs_revision: 'Revisi Dokumen',
-    done: 'Selesai',
-    cancelled: 'Dibatalkan',
+    DRAFT: 'Terima Dokumen',
+    DOKUMEN_DITERIMA: 'Proses Samsat',
+    PROSES_SAMSAT: 'Menunggu Pembayaran',
+    MENUNGGU_PEMBAYARAN: 'Selesai',
+    SELESAI: 'Selesai',
+    DIBATALKAN: 'Dibatalkan',
   };
   return labels[status];
 }

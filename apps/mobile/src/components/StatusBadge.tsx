@@ -1,27 +1,23 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { TransactionStatus, VALID_TRANSITIONS } from '@/contracts';
+import { TransactionStatus } from '@/contracts';
 
 const STATUS_COLORS: Record<TransactionStatus, { bg: string; text: string }> = {
-  received: { bg: '#E8F5E9', text: '#2E7D32' },
-  document_check: { bg: '#FFF3E0', text: '#E65100' },
-  payment_pending: { bg: '#FCE4EC', text: '#C2185B' },
-  processing: { bg: '#E3F2FD', text: '#1565C0' },
-  at_samsat: { bg: '#F3E5F5', text: '#6A1B9A' },
-  needs_revision: { bg: '#FFEBEE', text: '#C62828' },
-  done: { bg: '#C8E6C9', text: '#1B5E20' },
-  cancelled: { bg: '#EEEEEE', text: '#424242' },
+  DRAFT: { bg: '#FFF8E1', text: '#F57F17' },
+  DOKUMEN_DITERIMA: { bg: '#E3F2FD', text: '#1565C0' },
+  PROSES_SAMSAT: { bg: '#F3E5F5', text: '#6A1B9A' },
+  MENUNGGU_PEMBAYARAN: { bg: '#FCE4EC', text: '#C2185B' },
+  SELESAI: { bg: '#C8E6C9', text: '#1B5E20' },
+  DIBATALKAN: { bg: '#EEEEEE', text: '#424242' },
 };
 
 const STATUS_LABELS: Record<TransactionStatus, string> = {
-  received: 'Diterima',
-  document_check: 'Cek Dokumen',
-  payment_pending: 'Menunggu Bayar',
-  processing: 'Proses',
-  at_samsat: 'Di Samsat',
-  needs_revision: 'Revisi Dokumen',
-  done: 'Selesai',
-  cancelled: 'Dibatalkan',
+  DRAFT: 'Draft',
+  DOKUMEN_DITERIMA: 'Dokumen Diterima',
+  PROSES_SAMSAT: 'Proses Samsat',
+  MENUNGGU_PEMBAYARAN: 'Menunggu Pembayaran',
+  SELESAI: 'Selesai',
+  DIBATALKAN: 'Dibatalkan',
 };
 
 interface StatusBadgeProps {
