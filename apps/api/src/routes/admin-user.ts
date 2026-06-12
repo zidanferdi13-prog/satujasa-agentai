@@ -792,13 +792,27 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
       const currentStatus = tx.status as TransactionStatus
 
-      if (currentStatus === newStatus) {
+      // Normalize legacy statuses to new workflow
+      const oldToNew: Record<string, TransactionStatus> = {
+        'received': 'DRAFT',
+        'document_check': 'DOKUMEN_DITERIMA',
+        'needs_revision': 'DOKUMEN_DITERIMA',
+        'payment_pending': 'MENUNGGU_PEMBAYARAN',
+        'processing': 'PROSES_SAMSAT',
+        'at_samsat': 'PROSES_SAMSAT',
+        'done': 'SELESAI',
+        'cancelled': 'DIBATALKAN',
+      }
+      const normalizedCurrent: TransactionStatus = oldToNew[currentStatus] ?? currentStatus
+      const normalizedNew: TransactionStatus = oldToNew[newStatus] ?? newStatus
+
+      if (normalizedCurrent === normalizedNew) {
         res.status(400).json({ error: 'already_in_status', details: { status: newStatus } })
         return
       }
 
-      // Validate transition
-      if (!isValidTransition(currentStatus, newStatus)) {
+      // Validate transition using normalized values
+      if (!isValidTransition(normalizedCurrent, normalizedNew)) {
         res.status(400).json({
           error: 'invalid_status_transition',
           details: { from: currentStatus, to: newStatus },
@@ -808,10 +822,10 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
 
       const statusUpdatedAt = new Date()
 
-      // Update status
+      // Update status (use normalized new status to migrate from legacy)
       const [updated] = await db
         .update(schema.transactions)
-        .set({ status: newStatus, status_updated_at: statusUpdatedAt, updated_at: statusUpdatedAt })
+        .set({ status: normalizedNew, status_updated_at: statusUpdatedAt, updated_at: statusUpdatedAt })
         .where(eq(schema.transactions.id, id))
         .returning()
 
@@ -819,7 +833,7 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
       await db.insert(schema.transactionStatusLog).values({
         transaction_id: id,
         from_status: currentStatus,
-        to_status: newStatus,
+        to_status: normalizedNew,
         changed_by: userId,
         notes: notes ?? null,
       })

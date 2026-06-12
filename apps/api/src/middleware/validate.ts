@@ -125,12 +125,22 @@ export const updateTransactionFeesSchema = z.object({
 
 export const updateTransactionStatusSchema = z.object({
   status: z.enum([
+    // New workflow statuses
     'DRAFT',
     'DOKUMEN_DITERIMA',
     'PROSES_SAMSAT',
     'MENUNGGU_PEMBAYARAN',
     'SELESAI',
     'DIBATALKAN',
+    // Legacy statuses (accepted for backward compatibility)
+    'received',
+    'document_check',
+    'payment_pending',
+    'processing',
+    'at_samsat',
+    'needs_revision',
+    'done',
+    'cancelled',
   ]),
   notes: z.string().max(1000).optional(),
 })
