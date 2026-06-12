@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Modal,
+  TextInput,
+  ActivityIndicator,
   StyleSheet,
   SafeAreaView,
   ScrollView,
@@ -19,6 +22,7 @@ import {
   TransactionDocumentChecklistSnapshot,
   TransactionFeeSnapshot,
   TransactionStatus,
+  UpdateFeeDetailsRequest,
   VALID_TRANSITIONS,
 } from '@/contracts';
 
@@ -49,6 +53,9 @@ export default function TransactionDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [editingFees, setEditingFees] = useState(false);
+  const [feeEdits, setFeeEdits] = useState<FeeEditItem[]>([]);
+  const [savingFees, setSavingFees] = useState(false);
 
   const fetchTransaction = async () => {
     if (!id) return;
@@ -68,6 +75,57 @@ export default function TransactionDetailScreen() {
   useEffect(() => {
     fetchTransaction();
   }, [id]);
+
+  interface FeeEditItem {
+    componentCode: string;
+    componentName: string;
+    amount: string;
+  }
+
+  const openFeeEditor = () => {
+    if (!transaction?.fee_details) return;
+    setFeeEdits(
+      transaction.fee_details
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((fee) => ({
+          componentCode: fee.component_code,
+          componentName: fee.component_name,
+          amount: fee.amount,
+        }))
+    );
+    setEditingFees(true);
+  };
+
+  const handleFeeEditChange = (componentCode: string, text: string) => {
+    const num = text.replace(/[^0-9]/g, '');
+    setFeeEdits((prev) =>
+      prev.map((f) => (f.componentCode === componentCode ? { ...f, amount: num } : f))
+    );
+  };
+
+  const handleFeeSave = async () => {
+    if (!transaction) return;
+    setSavingFees(true);
+    try {
+      const payload: UpdateFeeDetailsRequest = {
+        feeDetails: feeEdits.map((f) => ({
+          componentCode: f.componentCode,
+          amount: parseInt(f.amount || '0', 10),
+        })),
+      };
+      await api.patch(`/admin-user/transactions/${transaction.id}/fees`, payload);
+      setEditingFees(false);
+      await fetchTransaction();
+      Alert.alert('Sukses', 'Biaya berhasil diperbarui');
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.error || err?.message || 'Gagal memperbarui biaya');
+    } finally {
+      setSavingFees(false);
+    }
+  };
+
+  const feeTotalPreview = feeEdits.reduce((sum, fee) => sum + parseInt(fee.amount || '0', 10), 0);
 
   const validNextStatuses = transaction
     ? VALID_TRANSITIONS[transaction.status]
@@ -185,7 +243,12 @@ export default function TransactionDetailScreen() {
 
         {transaction.fee_details && transaction.fee_details.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Rincian Biaya Tersimpan</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Rincian Biaya Tersimpan</Text>
+              <TouchableOpacity style={styles.editFeeButton} onPress={openFeeEditor}>
+                <Text style={styles.editFeeButtonText}>✏️ Edit</Text>
+              </TouchableOpacity>
+            </View>
             {transaction.fee_details
               .slice()
               .sort((a, b) => a.sort_order - b.sort_order)
@@ -257,6 +320,47 @@ export default function TransactionDetailScreen() {
             <Text style={styles.actionButtonText}>Bagikan Link Monitoring</Text>
           </TouchableOpacity>
         </View>
+
+        <Modal visible={editingFees} animationType="slide" transparent onRequestClose={() => setEditingFees(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Edit Biaya</Text>
+              <ScrollView style={styles.modalScroll}>
+                {feeEdits.map((fee) => (
+                  <View key={fee.componentCode} style={styles.modalRow}>
+                    <View style={styles.modalInfo}>
+                      <Text style={styles.modalFeeName}>{fee.componentName}</Text>
+                      <Text style={styles.modalFeeCode}>{fee.componentCode}</Text>
+                    </View>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={fee.amount}
+                      onChangeText={(text) => handleFeeEditChange(fee.componentCode, text)}
+                      keyboardType="number-pad"
+                      editable={!savingFees}
+                    />
+                  </View>
+                ))}
+                <View style={styles.modalTotalRow}>
+                  <Text style={styles.modalTotalLabel}>Preview Total</Text>
+                  <Text style={styles.modalTotalValue}>Rp {feeTotalPreview.toLocaleString('id-ID')}</Text>
+                </View>
+              </ScrollView>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.modalCancelButton} onPress={() => setEditingFees(false)} disabled={savingFees}>
+                  <Text style={styles.modalCancelText}>Batal</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalSaveButton} onPress={handleFeeSave} disabled={savingFees}>
+                  {savingFees ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.modalSaveText}>Simpan</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -282,7 +386,10 @@ const styles = StyleSheet.create({
   header: { marginBottom: 24 },
   transactionId: { color: '#65706B', fontSize: 12, marginTop: 8 },
   section: { marginBottom: 24, backgroundColor: '#FFFFFF', borderRadius: 8, padding: 16 },
-  sectionTitle: { color: '#16201D', fontSize: 14, fontWeight: '700', marginBottom: 12 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  sectionTitle: { color: '#16201D', fontSize: 14, fontWeight: '700' },
+  editFeeButton: { backgroundColor: '#F4F1E9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#D5CDBF' },
+  editFeeButtonText: { color: '#174B3B', fontSize: 12, fontWeight: '600' },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -337,4 +444,21 @@ const styles = StyleSheet.create({
   },
   actionButtonIcon: { fontSize: 18, marginRight: 12 },
   actionButtonText: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalContent: { backgroundColor: '#FFFFFF', borderRadius: 12, width: '100%', maxHeight: '80%', padding: 20 },
+  modalTitle: { color: '#16201D', fontSize: 18, fontWeight: '700', marginBottom: 16 },
+  modalScroll: { maxHeight: 400 },
+  modalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F4F1E9' },
+  modalInfo: { flex: 1, paddingRight: 12 },
+  modalFeeName: { color: '#16201D', fontWeight: '700', fontSize: 13 },
+  modalFeeCode: { color: '#65706B', fontSize: 12, marginTop: 2 },
+  modalInput: { backgroundColor: '#F9F7F2', borderWidth: 1, borderColor: '#D5CDBF', borderRadius: 8, padding: 10, width: 120, textAlign: 'right', color: '#16201D', fontWeight: '700' },
+  modalTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#D5CDBF' },
+  modalTotalLabel: { color: '#16201D', fontWeight: '700' },
+  modalTotalValue: { color: '#174B3B', fontWeight: '800', fontSize: 14 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16, gap: 12 },
+  modalCancelButton: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, borderWidth: 1, borderColor: '#D5CDBF' },
+  modalCancelText: { color: '#65706B', fontWeight: '600' },
+  modalSaveButton: { backgroundColor: '#174B3B', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, minWidth: 100, alignItems: 'center' },
+  modalSaveText: { color: '#FFFFFF', fontWeight: '700' },
 });
