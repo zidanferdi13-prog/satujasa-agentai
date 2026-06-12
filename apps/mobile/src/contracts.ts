@@ -281,6 +281,10 @@ export interface UpdateTransactionStatusRequest {
   notes?: string
 }
 
+export interface UpdateFeeDetailsRequest {
+  feeDetails: { componentCode: string; amount: number }[]
+}
+
 export interface MonitoringResponse {
   service_name: string
   status: TransactionStatus
