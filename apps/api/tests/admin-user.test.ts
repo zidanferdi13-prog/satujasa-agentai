@@ -243,6 +243,49 @@ describe('Admin User Routes', () => {
         expect.objectContaining({ component_code: 'JASA_BIRO', default_amount: '75000.00', amount: '65000.00', source: 'tenant_pricing' }),
       ])
     )
+    const feeUpdateResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/fees`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({
+        feeDetails: [
+          { componentCode: 'PKB_POKOK', amount: 120000 },
+          { componentCode: 'JASA_BIRO', amount: 50000 },
+        ],
+      })
+    expect(feeUpdateResponse.status).toBe(200)
+    expect(feeUpdateResponse.body.total_cost).toBe('205000.00')
+    expect(feeUpdateResponse.body.transaction.total_cost).toBe('205000.00')
+    expect(feeUpdateResponse.body.fee_details).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ component_code: 'PKB_POKOK', default_amount: '0.00', amount: '120000.00' }),
+        expect.objectContaining({ component_code: 'SWDKLLJ_POKOK', amount: '35000.00' }),
+        expect.objectContaining({ component_code: 'JASA_BIRO', default_amount: '75000.00', amount: '50000.00' }),
+      ])
+    )
+
+    const detailAfterFeeUpdate = await request(app)
+      .get(`/api/v1/admin-user/transactions/${response.body.id}`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+    expect(detailAfterFeeUpdate.status).toBe(200)
+    expect(detailAfterFeeUpdate.body.total_cost).toBe('205000.00')
+
+    const invalidFeeResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/fees`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ fee_details: [{ component_code: 'UNKNOWN_COMPONENT', amount: 1 }] })
+    expect(invalidFeeResponse.status).toBe(400)
+    expect(invalidFeeResponse.body.error).toBe('fee_component_not_in_snapshot')
+
+    const duplicateFeeResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/fees`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ feeDetails: [
+        { componentCode: 'PKB_POKOK', amount: 1 },
+        { componentCode: 'PKB_POKOK', amount: 2 },
+      ] })
+    expect(duplicateFeeResponse.status).toBe(400)
+    expect(duplicateFeeResponse.body.error).toBe('duplicate_fee_component')
+
     expect(Array.isArray(response.body.document_checklists)).toBe(true)
     const checklist = response.body.document_checklists[0]
     expect(checklist).toBeTruthy()
