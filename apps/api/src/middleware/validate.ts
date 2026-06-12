@@ -105,6 +105,24 @@ export const updateDocumentChecklistSchema = z.object({
   isChecked: z.boolean(),
 })
 
+const feeDetailCamelSchema = z.object({
+  componentCode: z.string().min(1).max(100),
+  amount: z.number().min(0),
+})
+
+const feeDetailSnakeSchema = z.object({
+  component_code: z.string().min(1).max(100),
+  amount: z.number().min(0),
+})
+
+export const updateTransactionFeesSchema = z.object({
+  feeDetails: z.array(feeDetailCamelSchema).min(1).optional(),
+  fee_details: z.array(feeDetailSnakeSchema).min(1).optional(),
+}).refine((value) => value.feeDetails || value.fee_details, {
+  message: 'feeDetails or fee_details is required',
+  path: ['feeDetails'],
+})
+
 export const updateTransactionStatusSchema = z.object({
   status: z.enum([
     'received',

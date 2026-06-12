@@ -6,7 +6,7 @@ import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { tenantIsolation, getUserTenantId } from '../middleware/tenant-isolation.js'
-import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateDocumentChecklistSchema, updateTransactionStatusSchema, transactionRequirementsQuerySchema } from '../middleware/validate.js'
+import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateDocumentChecklistSchema, updateTransactionFeesSchema, updateTransactionStatusSchema, transactionRequirementsQuerySchema } from '../middleware/validate.js'
 import { isValidTransition, getAllowedTransitions } from '../lib/state-machine.js'
 import type { TransactionStatus } from '../lib/state-machine.js'
 import { generateWaLink } from '../lib/wa-link.js'
@@ -609,6 +609,103 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
       })
     } catch (error) {
       console.error('Get transaction error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // PATCH /transactions/:transactionId/fees — Update transaction fee snapshot amounts
+  router.patch('/transactions/:transactionId/fees', validate(updateTransactionFeesSchema), async (req, res) => {
+    try {
+      const tenantId = getUserTenantId(req)
+      if (!tenantId) {
+        res.status(403).json({ error: 'no_tenant_assigned' })
+        return
+      }
+
+      const transactionId = param(req.params.transactionId)
+      const body = req.body as {
+        feeDetails?: Array<{ componentCode: string; amount: number }>
+        fee_details?: Array<{ component_code: string; amount: number }>
+      }
+      const feeUpdates = (body.feeDetails?.map((item) => ({ componentCode: item.componentCode, amount: item.amount }))
+        ?? body.fee_details?.map((item) => ({ componentCode: item.component_code, amount: item.amount }))
+        ?? [])
+
+      const duplicateCode = feeUpdates
+        .map((item) => item.componentCode)
+        .find((code, index, codes) => codes.indexOf(code) !== index)
+      if (duplicateCode) {
+        res.status(400).json({ error: 'duplicate_fee_component', details: { componentCode: duplicateCode } })
+        return
+      }
+
+      const [tx] = await db
+        .select()
+        .from(schema.transactions)
+        .where(and(
+          eq(schema.transactions.id, transactionId),
+          eq(schema.transactions.tenant_id, tenantId),
+          isNull(schema.transactions.deleted_at)
+        ))
+        .limit(1)
+
+      if (!tx) {
+        res.status(404).json({ error: 'transaction_not_found' })
+        return
+      }
+
+      const items = await db
+        .select()
+        .from(schema.transactionItems)
+        .where(and(eq(schema.transactionItems.transaction_id, transactionId), isNull(schema.transactionItems.deleted_at)))
+      if (items.length === 0) {
+        res.status(404).json({ error: 'transaction_fee_snapshot_not_found' })
+        return
+      }
+
+      const itemIds = items.map((item) => item.id)
+      const feeRows = await db
+        .select()
+        .from(schema.transactionItemFeeDetails)
+        .where(sql`${schema.transactionItemFeeDetails.transaction_item_id} IN (${sql.join(itemIds.map((id) => sql`${id}`), sql`, `)})`)
+      if (feeRows.length === 0) {
+        res.status(404).json({ error: 'transaction_fee_snapshot_not_found' })
+        return
+      }
+
+      const feeRowsByCode = new Map(feeRows.map((row) => [row.component_code, row]))
+      const invalidUpdate = feeUpdates.find((item) => !feeRowsByCode.has(item.componentCode))
+      if (invalidUpdate) {
+        res.status(400).json({ error: 'fee_component_not_in_snapshot', details: { componentCode: invalidUpdate.componentCode } })
+        return
+      }
+
+      for (const update of feeUpdates) {
+        const row = feeRowsByCode.get(update.componentCode)!
+        await db
+          .update(schema.transactionItemFeeDetails)
+          .set({ amount: update.amount.toString() })
+          .where(eq(schema.transactionItemFeeDetails.id, row.id))
+      }
+
+      const updatedFeeRows = await db
+        .select()
+        .from(schema.transactionItemFeeDetails)
+        .where(sql`${schema.transactionItemFeeDetails.transaction_item_id} IN (${sql.join(itemIds.map((id) => sql`${id}`), sql`, `)})`)
+      const totalCost = moneySum(updatedFeeRows)
+      const [updatedTx] = await db
+        .update(schema.transactions)
+        .set({ total_cost: totalCost })
+        .where(eq(schema.transactions.id, transactionId))
+        .returning()
+
+      res.json({
+        transaction: updatedTx,
+        total_cost: totalCost,
+        fee_details: updatedFeeRows,
+      })
+    } catch (error) {
+      console.error('Update transaction fees error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
