@@ -327,3 +327,22 @@ export interface AdminUserDashboard {
   done_transactions: number
   total_revenue: string
 }
+
+// ─── Activity Log Types ─────────────────────────────────────────────────────
+export interface ActivityLogChangedBy {
+  id: string
+  email: string
+}
+
+export interface ActivityLogEntry {
+  id: string
+  from_status: string
+  to_status: string
+  notes: string | null
+  created_at: string
+  changed_by: ActivityLogChangedBy
+}
+
+export interface ActivityLogResponse {
+  logs: ActivityLogEntry[]
+}

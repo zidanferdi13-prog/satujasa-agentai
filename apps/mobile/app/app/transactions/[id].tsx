@@ -19,6 +19,8 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
 import { StatusBadge } from '@/components/StatusBadge';
 import {
+  ActivityLogEntry,
+  ActivityLogResponse,
   TransactionDocumentChecklistSnapshot,
   TransactionFeeSnapshot,
   TransactionStatus,
@@ -56,6 +58,9 @@ export default function TransactionDetailScreen() {
   const [editingFees, setEditingFees] = useState(false);
   const [feeEdits, setFeeEdits] = useState<FeeEditItem[]>([]);
   const [savingFees, setSavingFees] = useState(false);
+  const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState<string | null>(null);
 
   const fetchTransaction = async () => {
     if (!id) return;
@@ -72,9 +77,31 @@ export default function TransactionDetailScreen() {
     }
   };
 
+  const fetchLogs = async () => {
+    if (!id) return;
+    try {
+      setLogsError(null);
+      setLogsLoading(true);
+      const response = await api.get<ActivityLogResponse>(
+        `/admin-user/transactions/${id}/logs`
+      );
+      setLogs(response.data.logs ?? []);
+    } catch (err: any) {
+      setLogsError(err?.message || 'Gagal memuat aktivitas');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTransaction();
   }, [id]);
+
+  useEffect(() => {
+    if (!loading && transaction) {
+      fetchLogs();
+    }
+  }, [loading, transaction]);
 
   interface FeeEditItem {
     componentCode: string;
@@ -159,6 +186,7 @@ export default function TransactionDetailScreen() {
       );
       setTransaction({ ...transaction, ...response.data });
       Alert.alert('Sukses', 'Status berhasil diperbarui');
+      fetchLogs();
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Gagal update status');
     } finally {
@@ -310,6 +338,48 @@ export default function TransactionDetailScreen() {
         )}
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Aktivitas</Text>
+          {logsLoading ? (
+            <Text style={styles.logsEmpty}>Memuat aktivitas...</Text>
+          ) : logsError ? (
+            <View>
+              <Text style={styles.logsError}>{logsError}</Text>
+              <TouchableOpacity style={styles.statusButton} onPress={fetchLogs}>
+                <Text style={styles.statusButtonText}>↻ Muat Ulang</Text>
+              </TouchableOpacity>
+            </View>
+          ) : logs.length === 0 ? (
+            <Text style={styles.logsEmpty}>Belum ada aktivitas</Text>
+          ) : (
+            logs.map((log) => (
+              <View key={log.id} style={styles.logEntry}>
+                <View style={styles.logDot} />
+                <View style={styles.logContent}>
+                  <Text style={styles.logStatus}>
+                    {log.from_status || '—'} → {log.to_status}
+                  </Text>
+                  {log.changed_by?.email && (
+                    <Text style={styles.logActor}>{log.changed_by.email}</Text>
+                  )}
+                  <Text style={styles.logTimestamp}>
+                    {new Date(log.created_at).toLocaleString('id-ID', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </Text>
+                  {log.notes && (
+                    <Text style={styles.logNotes}>“{log.notes}”</Text>
+                  )}
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Aksi</Text>
           <TouchableOpacity style={styles.actionButton} onPress={handleOpenWA}>
             <Text style={styles.actionButtonIcon}>💬</Text>
@@ -442,6 +512,15 @@ const styles = StyleSheet.create({
   },
   actionButtonIcon: { fontSize: 18, marginRight: 12 },
   actionButtonText: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  logsEmpty: { color: '#65706B', fontSize: 13, fontStyle: 'italic', textAlign: 'center', paddingVertical: 8 },
+  logsError: { color: '#C62828', fontSize: 13, marginBottom: 8 },
+  logEntry: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' },
+  logDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D5CDBF', marginTop: 6, marginRight: 12 },
+  logContent: { flex: 1 },
+  logStatus: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  logActor: { color: '#65706B', fontSize: 12, marginTop: 2 },
+  logTimestamp: { color: '#A09A8F', fontSize: 11, marginTop: 1 },
+  logNotes: { color: '#65706B', fontSize: 12, fontStyle: 'italic', marginTop: 2 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   modalContent: { backgroundColor: '#FFFFFF', borderRadius: 12, width: '100%', maxHeight: '80%', padding: 20 },
   modalTitle: { color: '#16201D', fontSize: 18, fontWeight: '700', marginBottom: 16 },
