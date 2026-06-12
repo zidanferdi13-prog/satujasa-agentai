@@ -244,6 +244,76 @@ describe('Admin User Routes', () => {
       ])
     )
     expect(Array.isArray(response.body.document_checklists)).toBe(true)
+    const checklist = response.body.document_checklists[0]
+    expect(checklist).toBeTruthy()
+
+    const checkedResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/document-checklists/${checklist.id}`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ isChecked: true })
+    expect(checkedResponse.status).toBe(200)
+    expect(checkedResponse.body.id).toBe(checklist.id)
+    expect(checkedResponse.body.is_checked).toBe(true)
+
+    const detailAfterCheck = await request(app)
+      .get(`/api/v1/admin-user/transactions/${response.body.id}`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+    expect(detailAfterCheck.status).toBe(200)
+    expect(detailAfterCheck.body.document_checklists).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: checklist.id, is_checked: true }),
+      ])
+    )
+
+    const uncheckedResponse = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${response.body.id}/document-checklists/${checklist.id}`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ isChecked: false })
+    expect(uncheckedResponse.status).toBe(200)
+    expect(uncheckedResponse.body.is_checked).toBe(false)
+  })
+
+  it('rejects checklist update when checklist is not under requested transaction', async () => {
+    if (!serviceId) {
+      console.log('No service_id available, skipping test')
+      return
+    }
+
+    const firstTx = await request(app)
+      .post('/api/v1/admin-user/transactions')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({
+        customer_name: 'Checklist One',
+        customer_phone: '081234567892',
+        vehicle_plate: 'D5678ABC',
+        vehicle_type_code: 'MOTOR',
+        service_id: serviceId,
+        province_code: 'JABAR',
+        fee_details: [{ component_code: 'JASA_BIRO', amount: 50000 }],
+      })
+    const secondTx = await request(app)
+      .post('/api/v1/admin-user/transactions')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({
+        customer_name: 'Checklist Two',
+        customer_phone: '081234567893',
+        vehicle_plate: 'D5679ABC',
+        vehicle_type_code: 'MOTOR',
+        service_id: serviceId,
+        province_code: 'JABAR',
+        fee_details: [{ component_code: 'JASA_BIRO', amount: 50000 }],
+      })
+
+    const checklist = firstTx.body.document_checklists[0]
+    expect(checklist).toBeTruthy()
+
+    const response = await request(app)
+      .patch(`/api/v1/admin-user/transactions/${secondTx.body.id}/document-checklists/${checklist.id}`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({ isChecked: true })
+
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('document_checklist_not_found')
   })
 
   it('creates JKT transaction snapshots with manual fee rows and stores selected province', async () => {

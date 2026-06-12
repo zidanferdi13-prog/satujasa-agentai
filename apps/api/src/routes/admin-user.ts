@@ -6,7 +6,7 @@ import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { tenantIsolation, getUserTenantId } from '../middleware/tenant-isolation.js'
-import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateTransactionStatusSchema, transactionRequirementsQuerySchema } from '../middleware/validate.js'
+import { validate, setTenantServiceSchema, createAdminTransactionSchema, updateDocumentChecklistSchema, updateTransactionStatusSchema, transactionRequirementsQuerySchema } from '../middleware/validate.js'
 import { isValidTransition, getAllowedTransitions } from '../lib/state-machine.js'
 import type { TransactionStatus } from '../lib/state-machine.js'
 import { generateWaLink } from '../lib/wa-link.js'
@@ -609,6 +609,54 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
       })
     } catch (error) {
       console.error('Get transaction error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // PATCH /transactions/:transactionId/document-checklists/:checklistId — Update checklist status
+  router.patch('/transactions/:transactionId/document-checklists/:checklistId', validate(updateDocumentChecklistSchema), async (req, res) => {
+    try {
+      const tenantId = getUserTenantId(req)
+      if (!tenantId) {
+        res.status(403).json({ error: 'no_tenant_assigned' })
+        return
+      }
+
+      const transactionId = param(req.params.transactionId)
+      const checklistId = param(req.params.checklistId)
+      const { isChecked } = req.body as { isChecked: boolean }
+
+      const [checklist] = await db
+        .select({
+          id: schema.transactionItemDocumentChecklists.id,
+          transactionItemId: schema.transactionItemDocumentChecklists.transaction_item_id,
+        })
+        .from(schema.transactionItemDocumentChecklists)
+        .innerJoin(schema.transactionItems, eq(schema.transactionItems.id, schema.transactionItemDocumentChecklists.transaction_item_id))
+        .innerJoin(schema.transactions, eq(schema.transactions.id, schema.transactionItems.transaction_id))
+        .where(and(
+          eq(schema.transactions.id, transactionId),
+          eq(schema.transactions.tenant_id, tenantId),
+          eq(schema.transactionItemDocumentChecklists.id, checklistId),
+          isNull(schema.transactions.deleted_at),
+          isNull(schema.transactionItems.deleted_at)
+        ))
+        .limit(1)
+
+      if (!checklist) {
+        res.status(404).json({ error: 'document_checklist_not_found' })
+        return
+      }
+
+      const [updatedChecklist] = await db
+        .update(schema.transactionItemDocumentChecklists)
+        .set({ is_checked: isChecked })
+        .where(eq(schema.transactionItemDocumentChecklists.id, checklist.id))
+        .returning()
+
+      res.json(updatedChecklist)
+    } catch (error) {
+      console.error('Update document checklist error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
