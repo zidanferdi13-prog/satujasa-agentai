@@ -113,8 +113,8 @@ export default function OwnerLaporanPage() {
   const params = useMemo(() => {
     const next: Record<string, string> = { period };
     if (period === 'range') {
-      if (startDate) next.startDate = startDate;
-      if (endDate) next.endDate = endDate;
+      if (startDate) next.start_date = startDate;
+      if (endDate) next.end_date = endDate;
     }
     return next;
   }, [period, startDate, endDate]);
