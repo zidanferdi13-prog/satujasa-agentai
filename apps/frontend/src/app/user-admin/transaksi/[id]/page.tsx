@@ -20,11 +20,11 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import apiClient from '@/lib/axios';
-import type { DocumentChecklist, FeeDetail, TransactionDetail, UpdateStatusPayload } from '@/types/transaction';
+import type { DocumentChecklist, FeeDetail, TransactionDetail, TransactionStatus, UpdateStatusPayload } from '@/types/transaction';
 import StatusBadge from '@/components/transactions/StatusBadge';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
 import UpdateStatusModal from '@/components/transactions/UpdateStatusModal';
-import { isFinalStatus } from '@/lib/stateMachine';
+import { getNextStatuses, isFinalStatus, STATUS_LABELS } from '@/lib/stateMachine';
 
 function formatCurrency(value: number | string | null | undefined) {
   const amount = Number(value ?? 0);
@@ -38,12 +38,21 @@ function normalizeEditableAmount(value: number | string | null | undefined) {
 
 type EditableFeeRow = FeeDetail & { amountInput: string };
 
+const STATUS_ACTION_LABELS: Partial<Record<TransactionStatus, string>> = {
+  DOKUMEN_DITERIMA: 'Terima Dokumen',
+  PROSES_SAMSAT: 'Proses Samsat',
+  MENUNGGU_PEMBAYARAN: 'Menunggu Pembayaran',
+  SELESAI: 'Selesai',
+  DIBATALKAN: 'Batalkan',
+};
+
 export default function TransaksiDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [feeModalOpen, setFeeModalOpen] = useState(false);
+  const [statusConfirm, setStatusConfirm] = useState<TransactionStatus | null>(null);
   const [editableFeeRows, setEditableFeeRows] = useState<EditableFeeRow[]>([]);
   const [toast, setToast] = useState('');
   const [errorToast, setErrorToast] = useState('');
@@ -60,7 +69,12 @@ export default function TransaksiDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['transaction', id] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       setModalOpen(false);
+      setStatusConfirm(null);
       setToast('Status berhasil diupdate');
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setErrorToast(message ?? 'Gagal mengupdate status');
     },
   });
 
@@ -160,6 +174,8 @@ export default function TransaksiDetailPage() {
   if (!tx) {
     return <Box className="p-8"><Typography>Transaksi tidak ditemukan.</Typography></Box>;
   }
+
+  const statusActions = getNextStatuses(tx.status);
 
   return (
     <Box className="p-6 md:p-8" sx={{ maxWidth: 800 }}>
@@ -299,11 +315,17 @@ export default function TransaksiDetailPage() {
 
       {/* Actions */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        {!isFinalStatus(tx.status) && (
-          <Button variant="contained" onClick={() => setModalOpen(true)}>
-            Update Status
+        {!isFinalStatus(tx.status) && statusActions.map((nextStatus) => (
+          <Button
+            key={nextStatus}
+            variant={nextStatus === 'DIBATALKAN' || nextStatus === 'cancelled' ? 'outlined' : 'contained'}
+            color={nextStatus === 'DIBATALKAN' || nextStatus === 'cancelled' ? 'error' : 'primary'}
+            onClick={() => setStatusConfirm(nextStatus)}
+            disabled={isPending}
+          >
+            {STATUS_ACTION_LABELS[nextStatus] ?? STATUS_LABELS[nextStatus]}
           </Button>
-        )}
+        ))}
         <Button variant="outlined" onClick={handleWhatsApp} disabled={!tx.monitoring_token || !tx.customer_phone} startIcon={<span className="material-symbols-outlined text-[20px]">chat</span>}>
           Kirim WA
         </Button>
@@ -327,6 +349,26 @@ export default function TransaksiDetailPage() {
         currentStatus={tx.status}
         isPending={isPending}
       />
+
+      <Dialog open={!!statusConfirm} onClose={() => !isPending && setStatusConfirm(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Konfirmasi Update Status</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Ubah status transaksi menjadi <strong>{statusConfirm ? STATUS_LABELS[statusConfirm] : ''}</strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setStatusConfirm(null)} disabled={isPending}>Batal</Button>
+          <Button
+            variant="contained"
+            color={statusConfirm === 'DIBATALKAN' || statusConfirm === 'cancelled' ? 'error' : 'primary'}
+            onClick={() => statusConfirm && updateStatus({ status: statusConfirm })}
+            disabled={isPending}
+          >
+            {isPending ? 'Menyimpan...' : 'Konfirmasi'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={feeModalOpen} onClose={() => !isSavingFees && setFeeModalOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Edit Biaya</DialogTitle>
