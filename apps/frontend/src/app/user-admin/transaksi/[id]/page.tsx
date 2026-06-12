@@ -11,8 +11,10 @@ import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import Chip from '@mui/material/Chip';
+import Checkbox from '@mui/material/Checkbox';
+import CircularProgress from '@mui/material/CircularProgress';
 import apiClient from '@/lib/axios';
-import type { TransactionDetail, UpdateStatusPayload } from '@/types/transaction';
+import type { DocumentChecklist, TransactionDetail, UpdateStatusPayload } from '@/types/transaction';
 import StatusBadge from '@/components/transactions/StatusBadge';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
 import UpdateStatusModal from '@/components/transactions/UpdateStatusModal';
@@ -29,6 +31,7 @@ export default function TransaksiDetailPage() {
   const queryClient = useQueryClient();
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState('');
+  const [errorToast, setErrorToast] = useState('');
 
   const { data: tx, isLoading } = useQuery<TransactionDetail>({
     queryKey: ['transaction', id],
@@ -45,6 +48,31 @@ export default function TransaksiDetailPage() {
       setToast('Status berhasil diupdate');
     },
   });
+
+  const { mutate: updateChecklist, variables: updatingChecklist } = useMutation({
+    mutationFn: ({ checklistId, isChecked }: { checklistId: string; isChecked: boolean }) =>
+      apiClient.patch(`/admin-user/transactions/${id}/document-checklists/${checklistId}`, { isChecked }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transaction', id] });
+      setToast('Checklist dokumen berhasil diupdate');
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      setErrorToast(message ?? 'Gagal mengupdate checklist dokumen');
+    },
+  });
+
+  function getChecklistKey(doc: DocumentChecklist) {
+    return doc.id ?? doc.document_code;
+  }
+
+  function handleChecklistToggle(doc: DocumentChecklist) {
+    if (!doc.id) {
+      setErrorToast('Checklist ID tidak tersedia dari backend');
+      return;
+    }
+    updateChecklist({ checklistId: doc.id, isChecked: !doc.is_checked });
+  }
 
   function handleCopyMonitoring() {
     if (!tx?.monitoring_token) return;
@@ -151,16 +179,49 @@ export default function TransaksiDetailPage() {
           Checklist Dokumen
         </Typography>
         {tx.document_checklists?.length ? (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {tx.document_checklists.map((doc) => (
-              <Chip
-                key={doc.document_code}
-                icon={<span className="material-symbols-outlined text-[18px]">{doc.is_checked ? 'check_circle' : 'radio_button_unchecked'}</span>}
-                label={`${doc.document_name}${doc.is_required ? ' (wajib)' : ''}`}
-                color={doc.is_checked ? 'success' : 'default'}
-                variant={doc.is_checked ? 'filled' : 'outlined'}
-              />
-            ))}
+          <Box>
+            {tx.document_checklists.map((doc) => {
+              const checklistKey = getChecklistKey(doc);
+              const isUpdating = updatingChecklist?.checklistId === doc.id;
+              return (
+                <Box
+                  key={checklistKey}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    py: 1.25,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <Checkbox
+                    checked={Boolean(doc.is_checked)}
+                    disabled={isUpdating || !doc.id}
+                    onChange={() => handleChecklistToggle(doc)}
+                    slotProps={{ input: { 'aria-label': `Checklist ${doc.document_name}` } }}
+                  />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {doc.document_name}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {doc.is_required ? 'Dokumen wajib' : 'Dokumen opsional'}
+                    </Typography>
+                  </Box>
+                  {isUpdating ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <Chip
+                      size="small"
+                      label={doc.is_checked ? 'Sudah diterima' : 'Belum diterima'}
+                      color={doc.is_checked ? 'success' : 'default'}
+                      variant={doc.is_checked ? 'filled' : 'outlined'}
+                    />
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         ) : (
           <Alert severity="info">Belum ada snapshot checklist dokumen.</Alert>
@@ -206,6 +267,14 @@ export default function TransaksiDetailPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert severity="success" onClose={() => setToast('')}>{toast}</Alert>
+      </Snackbar>
+      <Snackbar
+        open={!!errorToast}
+        autoHideDuration={4000}
+        onClose={() => setErrorToast('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="error" onClose={() => setErrorToast('')}>{errorToast}</Alert>
       </Snackbar>
     </Box>
   );
