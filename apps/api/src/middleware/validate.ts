@@ -101,6 +101,10 @@ export const transactionRequirementsQuerySchema = z.object({
   city_code: z.string().max(50).optional(),
 })
 
+export const updateDocumentChecklistSchema = z.object({
+  isChecked: z.boolean(),
+})
+
 export const updateTransactionStatusSchema = z.object({
   status: z.enum([
     'received',
