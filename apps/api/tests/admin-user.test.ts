@@ -299,6 +299,38 @@ describe('Admin User Routes', () => {
     }))
     expect(validStatusResponse.body.status_updated_at).toBeTruthy()
 
+    const logsResponse = await request(app)
+      .get(`/api/v1/admin-user/transactions/${response.body.id}/logs`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+    expect(logsResponse.status).toBe(200)
+    expect(Array.isArray(logsResponse.body.logs)).toBe(true)
+    expect(logsResponse.body.logs.length).toBeGreaterThanOrEqual(1)
+    const statusLog = logsResponse.body.logs[0]
+    expect(statusLog.to_status).toBe('DOKUMEN_DITERIMA')
+    expect(statusLog.from_status).toBe('DRAFT')
+    expect(statusLog.changed_by).toHaveProperty('id')
+    expect(statusLog.changed_by).toHaveProperty('email')
+    expect(statusLog.created_at).toBeTruthy()
+
+    const emptyLogsTx = await request(app)
+      .post('/api/v1/admin-user/transactions')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+      .send({
+        customer_name: 'No Logs Yet',
+        customer_phone: '081234567899',
+        vehicle_plate: 'D9999ABC',
+        vehicle_type_code: 'MOTOR',
+        service_id: serviceId,
+        province_code: 'JABAR',
+        fee_details: [{ component_code: 'JASA_BIRO', amount: 50000 }],
+      })
+    const emptyLogsRes = await request(app)
+      .get(`/api/v1/admin-user/transactions/${emptyLogsTx.body.id}/logs`)
+      .set('Authorization', `Bearer ${adminUserToken}`)
+    expect(emptyLogsRes.status).toBe(200)
+    expect(Array.isArray(emptyLogsRes.body.logs)).toBe(true)
+    expect(emptyLogsRes.body.logs[0].to_status).toBe('received')
+
     const noOpStatusResponse = await request(app)
       .patch(`/api/v1/admin-user/transactions/${response.body.id}/status`)
       .set('Authorization', `Bearer ${adminUserToken}`)
@@ -391,6 +423,14 @@ describe('Admin User Routes', () => {
 
     expect(response.status).toBe(404)
     expect(response.body.error).toBe('document_checklist_not_found')
+  })
+
+  it('returns 404 for logs of non-existent or cross-tenant transaction', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin-user/transactions/00000000-0000-0000-0000-000000000000/logs')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('transaction_not_found')
   })
 
   it('creates JKT transaction snapshots with manual fee rows and stores selected province', async () => {

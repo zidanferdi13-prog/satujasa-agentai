@@ -760,6 +760,58 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
+  // GET /transactions/:id/logs — Activity timeline
+  router.get('/transactions/:id/logs', async (req, res) => {
+    try {
+      const tenantId = getUserTenantId(req)
+      if (!tenantId) {
+        res.status(403).json({ error: 'no_tenant_assigned' })
+        return
+      }
+
+      const id = param(req.params.id)
+
+      const [tx] = await db
+        .select({ id: schema.transactions.id })
+        .from(schema.transactions)
+        .where(
+          and(
+            eq(schema.transactions.id, id),
+            eq(schema.transactions.tenant_id, tenantId),
+            isNull(schema.transactions.deleted_at)
+          )
+        )
+        .limit(1)
+
+      if (!tx) {
+        res.status(404).json({ error: 'transaction_not_found' })
+        return
+      }
+
+      const logs = await db
+        .select({
+          id: schema.transactionStatusLog.id,
+          from_status: schema.transactionStatusLog.from_status,
+          to_status: schema.transactionStatusLog.to_status,
+          notes: schema.transactionStatusLog.notes,
+          created_at: schema.transactionStatusLog.created_at,
+          changed_by: {
+            id: schema.users.id,
+            email: schema.users.email,
+          },
+        })
+        .from(schema.transactionStatusLog)
+        .innerJoin(schema.users, eq(schema.users.id, schema.transactionStatusLog.changed_by))
+        .where(eq(schema.transactionStatusLog.transaction_id, id))
+        .orderBy(desc(schema.transactionStatusLog.created_at))
+
+      res.json({ logs })
+    } catch (error) {
+      console.error('Get transaction logs error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   // PATCH /transactions/:id/status — State transition
   router.patch('/transactions/:id/status', validate(updateTransactionStatusSchema), async (req, res) => {
     try {
