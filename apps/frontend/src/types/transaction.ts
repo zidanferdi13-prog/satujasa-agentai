@@ -98,6 +98,18 @@ export interface UpdateStatusPayload {
   notes?: string;
 }
 
+export interface ActivityLog {
+  id: string;
+  from_status: TransactionStatus;
+  to_status: TransactionStatus;
+  changed_by: {
+    id: string;
+    name: string;
+  };
+  notes?: string;
+  created_at: string;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   meta: {

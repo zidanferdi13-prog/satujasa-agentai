@@ -38,8 +38,8 @@ export default function MonitoringPage() {
 
   const tx = data;
   const statusLogs = tx?.status_logs ?? tx?.status_history ?? [];
-  const isDone = tx?.status === 'done';
-  const isCancelled = tx?.status === 'cancelled';
+  const isDone = tx?.status === 'done' || tx?.status === 'SELESAI';
+  const isCancelled = tx?.status === 'cancelled' || tx?.status === 'DIBATALKAN';
 
   if (isLoading) {
     return (
