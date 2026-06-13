@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Button from '@mui/material/Button';
 import AuthShell from '@/components/auth/AuthShell';
 import AuthTextField from '@/components/auth/AuthTextField';
 
@@ -14,32 +15,36 @@ export default function SignUpPage() {
       title="Mulai rapikan bisnis jasa STNK dari satu akun."
       description="Daftarkan bisnis Anda untuk menyiapkan akses owner, admin cabang, dashboard web based, dan mobile Android."
     >
-      <div className="mb-6">
-        <p className="text-label-sm font-bold uppercase tracking-[0.18em] text-primary">Sign up</p>
-        <h2 className="mt-2 text-[30px] font-extrabold leading-tight tracking-[-0.04em] text-on-surface">
+      <div style={{ marginBottom: 24 }}>
+        <p style={{ margin: 0, marginBottom: 8, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#6161ff' }}>Sign up</p>
+        <h2 style={{ margin: 0, fontSize: 30, fontWeight: 800, lineHeight: 1.1, letterSpacing: '-0.04em', color: '#333333' }}>
           Daftar SatuJasa
         </h2>
-        <p className="mt-2 leading-7 text-on-surface-variant">
+        <p style={{ marginTop: 8, lineHeight: 1.75, color: '#535768' }}>
           Isi data awal bisnis untuk menyiapkan akun owner.
         </p>
       </div>
 
-      <form className="space-y-5">
+      <form style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <AuthTextField label="Nama bisnis" required fullWidth autoComplete="organization" />
         <AuthTextField label="Nama pemilik" required fullWidth autoComplete="name" />
         <AuthTextField label="Email" type="email" required fullWidth autoComplete="email" />
         <AuthTextField label="Nomor WhatsApp" type="tel" required fullWidth autoComplete="tel" />
-        <button
+        <Button
           type="button"
-          className="flex w-full items-center justify-center rounded-2xl bg-primary px-6 py-4 text-label-md font-bold text-on-primary transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim"
+          variant="contained"
+          color="primary"
+          fullWidth
+          size="large"
+          sx={{ py: 1.75 }}
         >
           Ajukan Pendaftaran
-        </button>
+        </Button>
       </form>
 
-      <div className="mt-7 rounded-3xl bg-surface-container p-5 text-center text-sm text-on-surface-variant">
+      <div style={{ marginTop: 28, borderRadius: 24, padding: 20, textAlign: 'center', fontSize: 14, backgroundColor: '#f5f6f8', color: '#535768' }}>
         Sudah punya akun?{' '}
-        <Link href="/auth/signin" className="font-extrabold text-primary hover:text-primary-container">
+        <Link href="/auth/signin" style={{ fontWeight: 800, color: '#6161ff', textDecoration: 'none' }}>
           Masuk sekarang
         </Link>
       </div>
