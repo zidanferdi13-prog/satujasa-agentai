@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Table from '@mui/material/Table';
@@ -53,6 +54,11 @@ interface OwnerReport {
   monthlyRevenue: MonthlyRow[];
 }
 
+interface TenantOption {
+  id: string;
+  name?: string | null;
+}
+
 type PeriodMode = 'monthly' | 'range';
 
 type RawRecord = Record<string, unknown>;
@@ -68,6 +74,12 @@ function num(value: unknown): number {
 
 function formatCurrency(value: number) {
   return `Rp${value.toLocaleString('id-ID')}`;
+}
+
+function normalizeTenants(rawValue: unknown): TenantOption[] {
+  const raw = asRecord(rawValue);
+  const list = Array.isArray(rawValue) ? rawValue : raw.data;
+  return Array.isArray(list) ? (list as TenantOption[]) : [];
 }
 
 function normalizeReport(rawValue: unknown): OwnerReport {
@@ -109,6 +121,7 @@ export default function OwnerLaporanPage() {
   const [period, setPeriod] = useState<PeriodMode>('monthly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [tenantId, setTenantId] = useState('');
 
   const params = useMemo(() => {
     const next: Record<string, string> = { period };
@@ -116,8 +129,14 @@ export default function OwnerLaporanPage() {
       if (startDate) next.start_date = startDate;
       if (endDate) next.end_date = endDate;
     }
+    if (tenantId) next.tenant_id = tenantId;
     return next;
-  }, [period, startDate, endDate]);
+  }, [period, startDate, endDate, tenantId]);
+
+  const { data: tenants = [], isLoading: tenantsLoading, isError: tenantsError } = useQuery<TenantOption[]>({
+    queryKey: ['owner-tenants'],
+    queryFn: () => apiClient.get('/owner/tenants').then((r) => normalizeTenants(r.data)),
+  });
 
   const { data, isLoading, isError } = useQuery<OwnerReport>({
     queryKey: ['owner-report', params],
@@ -153,6 +172,25 @@ export default function OwnerLaporanPage() {
           <ToggleButton value="monthly">Bulanan</ToggleButton>
           <ToggleButton value="range">Rentang Tanggal</ToggleButton>
         </ToggleButtonGroup>
+      </Box>
+
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'minmax(240px, 360px)' }, gap: 2, mb: 3 }}>
+        <TextField
+          select
+          size="small"
+          label="Tenant"
+          value={tenantId}
+          onChange={(e) => setTenantId(e.target.value)}
+          disabled={tenantsLoading}
+          helperText={tenantsError ? 'Gagal memuat daftar tenant. Laporan semua tenant tetap tersedia.' : 'Pilih tenant untuk memfilter laporan'}
+        >
+          <MenuItem value="">Semua Tenant</MenuItem>
+          {tenants.map((tenant) => (
+            <MenuItem key={tenant.id} value={tenant.id}>
+              {tenant.name ?? 'Tenant tanpa nama'}
+            </MenuItem>
+          ))}
+        </TextField>
       </Box>
 
       {period === 'range' && (
