@@ -98,10 +98,10 @@ export default function TransactionDetailScreen() {
   }, [id]);
 
   useEffect(() => {
-    if (!loading && transaction) {
+    if (!loading && transaction?.id) {
       fetchLogs();
     }
-  }, [loading, transaction]);
+  }, [loading, transaction?.id]);
 
   interface FeeEditItem {
     componentCode: string;
@@ -240,13 +240,13 @@ export default function TransactionDetailScreen() {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Tanggal Dibuat</Text>
             <Text style={styles.infoValue}>
-              {new Date(transaction.created_at).toLocaleDateString('id-ID')}
+              {formatDateID(transaction.created_at)}
             </Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Terakhir Diperbarui</Text>
             <Text style={styles.infoValue}>
-              {new Date(transaction.updated_at).toLocaleDateString('id-ID')}
+              {formatDateID(transaction.updated_at)}
             </Text>
           </View>
         </View>
@@ -256,14 +256,14 @@ export default function TransactionDetailScreen() {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Biaya Utama</Text>
             <Text style={styles.infoValue}>
-              Rp {parseInt(transaction.total_cost).toLocaleString('id-ID')}
+              {formatCurrencyID(transaction.total_cost)}
             </Text>
           </View>
-          {parseInt(transaction.additional_cost) > 0 && (
+          {toNumber(transaction.additional_cost) > 0 && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Biaya Tambahan</Text>
               <Text style={styles.infoValue}>
-                Rp {parseInt(transaction.additional_cost).toLocaleString('id-ID')}
+                {formatCurrencyID(transaction.additional_cost)}
               </Text>
             </View>
           )}
@@ -289,7 +289,7 @@ export default function TransactionDetailScreen() {
                     </Text>
                   </View>
                   <Text style={styles.snapshotAmount}>
-                    Rp {parseInt(fee.amount).toLocaleString('id-ID')}
+                    {formatCurrencyID(fee.amount)}
                   </Text>
                 </View>
               ))}
@@ -362,13 +362,7 @@ export default function TransactionDetailScreen() {
                     <Text style={styles.logActor}>{log.changed_by.email}</Text>
                   )}
                   <Text style={styles.logTimestamp}>
-                    {new Date(log.created_at).toLocaleString('id-ID', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatTimestampID(log.created_at)}
                   </Text>
                   {log.notes && (
                     <Text style={styles.logNotes}>“{log.notes}”</Text>
@@ -413,7 +407,7 @@ export default function TransactionDetailScreen() {
                 ))}
                 <View style={styles.modalTotalRow}>
                   <Text style={styles.modalTotalLabel}>Preview Total</Text>
-                  <Text style={styles.modalTotalValue}>Rp {feeTotalPreview.toLocaleString('id-ID')}</Text>
+                  <Text style={styles.modalTotalValue}>{formatCurrencyID(feeTotalPreview)}</Text>
                 </View>
               </ScrollView>
               <View style={styles.modalButtons}>
@@ -446,6 +440,28 @@ function getStatusLabel(status: TransactionStatus): string {
     DIBATALKAN: 'Dibatalkan',
   };
   return labels[status];
+}
+
+function toNumber(value: string | number | null | undefined): number {
+  return Number(value ?? 0) || 0;
+}
+
+function formatCurrencyID(value: string | number | null | undefined): string {
+  return `Rp ${toNumber(value).toLocaleString('id-ID')}`;
+}
+
+function formatDateID(iso: string): string {
+  return new Date(iso).toLocaleDateString('id-ID');
+}
+
+function formatTimestampID(iso: string): string {
+  return new Date(iso).toLocaleString('id-ID', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 const styles = StyleSheet.create({
