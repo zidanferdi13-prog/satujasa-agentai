@@ -60,6 +60,10 @@ describe('Public Routes', () => {
       password: 'SuperAdmin123!',
     })
     const adminToken = adminRes.body.accessToken
+    const servicesRes = await request(app)
+      .get('/api/v1/admin/settings')
+      .set('Authorization', `Bearer ${adminToken}`)
+    const serviceId = servicesRes.body.services[0].id
 
     await request(app)
       .post(`/api/v1/admin/owners/${ownerId}/subscription`)
@@ -83,7 +87,7 @@ describe('Public Routes', () => {
         customer_phone: '+628****5555',
         plate_number: 'B 5555 XYZ',
         vehicle_type: 'motorcycle',
-        service_id: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+        service_id: serviceId,
         total_cost: 300000,
       })
 
