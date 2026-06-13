@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
@@ -16,6 +15,8 @@ import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
+import MetricCard from '@/components/shared/MetricCard';
+import StatusPill from '@/components/shared/StatusPill';
 import apiClient from '@/lib/axios';
 
 interface OwnerDetail {
@@ -120,20 +121,29 @@ export default function OwnerDetailPage() {
         <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
           <span className="material-symbols-outlined">arrow_back</span>
         </Button>
-        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, flex: 1 }}>
           {owner.email || 'Owner tanpa email'}
         </Typography>
+        <StatusPill status={owner.subscription?.tier ?? 'free'} variant={owner.subscription?.tier === 'free' ? 'info' : 'success'} />
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-      {/* Subscription Form */}
-      <Paper variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-          Manajemen Subscription
-        </Typography>
+      {/* MetricCards */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 4 }}>
+        <MetricCard label="Tenant" value={owner.tenants?.length ?? 0} />
+        <MetricCard label="Max Tenant" value={owner.subscription?.max_tenants ?? '-'} />
+        <MetricCard label="Max Admin User" value={owner.subscription?.max_admin_users ?? '-'} />
+      </Box>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Subscription Form */}
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+            Manajemen Subscription
+          </Typography>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
           <FormControl fullWidth required>
             <InputLabel>Subscription Tier</InputLabel>
             <Select
@@ -176,7 +186,8 @@ export default function OwnerDetailPage() {
             </Button>
           </Box>
         </form>
-      </Paper>
+      </CardContent>
+      </Card>
 
       {/* Tenants List */}
       {owner.tenants && owner.tenants.length > 0 && (

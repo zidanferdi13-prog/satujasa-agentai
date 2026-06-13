@@ -1,3 +1,11 @@
+'use client';
+
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
+
 const plans = [
   {
     name: 'Free',
@@ -60,86 +68,180 @@ const plans = [
 
 export default function PricingSection() {
   return (
-    <section className="py-24 bg-surface-container-lowest" id="pricing">
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
-        <div className="text-center mb-16">
-          <h2 className="font-headline-lg text-headline-lg">
+    <Box component="section" sx={{ bgcolor: '#ffffff', py: { xs: 8, md: 12 } }} id="pricing">
+      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 } }}>
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: '-0.04em' }}>
             Pilih Paket Sesuai Kebutuhan Anda
-          </h2>
-          <p className="text-on-surface-variant mt-2">Transparan, tanpa biaya tersembunyi</p>
-        </div>
+          </Typography>
+          <Typography sx={{ mt: 1, color: '#535768' }}>
+            Transparan, tanpa biaya tersembunyi
+          </Typography>
+        </Box>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+            gap: 3,
+          }}
+        >
           {plans.map((plan) => (
-            <div
+            <Card
               key={plan.name}
-              className={
-                plan.highlight
-                  ? 'p-8 rounded-3xl bg-primary text-on-primary soft-shadow ring-4 ring-primary/20 relative z-10 flex flex-col'
-                  : 'p-8 rounded-3xl border border-outline-variant hover:border-primary transition-all flex flex-col'
-              }
+              sx={{
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                ...(plan.highlight
+                  ? {
+                      bgcolor: '#6161ff',
+                      color: '#ffffff',
+                      border: '2px solid',
+                      borderColor: 'rgba(97, 97, 255, 0.4)',
+                      zIndex: 10,
+                      boxShadow: '0 8px 32px rgba(97, 97, 255, 0.25)',
+                    }
+                  : {}),
+              }}
             >
-              {plan.badge && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary text-on-secondary px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  {plan.badge}
-                </div>
-              )}
-
-              <h4 className="font-headline-md text-[20px] mb-2">{plan.name}</h4>
-              <p
-                className={`text-sm mb-6 ${plan.highlight ? 'text-on-primary/70' : 'text-on-surface-variant'}`}
-              >
-                {plan.desc}
-              </p>
-
-              <div className="mb-8">
-                <span className="text-headline-lg font-bold">{plan.price}</span>
-                {plan.period && (
-                  <span
-                    className={plan.highlight ? 'text-on-primary/70' : 'text-on-surface-variant'}
+              <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                {plan.badge && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -14,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bgcolor: '#535768',
+                      color: '#ffffff',
+                      px: 3,
+                      py: 0.5,
+                      borderRadius: '9999px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                    }}
                   >
-                    {plan.period}
-                  </span>
+                    {plan.badge}
+                  </Box>
                 )}
-              </div>
 
-              <ul className="space-y-4 mb-10 flex-grow">
-                {plan.features.map((f) => (
-                  <li
-                    key={f.text}
-                    className={`flex items-center gap-2 text-sm ${!f.available ? 'opacity-50' : ''}`}
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 0.5,
+                    ...(plan.highlight ? { color: '#ffffff' } : {}),
+                  }}
+                >
+                  {plan.name}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 14,
+                    mb: 3,
+                    ...(plan.highlight ? { color: 'rgba(255, 255, 255, 0.7)' } : { color: '#535768' }),
+                  }}
+                >
+                  {plan.desc}
+                </Typography>
+
+                <Box sx={{ mb: 4 }}>
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      fontWeight: 700,
+                      ...(plan.highlight ? { color: '#ffffff' } : {}),
+                    }}
                   >
-                    <span
-                      className={`material-symbols-outlined text-[20px] ${
-                        f.available
-                          ? plan.highlight
-                            ? 'text-on-primary'
-                            : 'text-secondary'
-                          : ''
-                      }`}
+                    {plan.price}
+                  </Typography>
+                  {plan.period && (
+                    <Typography
+                      component="span"
+                      sx={plan.highlight ? { color: 'rgba(255, 255, 255, 0.7)' } : { color: '#535768' }}
                     >
-                      {f.available ? 'check_circle' : 'cancel'}
-                    </span>
-                    {f.text}
-                  </li>
-                ))}
-              </ul>
+                      {plan.period}
+                    </Typography>
+                  )}
+                </Box>
 
-              <button
-                className={
-                  plan.highlight
-                    ? 'w-full py-4 rounded-2xl bg-on-primary text-primary font-bold hover:bg-white/90 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim'
-                    : plan.name === 'Expert'
-                      ? 'w-full py-4 rounded-2xl border border-outline text-on-surface font-bold hover:bg-surface-container transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary'
-                      : 'w-full py-4 rounded-2xl border border-primary text-primary font-bold hover:bg-primary/5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary'
-                }
-              >
-                {plan.cta}
-              </button>
-            </div>
+                <Box
+                  component="ul"
+                  sx={{
+                    listStyle: 'none',
+                    p: 0,
+                    m: 0,
+                    mb: 4,
+                    flexGrow: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5,
+                  }}
+                >
+                  {plan.features.map((f) => (
+                    <Box
+                      component="li"
+                      key={f.text}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        fontSize: 14,
+                        ...(!f.available ? { opacity: 0.5 } : {}),
+                      }}
+                    >
+                      <Box
+                        component="span"
+                        className="material-symbols-outlined"
+                        sx={{
+                          fontSize: 20,
+                          ...(f.available
+                            ? plan.highlight
+                              ? { color: '#ffffff' }
+                              : { color: '#535768' }
+                            : {}),
+                        }}
+                      >
+                        {f.available ? 'check_circle' : 'cancel'}
+                      </Box>
+                      {f.text}
+                    </Box>
+                  ))}
+                </Box>
+
+                <Button
+                  variant={plan.highlight ? 'contained' : 'outlined'}
+                  color={plan.highlight ? 'primary' : 'primary'}
+                  fullWidth
+                  size="large"
+                  sx={{
+                    py: 1.5,
+                    ...(plan.highlight
+                      ? {
+                          bgcolor: '#ffffff',
+                          color: '#6161ff',
+                          fontWeight: 700,
+                          '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
+                        }
+                      : plan.name === 'Expert'
+                        ? {
+                            borderColor: '#d0d4e4',
+                            color: '#333333',
+                            '&:hover': { borderColor: '#6161ff', color: '#6161ff' },
+                          }
+                        : {}),
+                  }}
+                >
+                  {plan.cta}
+                </Button>
+              </CardContent>
+            </Card>
           ))}
-        </div>
-      </div>
-    </section>
+        </Box>
+      </Box>
+    </Box>
   );
 }

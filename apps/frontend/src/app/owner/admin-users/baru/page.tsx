@@ -13,7 +13,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import apiClient from '@/lib/axios';
 
 interface Tenant {
@@ -89,7 +90,8 @@ export default function AdminUserBaruPage() {
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+      <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField
             label="Email"
@@ -135,16 +137,15 @@ export default function AdminUserBaruPage() {
             helperText="Minimal 6 karakter"
           />
 
-          <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
-            <Button variant="outlined" onClick={() => router.back()} disabled={isPending}>
-              Batal
-            </Button>
-            <Button type="submit" variant="contained" disabled={isPending}>
-              {isPending ? 'Menyimpan...' : 'Buat Admin User'}
-            </Button>
-          </Box>
+          <Button variant="outlined" onClick={() => router.back()} disabled={isPending} fullWidth sx={{ mb: 1 }}>
+            Batal
+          </Button>
+          <Button type="submit" variant="contained" disabled={isPending} fullWidth>
+            {isPending ? 'Menyimpan...' : 'Buat Admin User'}
+          </Button>
         </form>
-      </Paper>
+      </CardContent>
+      </Card>
     </Box>
   );
 }

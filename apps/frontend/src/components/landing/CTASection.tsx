@@ -1,33 +1,104 @@
+'use client';
+
 import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
 
 export default function CTASection() {
   return (
-    <section className="py-24 relative overflow-hidden">
-      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center relative z-10">
-        <div className="bg-primary-container p-12 md:p-20 rounded-[3rem] text-on-primary soft-shadow">
-          <h2 className="font-headline-lg text-headline-lg md:text-[40px] mb-6">
+    <Box component="section" sx={{ py: { xs: 8, md: 12 }, position: 'relative', overflow: 'hidden' }}>
+      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, textAlign: 'center', position: 'relative', zIndex: 10 }}>
+        <Box
+          sx={{
+            bgcolor: '#6161ff',
+            color: '#ffffff',
+            p: { xs: 5, md: 8 },
+            borderRadius: '3rem',
+            boxShadow: '0 8px 32px rgba(97, 97, 255, 0.25)',
+          }}
+        >
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 800,
+              letterSpacing: '-0.04em',
+              mb: 2,
+              color: '#ffffff',
+              fontSize: { xs: 28, md: 40 },
+            }}
+          >
             Siap digitalisasi operasional jasa STNK Anda?
-          </h2>
-          <p className="text-body-lg text-on-primary-container/80 mb-10 max-w-2xl mx-auto">
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: 15, md: 18 },
+              lineHeight: 1.7,
+              color: 'rgba(255, 255, 255, 0.8)',
+              mb: 4,
+              maxWidth: 600,
+              mx: 'auto',
+            }}
+          >
             Mulai rapikan transaksi, status dokumen, dan komunikasi pelanggan tanpa mengganti cara
             kerja tim secara drastis.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2 }}>
+            <Button
+              component={Link}
               href="/auth/signup"
-              className="bg-on-primary text-primary font-bold px-10 py-5 rounded-2xl hover:scale-105 transition-all shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim"
+              variant="contained"
+              sx={{
+                bgcolor: '#ffffff',
+                color: '#6161ff',
+                fontWeight: 700,
+                px: 6,
+                py: 1.75,
+                fontSize: 16,
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.9)',
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                },
+              }}
             >
               Daftar Sekarang
-            </Link>
-            <Link href="/auth/help" className="bg-primary-fixed-dim/20 border border-on-primary/30 text-on-primary font-bold px-10 py-5 rounded-2xl hover:bg-on-primary/10 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim">
+            </Button>
+            <Button
+              component={Link}
+              href="/auth/help"
+              variant="outlined"
+              sx={{
+                borderColor: 'rgba(255, 255, 255, 0.3)',
+                color: '#ffffff',
+                fontWeight: 700,
+                px: 6,
+                py: 1.75,
+                fontSize: 16,
+                '&:hover': {
+                  borderColor: 'rgba(255, 255, 255, 0.6)',
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                },
+              }}
+            >
               Bantuan Login
-            </Link>
-          </div>
-        </div>
-      </div>
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full -z-10 opacity-10">
-        <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary to-transparent" />
-      </div>
-    </section>
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '100%',
+          height: '100%',
+          zIndex: 0,
+          opacity: 0.1,
+          background: 'radial-gradient(circle at center, #6161ff, transparent)',
+        }}
+      />
+    </Box>
   );
 }

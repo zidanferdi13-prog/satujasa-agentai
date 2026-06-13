@@ -1,3 +1,11 @@
+'use client';
+
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+
 const features = [
   {
     icon: 'inventory_2',
@@ -23,35 +31,62 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section className="bg-surface-container py-24" id="features">
-      <div className="mx-auto max-w-container-max px-margin-mobile md:px-margin-desktop">
-        <div className="mb-14 grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-          <p className="text-label-sm font-bold uppercase tracking-[0.18em] text-primary">
+    <Box component="section" sx={{ bgcolor: '#f5f6f8', py: { xs: 8, md: 12 } }} id="features">
+      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 } }}>
+        <Box sx={{ mb: 6, display: 'grid', gap: 3, gridTemplateColumns: { lg: '0.8fr 1.2fr' }, alignItems: 'end' }}>
+          <Typography
+            sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#6161ff' }}
+          >
             Fitur inti
-          </p>
-          <h2 className="max-w-3xl text-headline-lg font-extrabold tracking-[-0.04em]">
+          </Typography>
+          <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: '-0.04em', maxWidth: 720 }}>
             Dibuat untuk alur kerja biro jasa, bukan dashboard generik.
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-[1.2fr_0.9fr_0.9fr]">
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: '1.2fr 0.9fr 0.9fr' },
+            gap: 2.5,
+          }}
+        >
           {features.map(({ icon, title, desc }, index) => (
-            <article
+            <Card
               key={title}
-              className={`rounded-[2rem] bg-surface-container-lowest p-7 ring-1 ring-outline-variant/70 transition-transform hover:-translate-y-1 ${index === 0 ? 'lg:row-span-2 lg:p-9' : ''}`}
+              sx={{
+                borderRadius: '2rem',
+                p: index === 0 ? { lg: 3.5 } : 2.5,
+                transition: 'transform 0.2s',
+                '&:hover': { transform: 'translateY(-4px)' },
+                ...(index === 0 ? { gridRow: { lg: 'span 2' } } : {}),
+              }}
             >
-              <span className="material-symbols-outlined mb-6 block text-3xl text-primary">
-                {icon}
-              </span>
-              <h3 className="mb-3 text-[20px] font-extrabold tracking-[-0.02em]">{title}</h3>
-              <p className="mb-6 text-sm leading-6 text-on-surface-variant">{desc}</p>
-              <button className="flex items-center gap-2 text-label-sm font-bold text-primary transition-colors hover:text-primary-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary">
-                Pelajari selengkapnya
-                <span className="material-symbols-outlined text-sm">chevron_right</span>
-              </button>
-            </article>
+              <CardContent sx={{ p: '0 !important' }}>
+                <Box
+                  component="span"
+                  className="material-symbols-outlined"
+                  sx={{ display: 'block', mb: 2, fontSize: 32, color: '#6161ff' }}
+                >
+                  {icon}
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 800, letterSpacing: '-0.02em', mb: 1.5 }}>
+                  {title}
+                </Typography>
+                <Typography sx={{ mb: 2.5, fontSize: 14, lineHeight: 1.6, color: '#535768' }}>
+                  {desc}
+                </Typography>
+                <Button
+                  variant="text"
+                  sx={{ fontWeight: 700, fontSize: 13, p: 0, '&:hover': { bgcolor: 'transparent' } }}
+                  endIcon={<Box component="span" className="material-symbols-outlined" sx={{ fontSize: 16 }}>chevron_right</Box>}
+                >
+                  Pelajari selengkapnya
+                </Button>
+              </CardContent>
+            </Card>
           ))}
-        </div>
-      </div>
-    </section>
+        </Box>
+      </Box>
+    </Box>
   );
 }

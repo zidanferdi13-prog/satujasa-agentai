@@ -19,6 +19,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import FilterBar from '@/components/shared/FilterBar';
 import apiClient from '@/lib/axios';
 
 interface Summary {
@@ -122,6 +123,7 @@ export default function OwnerLaporanPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [tenantId, setTenantId] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   const params = useMemo(() => {
     const next: Record<string, string> = { period };
@@ -130,8 +132,9 @@ export default function OwnerLaporanPage() {
       if (endDate) next.end_date = endDate;
     }
     if (tenantId) next.tenant_id = tenantId;
+    if (statusFilter) next.status = statusFilter;
     return next;
-  }, [period, startDate, endDate, tenantId]);
+  }, [period, startDate, endDate, tenantId, statusFilter]);
 
   const { data: tenants = [], isLoading: tenantsLoading, isError: tenantsError } = useQuery<TenantOption[]>({
     queryKey: ['owner-tenants'],
@@ -191,6 +194,29 @@ export default function OwnerLaporanPage() {
             </MenuItem>
           ))}
         </TextField>
+      </Box>
+
+      <Box sx={{ mb: 3 }}>
+        <FilterBar
+          searchValue=""
+          onSearchChange={() => {}}
+          searchPlaceholder=""
+          filters={[
+            {
+              label: 'Status',
+              value: statusFilter,
+              options: [
+                { label: 'Semua Status', value: '' },
+                { label: 'Active', value: 'active' },
+                { label: 'Completed', value: 'completed' },
+                { label: 'Cancelled', value: 'cancelled' },
+              ],
+              onChange: (v) => { setStatusFilter(v); },
+            },
+          ]}
+          activeChips={statusFilter ? [{ label: `Status: ${statusFilter}`, onRemove: () => setStatusFilter('') }] : []}
+          onClearAll={() => setStatusFilter('')}
+        />
       </Box>
 
       {period === 'range' && (

@@ -15,7 +15,8 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 import Alert from '@mui/material/Alert';
-import Chip from '@mui/material/Chip';
+import FilterBar from '@/components/shared/FilterBar';
+import StatusPill from '@/components/shared/StatusPill';
 import apiClient from '@/lib/axios';
 
 interface Owner {
@@ -34,24 +35,25 @@ interface OwnersListResponse {
 
 export default function OwnersListPage() {
   const [search, setSearch] = useState('');
+  const [tierFilter, setTierFilter] = useState('');
 
   const { data, isLoading, isError } = useQuery<OwnersListResponse>({
-    queryKey: ['admin-owners', search],
+    queryKey: ['admin-owners', search, tierFilter],
     queryFn: () =>
       apiClient
         .get('/admin/owners', { params: { search: search || undefined } })
         .then((r) => r.data?.data ? { data: r.data.data, meta: r.data.meta } : r.data),
   });
 
-  const getTierColor = (tier: string): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    const colors: Record<string, 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
-      'free': 'default',
+  const getTierVariant = (tier: string): 'success' | 'warning' | 'info' | 'error' => {
+    const variants: Record<string, 'success' | 'warning' | 'info' | 'error'> = {
+      'free': 'info',
       'pro': 'info',
       'plus': 'warning',
       'expert': 'success',
     };
     const tierKey = (tier ?? 'FREE').toLowerCase();
-    return colors[tierKey] || 'default';
+    return variants[tierKey] || 'info';
   };
 
   return (
@@ -66,12 +68,29 @@ export default function OwnersListPage() {
         </Alert>
       )}
 
-      <TextField
-        size="small"
-        placeholder="Cari email owner..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        sx={{ mb: 3, minWidth: 300 }}
+      <FilterBar
+        searchValue={search}
+        onSearchChange={(v) => { setSearch(v); }}
+        searchPlaceholder="Cari email owner..."
+        filters={[
+          {
+            label: 'Tier',
+            value: tierFilter,
+            options: [
+              { label: 'Semua', value: '' },
+              { label: 'Free', value: 'free' },
+              { label: 'Pro', value: 'pro' },
+              { label: 'Plus', value: 'plus' },
+              { label: 'Expert', value: 'expert' },
+            ],
+            onChange: (v) => { setTierFilter(v); },
+          },
+        ]}
+        activeChips={[
+          ...(search ? [{ label: `Pencarian: "${search}"`, onRemove: () => setSearch('') }] : []),
+          ...(tierFilter ? [{ label: `Tier: ${tierFilter.charAt(0).toUpperCase() + tierFilter.slice(1)}`, onRemove: () => setTierFilter('') }] : []),
+        ]}
+        onClearAll={() => { setSearch(''); setTierFilter(''); }}
       />
 
       {isLoading ? (
@@ -124,10 +143,9 @@ export default function OwnersListPage() {
                 >
                   <TableCell>{owner.email}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={(owner.subscription_tier ?? 'FREE').toUpperCase()}
-                      color={getTierColor(owner.subscription_tier)}
-                      size="small"
+                    <StatusPill
+                      status={(owner.subscription_tier ?? 'FREE').toUpperCase()}
+                      variant={getTierVariant(owner.subscription_tier)}
                     />
                   </TableCell>
                   <TableCell align="right">{owner.total_tenants}</TableCell>

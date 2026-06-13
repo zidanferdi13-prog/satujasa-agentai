@@ -12,7 +12,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -190,7 +191,8 @@ export default function TransaksiBaru() {
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-      <Paper variant="outlined" sx={{ p: 3 }}>
+      <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField label="Nama Customer" fullWidth required value={form.customer_name} onChange={(e) => handleChange('customer_name', e.target.value)} />
           <TextField label="No. HP Customer" fullWidth required value={form.customer_phone} onChange={(e) => handleChange('customer_phone', e.target.value)} />
@@ -261,12 +263,11 @@ export default function TransaksiBaru() {
 
           <TextField label="Catatan (opsional)" fullWidth multiline rows={3} value={form.notes} onChange={(e) => handleChange('notes', e.target.value)} />
 
-          <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
-            <Button variant="outlined" onClick={() => router.back()} disabled={isPending}>Batal</Button>
-            <Button type="submit" variant="contained" disabled={isPending || !feeRows.length}>{isPending ? 'Menyimpan...' : 'Simpan Transaksi'}</Button>
-          </Box>
+          <Button variant="outlined" onClick={() => router.back()} disabled={isPending} fullWidth sx={{ mb: 1 }}>Batal</Button>
+          <Button type="submit" variant="contained" disabled={isPending || !feeRows.length} fullWidth>{isPending ? 'Menyimpan...' : 'Simpan Transaksi'}</Button>
         </form>
-      </Paper>
+      </CardContent>
+      </Card>
     </Box>
   );
 }

@@ -5,11 +5,15 @@ import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
+import Skeleton from '@mui/material/Skeleton';
 import apiClient from '@/lib/axios';
 import StatusBadge from '@/components/transactions/StatusBadge';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
+import MetricCard from '@/components/shared/MetricCard';
 import type { TransactionDetail } from '@/types/transaction';
 
 type MonitoringData = TransactionDetail & {
@@ -44,7 +48,10 @@ export default function MonitoringPage() {
   if (isLoading) {
     return (
       <Box sx={{ textAlign: 'center', py: 8 }}>
-        <Typography>Memuat informasi transaksi...</Typography>
+        <Box sx={{ maxWidth: 600, mx: 'auto', display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Skeleton variant="rounded" height={80} sx={{ borderRadius: 3 }} />
+          <Skeleton variant="rounded" height={200} sx={{ borderRadius: 3 }} />
+        </Box>
       </Box>
     );
   }
@@ -89,84 +96,63 @@ export default function MonitoringPage() {
         </Alert>
       )}
 
-      {/* Info Card */}
-      <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '12px', textTransform: 'uppercase' }}>
-            Nama Pelanggan
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            {tx.customer_name || 'Pelanggan'}
-          </Typography>
-        </Box>
+      {/* Metric Cards Row */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <MetricCard label="Nama Pelanggan" value={tx.customer_name || 'Pelanggan'} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <MetricCard label="Plat Nomor" value={tx.plate_number ?? tx.vehicle_plate ?? '—'} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <MetricCard label="Jenis Kendaraan" value={tx.vehicle_type || '—'} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <MetricCard label="Layanan" value={tx.service_name || '—'} accentColor="#6161ff" />
+        </Grid>
+      </Grid>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 2 }}>
+      {/* Status card */}
+      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5 }}>
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '12px', textTransform: 'uppercase' }}>
-              Plat Nomor
-            </Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              {tx.plate_number ?? tx.vehicle_plate ?? '—'}
-            </Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '12px', textTransform: 'uppercase' }}>
-              Jenis Kendaraan
-            </Typography>
-            <Typography variant="body1">
-              {tx.vehicle_type || '—'}
-            </Typography>
-          </Box>
-        </Box>
-
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '12px', textTransform: 'uppercase' }}>
-            Layanan
-          </Typography>
-          <Typography variant="body1" sx={{ fontWeight: 600 }}>
-            {tx.service_name || '—'}
-          </Typography>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '12px', textTransform: 'uppercase' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12, textTransform: 'uppercase', fontWeight: 600 }}>
               Status Saat Ini
             </Typography>
           </Box>
           <StatusBadge status={tx.status} size="medium" />
-        </Box>
-      </Paper>
+        </CardContent>
+      </Card>
 
       {/* Timeline */}
       <Divider sx={{ my: 3 }} />
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
         Riwayat Pembaruan
       </Typography>
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+      <Card variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
         <StatusTimeline logs={statusLogs} />
-      </Paper>
+      </Card>
 
       {/* Meta Info */}
       <Box sx={{ mt: 4, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, fontSize: '12px' }}>
-          <Box>
+        <Grid container spacing={2} sx={{ fontSize: 12 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="caption" color="text.secondary">
               Dikirim
             </Typography>
             <Typography variant="body2">
               {formatDateTime(tx.created_at)}
             </Typography>
-          </Box>
-          <Box>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
             <Typography variant="caption" color="text.secondary">
               Update Terakhir
             </Typography>
             <Typography variant="body2">
               {formatDateTime(tx.updated_at)}
             </Typography>
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
       </Box>
     </Box>
   );

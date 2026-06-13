@@ -6,12 +6,13 @@ import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import CircularProgress from '@mui/material/CircularProgress';
+import MetricCard from '@/components/shared/MetricCard';
+import StatusPill from '@/components/shared/StatusPill';
 import apiClient from '@/lib/axios';
 
 interface AdminUser {
@@ -65,25 +66,36 @@ export default function TenantDetailPage() {
         <Typography variant="h4" sx={{ fontWeight: 700, flex: 1 }}>
           {tenant.name}
         </Typography>
+        <StatusPill status="Aktif" variant="success" />
+      </Box>
+
+      {/* MetricCards */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 4 }}>
+        <MetricCard
+          label="Admin User"
+          value={tenant.admin_users?.length ?? 0}
+        />
+        <MetricCard
+          label="Dibuat"
+          value={new Date(tenant.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+        />
       </Box>
 
       {/* Info */}
-      <Paper variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Alamat</Typography>
-            <Typography variant="body2">{tenant.address}</Typography>
+      <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alamat</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5 }}>{tenant.address || '-'}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Telepon</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5 }}>{tenant.phone || '-'}</Typography>
+            </Box>
           </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Telepon</Typography>
-            <Typography variant="body2">{tenant.phone}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Dibuat</Typography>
-            <Typography variant="body2">{new Date(tenant.created_at).toLocaleDateString('id-ID')}</Typography>
-          </Box>
-        </Box>
-      </Paper>
+        </CardContent>
+      </Card>
 
       {/* Admin Users */}
       <Divider sx={{ my: 3 }} />

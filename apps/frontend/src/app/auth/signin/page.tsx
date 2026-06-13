@@ -7,6 +7,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import AuthShell from '@/components/auth/AuthShell';
 import AuthTextField from '@/components/auth/AuthTextField';
 import { useLogin } from '@/hooks/useLogin';
@@ -29,15 +31,19 @@ export default function SignInPage() {
       title="Lanjutkan operasional tanpa data tercecer."
       description="Masuk ke ruang kerja SatuJasa untuk mengelola transaksi, status dokumen, dan cabang dari web based maupun mobile Android."
     >
-      <div className="mb-6">
-        <p className="mb-2 text-[12px] font-bold uppercase tracking-[0.18em]" style={{ color: '#6161ff' }}>Sign in</p>
-        <h2 className="m-0 text-[30px] font-extrabold leading-tight tracking-[-0.04em]" style={{ color: '#333333' }}>
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          sx={{ mb: 1, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#6161ff' }}
+        >
+          Sign in
+        </Typography>
+        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.04em', mb: 0.5 }}>
           Masuk dashboard
-        </h2>
-        <p className="mt-2 leading-7" style={{ color: '#535768' }}>
+        </Typography>
+        <Typography sx={{ color: '#535768', lineHeight: 1.75 }}>
           Gunakan email dan password yang terdaftar.
-        </p>
-      </div>
+        </Typography>
+      </Box>
 
       {isError && (
         <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
@@ -66,14 +72,14 @@ export default function SignInPage() {
           autoComplete="current-password"
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, fontSize: 14 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, fontSize: 14 }}>
           <Link href="/auth/forgot-password" style={{ fontWeight: 700, color: '#6161ff', textDecoration: 'none' }}>
             Lupa password?
           </Link>
           <Link href="/auth/help" style={{ fontWeight: 700, color: '#535768', textDecoration: 'none' }}>
             Kendala login
           </Link>
-        </div>
+        </Box>
 
         <Button
           type="submit"
@@ -89,12 +95,14 @@ export default function SignInPage() {
         </Button>
       </form>
 
-      <div className="mt-7 rounded-3xl p-5 text-center text-sm" style={{ backgroundColor: '#f5f6f8', color: '#535768' }}>
+      <Box
+        sx={{ mt: 3, borderRadius: 3, p: 2.5, textAlign: 'center', fontSize: 14, bgcolor: '#f5f6f8', color: '#535768' }}
+      >
         Belum punya akun?{' '}
         <Link href="/auth/signup" style={{ fontWeight: 800, color: '#6161ff', textDecoration: 'none' }}>
           Daftar SatuJasa
         </Link>
-      </div>
+      </Box>
     </AuthShell>
   );
 }

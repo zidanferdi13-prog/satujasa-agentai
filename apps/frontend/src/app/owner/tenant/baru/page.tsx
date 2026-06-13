@@ -8,7 +8,8 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import Paper from '@mui/material/Paper';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import apiClient from '@/lib/axios';
 
 interface SubscriptionInfo {
@@ -88,15 +89,16 @@ export default function TenantBaruPage() {
       )}
 
       {subscription && (
-        <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'background.default', borderRadius: 2 }}>
+        <Card variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'background.default', borderRadius: 2 }}>
           <Typography variant="caption" color="text.secondary">Quota Tenant</Typography>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {quotaUsed} / {quotaMax} digunakan
           </Typography>
-        </Paper>
+        </Card>
       )}
 
-      <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+      <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField
             label="Nama Tenant"
@@ -125,16 +127,15 @@ export default function TenantBaruPage() {
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
           />
 
-          <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
-            <Button variant="outlined" onClick={() => router.back()} disabled={isPending}>
-              Batal
-            </Button>
-            <Button type="submit" variant="contained" disabled={quotaExceeded || isPending}>
-              {isPending ? 'Menyimpan...' : 'Buat Tenant'}
-            </Button>
-          </Box>
+          <Button variant="outlined" onClick={() => router.back()} disabled={isPending} fullWidth sx={{ mb: 1 }}>
+            Batal
+          </Button>
+          <Button type="submit" variant="contained" disabled={quotaExceeded || isPending} fullWidth>
+            {isPending ? 'Menyimpan...' : 'Buat Tenant'}
+          </Button>
         </form>
-      </Paper>
+      </CardContent>
+      </Card>
     </Box>
   );
 }

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { ThemeProvider } from "@mui/material/styles";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
+import theme from "@/lib/theme";
 
-const inter = Inter({
+const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-inter",
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -22,16 +24,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={inter.variable}>
+    <html lang="id" className={poppins.variable}>
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
           rel="stylesheet"
         />
       </head>
-      <body className={inter.className}>
+      <body className={poppins.className}>
         <AppRouterCacheProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <ThemeProvider theme={theme}>
+            <QueryProvider>{children}</QueryProvider>
+          </ThemeProvider>
         </AppRouterCacheProvider>
       </body>
     </html>
