@@ -135,7 +135,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
         {/* Right side — form */}
         <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 6, lg: 0 } }}>
           <Box sx={{ width: 1, maxWidth: 460 }}>
-            <Link href="/" style={{ display: { xs: 'flex', lg: 'none' }, alignItems: 'center', gap: 12, textDecoration: 'none', mb: 4 }}>
+            <Link href="/" className="flex lg:hidden items-center gap-3 mb-4" style={{ textDecoration: 'none' }}>
               <Box component="img" src={icon.src} alt="" sx={{ width: 36, height: 36, borderRadius: 2 }} />
               <Box sx={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em', color: '#6161ff' }}>STNK SatuJasa</Box>
             </Link>
