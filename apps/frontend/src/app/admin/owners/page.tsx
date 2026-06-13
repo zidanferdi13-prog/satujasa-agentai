@@ -55,7 +55,7 @@ export default function OwnersListPage() {
   };
 
   return (
-    <Box className="p-6 md:p-8">
+    <Box sx={{ p: { xs: 3, md: 4 } }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
         Manage Owner
       </Typography>

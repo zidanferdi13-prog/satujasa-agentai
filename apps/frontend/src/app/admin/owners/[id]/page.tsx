@@ -107,15 +107,15 @@ export default function OwnerDetailPage() {
   }
 
   if (isLoading) {
-    return <Box className="p-8"><Typography>Loading...</Typography></Box>;
+    return <Box sx={{ p: { xs: 3, md: 4 } }}><Typography sx={{ textAlign: 'center', py: 4 }}>Loading...</Typography></Box>;
   }
 
   if (!owner) {
-    return <Box className="p-8"><Typography>Owner tidak ditemukan.</Typography></Box>;
+    return <Box sx={{ p: { xs: 3, md: 4 } }}><Typography sx={{ textAlign: 'center', py: 4 }}>Owner tidak ditemukan.</Typography></Box>;
   }
 
   return (
-    <Box className="p-6 md:p-8" sx={{ maxWidth: 800 }}>
+    <Box sx={{ p: { xs: 3, md: 4 }, maxWidth: 800 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
           <span className="material-symbols-outlined">arrow_back</span>

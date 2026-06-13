@@ -1,4 +1,9 @@
+'use client';
+
 import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import icon from '../../../assets/icon.png';
 
 type AuthShellProps = {
@@ -16,59 +21,132 @@ const benefits = [
 
 export default function AuthShell({ eyebrow, title, description, children }: AuthShellProps) {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background text-on-background">
-      <div className="landing-texture absolute inset-0 -z-20 opacity-60" />
-      <div className="absolute -right-28 top-20 -z-10 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
-      <div className="absolute -bottom-24 left-8 -z-10 h-72 w-72 rounded-full bg-secondary/15 blur-3xl" />
-
-      <section className="mx-auto grid min-h-screen max-w-container-max grid-cols-1 gap-10 px-margin-mobile py-8 md:px-margin-desktop lg:grid-cols-[0.92fr_0.78fr] lg:items-center lg:gap-20">
-        <aside className="hidden self-center lg:block">
-          <div className="mb-10 flex items-center justify-between gap-6">
-            <Link href="/" className="inline-flex items-center gap-3 text-[20px] font-extrabold tracking-[-0.03em] text-primary">
-              <img src={icon.src} alt="" className="h-10 w-10 rounded-2xl" />
-              <span>STNK SatuJasa</span>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: '#f5f6f8',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: { xs: 2, md: 4 },
+      }}
+    >
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '0.92fr 0.78fr' },
+          gap: { lg: 10 },
+          maxWidth: 1200,
+          width: 1,
+          alignItems: 'center',
+        }}
+      >
+        {/* Left side — brand */}
+        <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, mb: 5 }}>
+            <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
+              <Box
+                component="img"
+                src={icon.src}
+                alt=""
+                sx={{ width: 40, height: 40, borderRadius: 3 }}
+              />
+              <Box sx={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.03em', color: '#6161ff' }}>
+                STNK SatuJasa
+              </Box>
             </Link>
-            <p className="inline-flex shrink-0 rounded-full border border-outline-variant bg-surface-container-lowest px-4 py-2 text-label-sm font-bold uppercase tracking-[0.18em] text-primary">
+            <Box
+              sx={{
+                display: 'inline-flex',
+                borderRadius: '9999px',
+                border: '1px solid #d0d4e4',
+                bgcolor: '#ffffff',
+                px: 3,
+                py: 1,
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.18em',
+                color: '#6161ff',
+              }}
+            >
               {eyebrow}
-            </p>
-          </div>
+            </Box>
+          </Box>
 
-          <h1 className="max-w-2xl text-[50px] font-extrabold leading-[0.98] tracking-[-0.055em] text-on-surface xl:text-[58px]">
+          <Box
+            sx={{
+              fontSize: { xs: 42, xl: 50 },
+              fontWeight: 800,
+              lineHeight: 0.98,
+              letterSpacing: '-0.055em',
+              color: '#333333',
+              maxWidth: 560,
+            }}
+          >
             {title}
-          </h1>
-          <p className="mt-7 max-w-xl text-body-lg leading-8 text-on-surface-variant">
+          </Box>
+          <Box
+            sx={{
+              mt: 3.5,
+              fontSize: 18,
+              lineHeight: 2,
+              color: '#535768',
+              maxWidth: 560,
+            }}
+          >
             {description}
-          </p>
+          </Box>
 
-          <div className="mt-10 rounded-[2rem] bg-inverse-surface p-6 text-inverse-on-surface soft-shadow">
-            <p className="text-label-sm font-bold uppercase tracking-[0.16em] text-primary-fixed-dim">
+          <Box
+            sx={{
+              mt: 5,
+              borderRadius: 6,
+              bgcolor: '#333333',
+              color: '#ffffff',
+              p: 3,
+              boxShadow: 'rgba(205, 208, 223, 0.4) 0px 2px 48px 0px',
+            }}
+          >
+            <Box sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.16em', color: '#9ec7ff', mb: 1.5 }}>
               Satu platform
-            </p>
-            <ul className="mt-5 space-y-4">
+            </Box>
+            <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
               {benefits.map((benefit) => (
-                <li key={benefit} className="flex items-start gap-3 text-sm font-bold leading-6">
-                  <span className="material-symbols-outlined mt-0.5 text-[20px] text-primary-fixed-dim">
+                <Box
+                  key={benefit}
+                  component="li"
+                  sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, fontSize: 14, fontWeight: 700, lineHeight: 1.75, '& + &': { mt: 2 } }}
+                >
+                  <Box
+                    component="span"
+                    className="material-symbols-outlined"
+                    sx={{ mt: 0.25, fontSize: 20, color: '#9ec7ff' }}
+                  >
                     check_circle
-                  </span>
+                  </Box>
                   {benefit}
-                </li>
+                </Box>
               ))}
-            </ul>
-          </div>
-        </aside>
+            </Box>
+          </Box>
+        </Box>
 
-        <div className="flex min-h-[calc(100vh-4rem)] items-start justify-center pt-10 md:pt-14 lg:min-h-0 lg:items-center lg:pt-0">
-          <div className="w-full max-w-[460px]">
-            <Link href="/" className="mb-8 flex items-center gap-3 text-[18px] font-extrabold tracking-[-0.03em] text-primary lg:hidden">
-              <img src={icon.src} alt="" className="h-9 w-9 rounded-xl" />
-              <span>STNK SatuJasa</span>
+        {/* Right side — form */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: { xs: 6, lg: 0 } }}>
+          <Box sx={{ width: 1, maxWidth: 460 }}>
+            <Link href="/" className="flex lg:hidden items-center gap-3 mb-4" style={{ textDecoration: 'none' }}>
+              <Box component="img" src={icon.src} alt="" sx={{ width: 36, height: 36, borderRadius: 2 }} />
+              <Box sx={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em', color: '#6161ff' }}>STNK SatuJasa</Box>
             </Link>
-            <div className="rounded-[2rem] border border-outline-variant/70 bg-surface-container-lowest/95 p-6 shadow-sm backdrop-blur md:p-7">
-              {children}
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
+            <Card sx={{ borderRadius: 6, border: '1px solid', borderColor: 'divider' }}>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                {children}
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }

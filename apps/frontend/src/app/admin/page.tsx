@@ -22,14 +22,14 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <Box className="p-8">
-        <Typography>Loading...</Typography>
+      <Box sx={{ p: { xs: 3, md: 4 } }}>
+        <Typography sx={{ textAlign: 'center', py: 4 }}>Loading...</Typography>
       </Box>
     );
   }
 
   return (
-    <Box className="p-8">
+    <Box sx={{ p: { xs: 3, md: 4 } }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
         Super Admin Dashboard
       </Typography>

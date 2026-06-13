@@ -19,6 +19,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Pagination from '@mui/material/Pagination';
+import Skeleton from '@mui/material/Skeleton';
 import apiClient from '@/lib/axios';
 import type { Transaction, PaginatedResponse } from '@/types/transaction';
 import type { TransactionStatus } from '@/types/transaction';
@@ -49,7 +50,7 @@ export default function TransaksiListPage() {
   const totalPages = data ? Math.ceil(data.meta.total / limit) : 0;
 
   return (
-    <Box className="p-6 md:p-8">
+    <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Transaksi
@@ -87,7 +88,30 @@ export default function TransaksiListPage() {
 
       {/* Table */}
       {isLoading ? (
-        <Typography>Loading...</Typography>
+        <TableContainer component={Paper} variant="outlined">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Customer</TableCell>
+                <TableCell>Plat</TableCell>
+                <TableCell>Layanan</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Tanggal</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {[1, 2, 3].map((i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                  <TableCell><Skeleton /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       ) : (
         <>
           <TableContainer component={Paper} variant="outlined">

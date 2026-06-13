@@ -1,5 +1,7 @@
 'use client';
 
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import type { User, UserRole } from '@/types/auth';
 import { roleLabels } from './menuConfig';
 
@@ -10,10 +12,10 @@ type DashboardTopBarProps = {
   onMenuClick: () => void;
 };
 
-const roleBadgeClasses: Record<UserRole, string> = {
-  ADMIN: 'bg-primary text-on-primary',
-  OWNER: 'bg-secondary text-on-secondary',
-  USER_ADMIN: 'bg-tertiary-container text-on-tertiary-container',
+const roleBadgeColors: Record<UserRole, { bg: string; text: string }> = {
+  ADMIN: { bg: '#e7ecff', text: '#6161ff' },
+  OWNER: { bg: '#e0fbf6', text: '#00a889' },
+  USER_ADMIN: { bg: '#fff5cc', text: '#b38a00' },
 };
 
 function getInitials(user?: User | null) {
@@ -25,54 +27,127 @@ function getInitials(user?: User | null) {
 export default function DashboardTopBar({ title, user, role, onMenuClick }: DashboardTopBarProps) {
   const displayName = user?.name || 'Super Admin';
   const email = user?.email || 'superadmin@satujasa.id';
+  const badge = roleBadgeColors[role];
 
   return (
-    <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-outline-variant bg-surface px-4 md:px-8">
-      <div className="flex min-w-0 items-center gap-3">
-        <button
-          type="button"
+    <Box
+      sx={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 40,
+        height: 72,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid',
+        borderColor: '#d0d4e4',
+        bgcolor: '#ffffff',
+        px: { xs: 2, md: 4 },
+      }}
+    >
+      {/* Left — mobile hamburger + page title */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0 }}>
+        <Box
+          component="button"
           onClick={onMenuClick}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-on-surface-variant transition-all duration-100 hover:bg-surface-container-low active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary lg:hidden"
           aria-label="Buka menu navigasi"
+          sx={{
+            display: { xs: 'flex', lg: 'none' },
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: '9999px',
+            border: 'none',
+            bgcolor: 'transparent',
+            color: '#535768',
+            cursor: 'pointer',
+          }}
         >
-          <span className="material-symbols-outlined">menu</span>
-        </button>
+          <span className="material-symbols-outlined" style={{ fontSize: 24 }}>menu</span>
+        </Box>
 
-        <div className="min-w-0">
-          <nav className="mb-0.5 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-outline" aria-label="Breadcrumb">
-            <span>Workspace</span>
-            <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-            <span className="text-primary">{roleLabels[role]}</span>
-          </nav>
-          <h1 className="truncate text-headline-md font-extrabold text-on-surface md:text-[24px]">{title}</h1>
-        </div>
-      </div>
+        <Box sx={{ minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
+            <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#808080' }}>
+              Workspace
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: '#808080' }}>/</Typography>
+            <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#6161ff' }}>
+              {roleLabels[role]}
+            </Typography>
+          </Box>
+          <Typography
+            sx={{
+              fontSize: { xs: 18, md: 22 },
+              fontWeight: 800,
+              color: '#333333',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {title}
+          </Typography>
+        </Box>
+      </Box>
 
-      <div className="flex shrink-0 items-center gap-3 md:gap-6">
-        <button
-          type="button"
-          className="relative flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-all duration-100 hover:bg-surface-container-low active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      {/* Right — avatar + notification */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, md: 3 } }}>
+        <Box
+          component="button"
           aria-label="Notifikasi"
+          sx={{
+            position: 'relative',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 40,
+            height: 40,
+            borderRadius: '9999px',
+            border: 'none',
+            bgcolor: 'transparent',
+            color: '#535768',
+            cursor: 'pointer',
+          }}
         >
-          <span className="material-symbols-outlined">notifications</span>
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full border-2 border-surface bg-error" />
-        </button>
+          <span className="material-symbols-outlined" style={{ fontSize: 24 }}>notifications</span>
+          <Box sx={{ position: 'absolute', top: 10, right: 10, width: 8, height: 8, borderRadius: '9999px', bgcolor: '#b3261e', border: '2px solid', borderColor: '#ffffff' }} />
+        </Box>
 
-        <div className="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-2 py-2 md:gap-4 md:px-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-container text-sm font-bold text-white">
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, borderRadius: 2, border: '1px solid', borderColor: '#d0d4e4', px: 2, py: 1 }}>
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: 1.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: '#e7ecff',
+              color: '#6161ff',
+              fontSize: 14,
+              fontWeight: 700,
+            }}
+          >
             {getInitials(user)}
-          </div>
-          <div className="hidden flex-col text-right sm:flex">
-            <div className="flex items-center justify-end gap-2">
-              <span className="max-w-40 truncate text-sm font-bold text-on-surface">{displayName}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter ${roleBadgeClasses[role]}`}>
+          </Box>
+          <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#333333' }}>
+                {displayName}
+              </Typography>
+              <Box sx={{ borderRadius: '9999px', px: 1, py: 0.25, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', bgcolor: badge.bg, color: badge.text }}>
                 {roleLabels[role]}
-              </span>
-            </div>
-            <span className="max-w-52 truncate text-xs font-medium text-outline">{email}</span>
-          </div>
-        </div>
-      </div>
-    </header>
+              </Box>
+            </Box>
+            <Typography sx={{ fontSize: 12, color: '#808080', fontWeight: 500 }}>
+              {email}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
