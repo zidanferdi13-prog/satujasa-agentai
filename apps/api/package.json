@@ -9,6 +9,7 @@
     "lint": "eslint src tests --max-warnings=0",
     "start": "node dist/server.js",
     "test": "vitest run",
+    "smoke": "tsx scripts/smoke.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate": "tsx src/cli-migrate.ts",
     "seed": "tsx src/cli-seed.ts"
