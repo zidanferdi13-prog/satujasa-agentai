@@ -66,7 +66,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
           .where(
             and(
               sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
-              sql`status NOT IN ('done', 'cancelled')`,
+              sql`status NOT IN ('done', 'cancelled', 'SELESAI', 'DIBATALKAN')`,
               isNull(schema.transactions.deleted_at)
             )
           )
@@ -78,7 +78,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
           .where(
             and(
               sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
-              eq(schema.transactions.status, 'done'),
+              sql`${schema.transactions.status} IN ('done', 'SELESAI')`,
               isNull(schema.transactions.deleted_at)
             )
           )
@@ -132,7 +132,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
             .where(
               and(
                 eq(schema.transactions.tenant_id, tenant.id),
-                sql`status NOT IN ('done', 'cancelled')`,
+                sql`status NOT IN ('done', 'cancelled', 'SELESAI', 'DIBATALKAN')`,
                 isNull(schema.transactions.deleted_at)
               )
             )
