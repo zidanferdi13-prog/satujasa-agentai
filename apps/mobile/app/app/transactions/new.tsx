@@ -25,6 +25,7 @@ import {
   VehicleTypeCode,
   vehicleTypeCodes,
 } from '@/contracts';
+import { colors, spacing, radius, cardShadow, typography, themeStyles } from '@/theme/designTokens';
 
 const getZodResolver = (schema: z.ZodTypeAny) => zodResolver(schema);
 
@@ -211,12 +212,35 @@ function Dropdown({ label, value, open, setOpen, options, disabled }: { label: s
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F4F1E9' }, container: { flex: 1 }, scrollContent: { padding: 24, paddingBottom: 32 }, header: { marginBottom: 24, marginTop: 20 },
-  title: { color: '#16201D', fontFamily: 'serif', fontSize: 28, fontWeight: '700', marginBottom: 8 }, subtitle: { color: '#8B572A', fontSize: 14, fontWeight: '600' }, form: { marginBottom: 24 },
-  label: { color: '#16201D', fontSize: 14, fontWeight: '600', marginBottom: 8, marginTop: 16 }, input: { backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#D5CDBF', borderRadius: 8, paddingVertical: 12, paddingHorizontal: 16, fontSize: 14, color: '#16201D' },
-  textArea: { minHeight: 80, textAlignVertical: 'top' }, dropdown: { justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center' }, dropdownText: { fontSize: 14, color: '#16201D' }, dropdownMenu: { backgroundColor: '#FFFFFF', borderRadius: 8, borderWidth: 1, borderColor: '#D5CDBF', marginTop: 4, maxHeight: 220, overflow: 'hidden' }, dropdownItem: { paddingVertical: 12, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: '#F0EFE9' },
-  inputError: { borderColor: '#D32F2F' }, errorText: { color: '#D32F2F', fontSize: 12, marginBottom: 8 }, helperText: { color: '#65706B', fontSize: 12 }, feeBox: { backgroundColor: '#FFFFFF', borderRadius: 8, padding: 16, marginTop: 20 }, sectionTitle: { color: '#16201D', fontSize: 16, fontWeight: '700', marginBottom: 12 },
-  feeRow: { borderBottomWidth: 1, borderBottomColor: '#F0EFE9', paddingVertical: 10 }, feeInfo: { marginBottom: 8 }, feeName: { color: '#16201D', fontWeight: '700', fontSize: 13 }, feeInput: { backgroundColor: '#F9F7F2', borderWidth: 1, borderColor: '#D5CDBF', borderRadius: 8, padding: 10, color: '#16201D', fontWeight: '700' }, lockedInput: { backgroundColor: '#ECE7DC', color: '#65706B' },
-  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#D5CDBF' }, totalLabel: { color: '#16201D', fontWeight: '700' }, totalValue: { color: '#174B3B', fontWeight: '800' },
-  button: { backgroundColor: '#174B3B', paddingVertical: 14, borderRadius: 8, alignItems: 'center', marginTop: 20 }, buttonDisabled: { opacity: 0.6 }, buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  safeArea: { flex: 1, backgroundColor: colors.cloud },
+  container: { flex: 1 },
+  scrollContent: { padding: spacing[24], paddingBottom: spacing[32] },
+  header: { marginBottom: spacing[24], marginTop: spacing[20] ?? 20 },
+  title: { color: colors.ink, fontSize: 28, fontWeight: typography.weights.bold, marginBottom: spacing[8] },
+  subtitle: { color: colors.slate, fontSize: typography.sizes.bodySm, fontWeight: typography.weights.medium },
+  form: { marginBottom: spacing[24] },
+  label: { color: colors.ink, fontSize: typography.sizes.bodySm, fontWeight: typography.weights.medium, marginBottom: spacing[8], marginTop: spacing[16] },
+  input: { backgroundColor: colors.snow, borderWidth: 1, borderColor: colors.pebble, borderRadius: radius.inputs, paddingVertical: 13, paddingHorizontal: spacing[16], fontSize: typography.sizes.bodySm, color: colors.ink },
+  textArea: { minHeight: 80, textAlignVertical: 'top' },
+  dropdown: { justifyContent: 'space-between', flexDirection: 'row', alignItems: 'center' },
+  dropdownText: { fontSize: typography.sizes.bodySm, color: colors.ink },
+  dropdownMenu: { backgroundColor: colors.snow, borderRadius: radius.inputs, borderWidth: 1, borderColor: colors.pebble, marginTop: spacing[4] ?? 4, maxHeight: 220, overflow: 'hidden', ...cardShadow('default') },
+  dropdownItem: { paddingVertical: spacing[12] ?? 12, paddingHorizontal: spacing[16], borderBottomWidth: 1, borderBottomColor: colors.fog },
+  inputError: { borderColor: colors.error },
+  errorText: { color: colors.error, fontSize: typography.sizes.caption, marginBottom: spacing[8] },
+  helperText: { color: colors.slate, fontSize: typography.sizes.caption },
+  feeBox: { backgroundColor: colors.snow, borderRadius: radius.cards, padding: spacing[16], marginTop: spacing[20] ?? 20, ...cardShadow('default') },
+  sectionTitle: { color: colors.ink, fontSize: typography.sizes.body, fontWeight: typography.weights.bold, marginBottom: spacing[12] ?? 12 },
+  feeRow: { borderBottomWidth: 1, borderBottomColor: colors.fog, paddingVertical: spacing[10] ?? 10 },
+  feeInfo: { marginBottom: spacing[8] },
+  feeName: { color: colors.ink, fontWeight: typography.weights.bold, fontSize: typography.sizes.bodySm },
+  feeInput: { backgroundColor: colors.cloud, borderWidth: 1, borderColor: colors.pebble, borderRadius: radius.inputs, padding: spacing[10] ?? 10, color: colors.ink, fontWeight: typography.weights.bold },
+  lockedInput: { backgroundColor: colors.fog, color: colors.slate },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: spacing[16], paddingTop: spacing[12] ?? 12, borderTopWidth: 1, borderTopColor: colors.fog },
+  totalLabel: { color: colors.ink, fontWeight: typography.weights.bold },
+  totalValue: { color: colors.mondayViolet, fontWeight: typography.weights.bold },
+  button: { backgroundColor: colors.mondayViolet, paddingVertical: 14, borderRadius: radius.buttons, alignItems: 'center', marginTop: spacing[20] ?? 20 },
+  buttonDisabled: { opacity: 0.6 },
+  buttonText: { color: colors.snow, fontWeight: typography.weights.bold, fontSize: typography.sizes.body },
+  sectionNote: { color: colors.slate, fontSize: typography.sizes.caption, marginTop: spacing[8] },
 });
