@@ -23,6 +23,7 @@ import apiClient from '@/lib/axios';
 import type { DocumentChecklist, FeeDetail, TransactionDetail, TransactionStatus, UpdateStatusPayload } from '@/types/transaction';
 import StatusBadge from '@/components/transactions/StatusBadge';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
+import ActivityTimeline from '@/components/transactions/ActivityTimeline';
 import UpdateStatusModal from '@/components/transactions/UpdateStatusModal';
 import { getNextStatuses, isFinalStatus, STATUS_LABELS } from '@/lib/stateMachine';
 
@@ -68,6 +69,7 @@ export default function TransaksiDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transaction', id] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['activity-logs', id] });
       setModalOpen(false);
       setStatusConfirm(null);
       setToast('Status berhasil diupdate');
@@ -340,6 +342,13 @@ export default function TransaksiDetailPage() {
         Riwayat Status
       </Typography>
       <StatusTimeline logs={tx.status_logs ?? []} />
+
+      {/* Aktivitas */}
+      <Divider sx={{ mb: 3, mt: 4 }} />
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+        Aktivitas
+      </Typography>
+      <ActivityTimeline transactionId={id} />
 
       {/* Modal */}
       <UpdateStatusModal
