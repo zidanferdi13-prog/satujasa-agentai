@@ -1,4 +1,10 @@
+'use client';
+
 import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Button from '@mui/material/Button';
 import Navbar from '@/components/landing/Navbar';
 
 const platforms = [
@@ -24,76 +30,135 @@ const features = [
   'Cocok untuk tim kantor dan tim lapangan',
 ];
 
-export const metadata = {
-  title: 'Download SatuJasa - Web Based & APK Android',
-  description: 'Download aplikasi SatuJasa untuk Android dan akses dashboard web based dari PC.',
-};
-
 export default function DownloadPage() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-background text-on-background">
-      <div className="landing-texture absolute inset-0 -z-20 opacity-60" />
-      <div className="absolute -right-28 top-24 -z-10 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute -bottom-24 left-8 -z-10 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f6f8' }}>
+      {/* Top rainbow divider */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 4,
+          background: 'conic-gradient(from 270deg, #8181ff 15%, #33dbdb 40%, #33d58e 55%, #ffd633 65%, #fc527d 85%, #8181ff 100%)',
+          zIndex: 1,
+        }}
+      />
 
       <Navbar fixed={false} />
 
-      <section className="mx-auto max-w-container-max px-margin-mobile pb-20 pt-16 md:px-margin-desktop md:pb-28 md:pt-20">
-        <div className="grid gap-12 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
-          <div>
-            <p className="mb-6 inline-flex rounded-full border border-outline-variant bg-surface-container-lowest px-4 py-2 text-label-sm font-bold uppercase tracking-[0.18em] text-primary">
-              Download aplikasi
-            </p>
-            <h1 className="max-w-4xl text-[44px] font-extrabold leading-[0.98] tracking-[-0.06em] text-on-surface md:text-[72px] lg:text-[86px]">
-              SatuJasa bisa dipakai di PC dan Android.
-            </h1>
-          </div>
-          <div className="rounded-[2rem] bg-inverse-surface p-6 text-inverse-on-surface soft-shadow md:p-8">
-            <p className="text-body-lg leading-8 text-inverse-on-surface/78">
-              Gunakan dashboard web based saat bekerja dari komputer, lalu lanjutkan operasional mobile
-              lewat APK Android saat tim berada di lapangan.
-            </p>
-            <ul className="mt-8 space-y-4">
-              {features.map((feature) => (
-                <li key={feature} className="flex items-start gap-3 text-sm font-bold">
-                  <span className="material-symbols-outlined mt-0.5 text-[20px] text-primary-fixed-dim">
-                    check_circle
-                  </span>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-14 grid gap-5 md:grid-cols-2" id="apk-status">
-          {platforms.map((platform) => (
-            <article
-              key={platform.title}
-              className="rounded-[2rem] border border-outline-variant/70 bg-surface-container-lowest p-7 shadow-sm md:p-8"
+      <Box
+        sx={{
+          maxWidth: 1200,
+          mx: 'auto',
+          px: { xs: 2, sm: 3, md: 5 },
+          pb: { xs: 10, md: 16 },
+          pt: { xs: 8, md: 12 },
+        }}
+      >
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', lg: '0.95fr 1.05fr' },
+            gap: { xs: 6, lg: 12 },
+            alignItems: 'end',
+          }}
+        >
+          <Box>
+            <Box
+              sx={{
+                display: 'inline-flex',
+                borderRadius: '9999px',
+                border: '1px solid',
+                borderColor: '#d0d4e4',
+                bgcolor: '#ffffff',
+                px: 3,
+                py: 1,
+                mb: 4,
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.18em',
+                color: '#6161ff',
+              }}
             >
-              <span className="material-symbols-outlined mb-8 block text-[42px] text-primary">
-                {platform.icon}
-              </span>
-              <h2 className="mb-4 text-[28px] font-extrabold tracking-[-0.04em] text-on-surface">
-                {platform.title}
-              </h2>
-              <p className="mb-8 leading-7 text-on-surface-variant">{platform.desc}</p>
-              <Link
-                href={platform.href}
-                className="inline-flex items-center justify-center rounded-2xl bg-primary px-6 py-3 text-label-md font-bold text-on-primary transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim"
-              >
-                {platform.cta}
-              </Link>
-            </article>
-          ))}
-        </div>
+              Download aplikasi
+            </Box>
+            <Box
+              sx={{
+                fontSize: { xs: 36, md: 56, lg: 68 },
+                fontWeight: 800,
+                lineHeight: 0.95,
+                letterSpacing: '-0.04em',
+                color: '#333333',
+                maxWidth: 640,
+              }}
+            >
+              SatuJasa bisa dipakai di PC dan Android.
+            </Box>
+          </Box>
 
-        <div className="mt-8 rounded-[2rem] border border-dashed border-outline bg-surface-container p-6 text-sm leading-7 text-on-surface-variant">
+          <Card sx={{ bgcolor: '#333333', color: '#ffffff', borderRadius: 6, border: 'none' }}>
+            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+              <Box sx={{ fontSize: 16, lineHeight: 2, color: 'rgba(255,255,255,0.78)', mb: 3 }}>
+                Gunakan dashboard web based saat bekerja dari komputer, lalu lanjutkan operasional mobile
+                lewat APK Android saat tim berada di lapangan.
+              </Box>
+              <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
+                {features.map((feature) => (
+                  <Box
+                    key={feature}
+                    component="li"
+                    sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, fontSize: 14, fontWeight: 700, '& + &': { mt: 2 } }}
+                  >
+                    <Box component="span" className="material-symbols-outlined" sx={{ mt: 0.25, fontSize: 20, color: '#9ec7ff' }}>
+                      check_circle
+                    </Box>
+                    {feature}
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        <Box
+          sx={{
+            mt: { xs: 8, md: 12 },
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: 3,
+          }}
+          id="apk-status"
+        >
+          {platforms.map((platform) => (
+            <Card key={platform.title}>
+              <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                <Box component="span" className="material-symbols-outlined" sx={{ display: 'block', fontSize: 42, color: '#6161ff', mb: 4 }}>
+                  {platform.icon}
+                </Box>
+                <Box sx={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.04em', color: '#333333', mb: 2 }}>
+                  {platform.title}
+                </Box>
+                <Box sx={{ fontSize: 14, lineHeight: 1.75, color: '#535768', mb: 4 }}>
+                  {platform.desc}
+                </Box>
+                <Link href={platform.href} style={{ textDecoration: 'none' }}>
+                  <Button variant="contained" color="primary" sx={{ borderRadius: '9999px', px: 3 }}>
+                    {platform.cta}
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+
+        <Box sx={{ mt: 4, borderRadius: 6, border: '1px dashed', borderColor: '#d0d4e4', bgcolor: '#ffffff', p: 3, fontSize: 14, lineHeight: 1.75, color: '#535768' }}>
           File APK belum tersedia di repository. Setelah APK siap, letakkan di folder publik dan tombol
           Android bisa diarahkan langsung ke file download.
-        </div>
-      </section>
-    </main>
+        </Box>
+      </Box>
+    </Box>
   );
 }

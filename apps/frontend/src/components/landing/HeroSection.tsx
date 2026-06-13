@@ -1,60 +1,137 @@
+'use client';
+
 import Link from 'next/link';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import splash from '../../../assets/splash.png';
 
 export default function HeroSection() {
   return (
-    <header className="relative overflow-hidden pt-36 pb-20 md:pt-44 md:pb-28">
-      <div className="landing-texture absolute inset-0 -z-20 opacity-60" />
-      <div className="absolute -right-28 top-24 -z-10 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute -bottom-24 left-8 -z-10 h-64 w-64 rounded-full bg-secondary/10 blur-3xl" />
+    <Box
+      component="header"
+      sx={{
+        position: 'relative',
+        overflow: 'hidden',
+        pt: { xs: 16, md: 20 },
+        pb: { xs: 12, md: 16 },
+      }}
+    >
+      {/* Gradient rainbow bar at top */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 4,
+          background: 'conic-gradient(from 270deg, #8181ff 15%, #33dbdb 40%, #33d58e 55%, #ffd633 65%, #fc527d 85%, #8181ff 100%)',
+        }}
+      />
 
-      <div className="mx-auto grid max-w-container-max grid-cols-1 items-end gap-12 px-margin-mobile md:px-margin-desktop lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="max-w-3xl">
-          <p className="mb-6 inline-flex rounded-full border border-outline-variant bg-surface-container-lowest px-4 py-2 text-label-sm font-bold uppercase tracking-[0.18em] text-primary">
+      <Box
+        sx={{
+          maxWidth: 1200,
+          mx: 'auto',
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1.05fr 0.95fr' },
+          gap: { xs: 8, lg: 12 },
+          alignItems: 'end',
+          px: { xs: 2, sm: 3, md: 5 },
+        }}
+      >
+        {/* Left — text content */}
+        <Box sx={{ maxWidth: 640 }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              borderRadius: '9999px',
+              border: '1px solid',
+              borderColor: '#d0d4e4',
+              bgcolor: '#ffffff',
+              px: 3,
+              py: 1,
+              mb: 4,
+              fontSize: 12,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.18em',
+              color: '#6161ff',
+            }}
+          >
             Platform kerja biro jasa STNK
-          </p>
-          <h1 className="mb-7 text-[44px] font-extrabold leading-[0.98] tracking-[-0.06em] text-on-surface md:text-[72px] lg:text-[86px]">
+          </Box>
+
+          <Box
+            sx={{
+              fontSize: { xs: 36, md: 56, lg: 68 },
+              fontWeight: 800,
+              lineHeight: 0.95,
+              letterSpacing: '-0.04em',
+              mb: 4,
+              background: 'linear-gradient(90deg, #fe81e4, #fda900)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             Operasional STNK yang tidak lagi tercecer.
-          </h1>
-          <p className="mb-10 max-w-2xl text-body-lg text-on-surface-variant md:text-[20px]">
+          </Box>
+
+          <Box
+            sx={{
+              fontSize: { xs: 16, md: 18 },
+              lineHeight: 1.7,
+              color: '#535768',
+              maxWidth: 520,
+              mb: 5,
+            }}
+          >
             SatuJasa membantu biro jasa mencatat transaksi, memantau proses dokumen,
             memberi kabar pelanggan, dan membaca performa cabang dari satu ruang kerja.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/auth/signup"
-              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-8 py-4 text-label-md font-bold text-on-primary shadow-sm transition-transform hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim"
-            >
-              Daftar SatuJasa
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </Link>
-            <Link
-              href="/auth/signin"
-              className="inline-flex items-center justify-center rounded-2xl border border-outline-variant bg-surface-container-lowest px-8 py-4 text-label-md font-bold text-primary transition-colors hover:bg-surface-container focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
-            >
-              Masuk ke Dashboard
-            </Link>
-          </div>
-        </div>
+          </Box>
 
-        <div className="relative lg:pb-4">
-          <div className="glass-card soft-shadow relative overflow-hidden rounded-[2rem] p-3 md:p-4">
-            <div className="relative overflow-hidden rounded-[1.6rem] bg-inverse-surface">
-              <img
-                src={splash.src}
-                alt="Tampilan aplikasi SatuJasa"
-                className="mx-auto block max-h-[620px] w-full object-contain object-top"
-              />
-              <div className="absolute inset-x-4 bottom-4 rounded-3xl bg-surface-container-lowest/92 p-4 shadow-sm backdrop-blur md:inset-x-6 md:bottom-6">
-                <p className="text-label-sm uppercase tracking-[0.14em] text-primary">Aset aplikasi asli</p>
-                <p className="mt-1 text-sm font-bold text-on-surface md:text-base">
-                  Visual landing sekarang memakai splash screen lokal, bukan mockup generik.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+            <Link href="/auth/signup">
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                sx={{ px: 4, py: 1.75, borderRadius: '9999px', fontSize: 15, fontWeight: 600 }}
+                endIcon={<Box component="span" className="material-symbols-outlined" sx={{ fontSize: 18 }}>arrow_forward</Box>}
+              >
+                Daftar SatuJasa
+              </Button>
+            </Link>
+            <Link href="/auth/signin" style={{ textDecoration: 'none' }}>
+              <Button variant="outlined" size="large" sx={{ px: 4, py: 1.75, borderRadius: '9999px', fontSize: 15, fontWeight: 600 }}>
+                Masuk ke Dashboard
+              </Button>
+            </Link>
+          </Box>
+        </Box>
+
+        {/* Right — splash mockup */}
+        <Box sx={{ position: 'relative' }}>
+          <Box
+            sx={{
+              borderRadius: 6,
+              border: '1px solid',
+              borderColor: '#d0d4e4',
+              bgcolor: '#ffffff',
+              p: 2,
+              boxShadow: 'rgba(205, 208, 223, 0.4) 0px 2px 48px 0px',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              component="img"
+              src={splash.src}
+              alt="Tampilan aplikasi SatuJasa"
+              sx={{ display: 'block', width: 1, maxHeight: 540, objectFit: 'contain', objectPosition: 'top' }}
+            />
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
