@@ -10,6 +10,8 @@ import Paper from '@mui/material/Paper';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
+import Skeleton from '@mui/material/Skeleton';
+import CircularProgress from '@mui/material/CircularProgress';
 import apiClient from '@/lib/axios';
 
 interface AdminUser {
@@ -39,15 +41,23 @@ export default function TenantDetailPage() {
   });
 
   if (isLoading) {
-    return <Box className="p-8"><Typography>Loading...</Typography></Box>;
+    return (
+      <Box sx={{ p: { xs: 2, md: 4 }, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 300 }}>
+        <Skeleton variant="rectangular" width="100%" height={300} sx={{ borderRadius: 3, maxWidth: 800 }} />
+      </Box>
+    );
   }
 
   if (!tenant) {
-    return <Box className="p-8"><Typography>Tenant tidak ditemukan.</Typography></Box>;
+    return (
+      <Box sx={{ p: { xs: 2, md: 4 }, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+        <Typography color="text.secondary">Tenant tidak ditemukan.</Typography>
+      </Box>
+    );
   }
 
   return (
-    <Box className="p-6 md:p-8" sx={{ maxWidth: 800 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
           <span className="material-symbols-outlined">arrow_back</span>

@@ -155,7 +155,7 @@ export default function OwnerLaporanPage() {
   );
 
   return (
-    <Box className="p-6 md:p-8">
+    <Box sx={{ p: { xs: 3, md: 4 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 4 }}>
         <Box>
           <Typography variant="h4" sx={{ fontWeight: 700 }}>Laporan</Typography>

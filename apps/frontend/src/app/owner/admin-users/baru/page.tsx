@@ -82,7 +82,7 @@ export default function AdminUserBaruPage() {
   }
 
   return (
-    <Box className="p-6 md:p-8" sx={{ maxWidth: 640 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 640 }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
         Tambah Admin User
       </Typography>
@@ -90,7 +90,7 @@ export default function AdminUserBaruPage() {
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField
             label="Email"
             type="email"

@@ -39,7 +39,7 @@ export default function AdminUserListPage() {
   });
 
   return (
-    <Box className="p-6 md:p-8">
+    <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           Admin User

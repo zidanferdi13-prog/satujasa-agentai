@@ -69,7 +69,7 @@ export default function TenantBaruPage() {
   }
 
   return (
-    <Box className="p-6 md:p-8" sx={{ maxWidth: 640 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 640 }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
         Tambah Tenant Baru
       </Typography>
@@ -97,7 +97,7 @@ export default function TenantBaruPage() {
       )}
 
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField
             label="Nama Tenant"
             fullWidth

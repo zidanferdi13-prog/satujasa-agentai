@@ -12,6 +12,7 @@ import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
 import Chip from '@mui/material/Chip';
 import Checkbox from '@mui/material/Checkbox';
+import Skeleton from '@mui/material/Skeleton';
 import CircularProgress from '@mui/material/CircularProgress';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -170,17 +171,25 @@ export default function TransaksiDetailPage() {
   }
 
   if (isLoading) {
-    return <Box className="p-8"><Typography>Loading...</Typography></Box>;
+    return (
+      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800 }}>
+        <Skeleton variant="rectangular" width="100%" height={400} sx={{ borderRadius: 3 }} />
+      </Box>
+    );
   }
 
   if (!tx) {
-    return <Box className="p-8"><Typography>Transaksi tidak ditemukan.</Typography></Box>;
+    return (
+      <Box sx={{ p: { xs: 2, md: 4 }, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+        <Typography color="text.secondary">Transaksi tidak ditemukan.</Typography>
+      </Box>
+    );
   }
 
   const statusActions = getNextStatuses(tx.status);
 
   return (
-    <Box className="p-6 md:p-8" sx={{ maxWidth: 800 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
           <span className="material-symbols-outlined">arrow_back</span>

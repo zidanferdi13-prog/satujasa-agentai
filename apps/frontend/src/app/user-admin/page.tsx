@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import Skeleton from '@mui/material/Skeleton';
 import apiClient from '@/lib/axios';
 
 interface DashboardStats {
@@ -21,14 +22,26 @@ export default function UserAdminPage() {
 
   if (isLoading) {
     return (
-      <Box className="p-8">
-        <Typography>Loading...</Typography>
+      <Box sx={{ p: { xs: 2, md: 4 } }}>
+        <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
+          Admin User Dashboard
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 4 }}>
+          {[1, 2, 3].map((i) => (
+            <Card key={i}>
+              <CardContent>
+                <Skeleton variant="text" height={20} width="60%" sx={{ mb: 1 }} />
+                <Skeleton variant="text" height={32} width="40%" />
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
       </Box>
     );
   }
 
   return (
-    <Box className="p-8">
+    <Box sx={{ p: { xs: 2, md: 4 } }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
         Admin User Dashboard
       </Typography>

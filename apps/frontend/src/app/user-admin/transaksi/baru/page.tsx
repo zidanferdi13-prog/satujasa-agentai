@@ -183,7 +183,7 @@ export default function TransaksiBaru() {
   }
 
   return (
-    <Box className="p-6 md:p-8" sx={{ maxWidth: 820 }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 820 }}>
       <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
         Tambah Transaksi
       </Typography>
@@ -191,7 +191,7 @@ export default function TransaksiBaru() {
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <Paper variant="outlined" sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <TextField label="Nama Customer" fullWidth required value={form.customer_name} onChange={(e) => handleChange('customer_name', e.target.value)} />
           <TextField label="No. HP Customer" fullWidth required value={form.customer_phone} onChange={(e) => handleChange('customer_phone', e.target.value)} />
           <TextField label="Plat Nomor" fullWidth required placeholder="B 1234 ABC" value={form.plate_number} onChange={(e) => handleChange('plate_number', e.target.value)} />
