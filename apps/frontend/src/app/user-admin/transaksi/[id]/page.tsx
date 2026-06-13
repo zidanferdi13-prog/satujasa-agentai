@@ -6,10 +6,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
 import Divider from '@mui/material/Divider';
 import Alert from '@mui/material/Alert';
 import Snackbar from '@mui/material/Snackbar';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Checkbox from '@mui/material/Checkbox';
 import Skeleton from '@mui/material/Skeleton';
@@ -22,11 +23,34 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import apiClient from '@/lib/axios';
 import type { DocumentChecklist, FeeDetail, TransactionDetail, TransactionStatus, UpdateStatusPayload } from '@/types/transaction';
-import StatusBadge from '@/components/transactions/StatusBadge';
+import StatusPill from '@/components/shared/StatusPill';
 import StatusTimeline from '@/components/transactions/StatusTimeline';
 import ActivityTimeline from '@/components/transactions/ActivityTimeline';
 import UpdateStatusModal from '@/components/transactions/UpdateStatusModal';
 import { getNextStatuses, isFinalStatus, STATUS_LABELS } from '@/lib/stateMachine';
+
+function getStatusVariant(status: TransactionStatus): 'success' | 'warning' | 'error' | 'info' {
+  switch (status) {
+    case 'SELESAI':
+    case 'done':
+      return 'success';
+    case 'DIBATALKAN':
+    case 'cancelled':
+      return 'error';
+    case 'PROSES_SAMSAT':
+    case 'at_samsat':
+    case 'processing':
+      return 'info';
+    case 'DOKUMEN_DITERIMA':
+    case 'document_check':
+    case 'needs_revision':
+    case 'MENUNGGU_PEMBAYARAN':
+    case 'payment_pending':
+      return 'warning';
+    default:
+      return 'info';
+  }
+}
 
 function formatCurrency(value: number | string | null | undefined) {
   const amount = Number(value ?? 0);
@@ -197,83 +221,88 @@ export default function TransaksiDetailPage() {
         <Typography variant="h4" sx={{ fontWeight: 700, flex: 1 }}>
           Detail Transaksi
         </Typography>
-        <StatusBadge status={tx.status} size="medium" />
+        <StatusPill status={STATUS_LABELS[tx.status]} variant={getStatusVariant(tx.status)} />
       </Box>
 
       {/* Info */}
-      <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Customer</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.customer_name || '-'}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">No. HP</Typography>
-            <Typography variant="body1">{tx.customer_phone || '-'}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Plat Nomor</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>{tx.vehicle_plate ?? tx.plate_number ?? '-'}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Kendaraan</Typography>
-            <Typography variant="body1">{tx.vehicle_type || '-'}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Layanan</Typography>
-            <Typography variant="body1">{tx.service_name || '-'}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" color="text.secondary">Total Biaya</Typography>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              Rp{formatCurrency(tx.total_cost)}
-            </Typography>
-          </Box>
-          {tx.notes && (
-            <Box sx={{ gridColumn: '1 / -1' }}>
-              <Typography variant="caption" color="text.secondary">Catatan</Typography>
-              <Typography variant="body2">{tx.notes}</Typography>
+      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2.5 }}>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Customer</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>{tx.customer_name || '-'}</Typography>
             </Box>
-          )}
-        </Box>
-      </Paper>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>No. HP</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5 }}>{tx.customer_phone || '-'}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plat Nomor</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>{tx.vehicle_plate ?? tx.plate_number ?? '-'}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kendaraan</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5 }}>{tx.vehicle_type || '-'}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Layanan</Typography>
+              <Typography variant="body1" sx={{ mt: 0.5 }}>{tx.service_name || '-'}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Biaya</Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>
+                Rp{formatCurrency(tx.total_cost)}
+              </Typography>
+            </Box>
+            {tx.notes && (
+              <Box sx={{ gridColumn: '1 / -1' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Catatan</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>{tx.notes}</Typography>
+              </Box>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
 
       {/* Fee snapshot */}
-      <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
-            Rincian Biaya
-          </Typography>
-          <Button size="small" variant="outlined" onClick={openFeeEditor} disabled={!tx.fee_details?.length}>
-            Edit Biaya
-          </Button>
-        </Box>
-        {tx.fee_details?.length ? (
-          <Box>
-            {tx.fee_details.map((fee) => (
-              <Box key={fee.component_code} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {fee.component_name ?? fee.component_code}
-                  </Typography>
-                  <Chip size="small" label={fee.is_editable === false ? 'Biaya sistem / locked' : fee.source ?? 'Snapshot'} sx={{ mt: 0.75 }} />
-                </Box>
-                <Typography variant="body2" sx={{ fontWeight: 700, textAlign: { xs: 'left', md: 'right' } }}>
-                  Rp{formatCurrency(fee.amount)}
-                </Typography>
-              </Box>
-            ))}
+      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Rincian Biaya
+            </Typography>
+            <Button size="small" variant="outlined" onClick={openFeeEditor} disabled={!tx.fee_details?.length}>
+              Edit Biaya
+            </Button>
           </Box>
-        ) : (
-          <Alert severity="info">Belum ada snapshot rincian biaya.</Alert>
-        )}
-      </Paper>
+          {tx.fee_details?.length ? (
+            <Box>
+              {tx.fee_details.map((fee) => (
+                <Box key={fee.component_code} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {fee.component_name ?? fee.component_code}
+                    </Typography>
+                    <Chip size="small" label={fee.is_editable === false ? 'Biaya sistem / locked' : fee.source ?? 'Snapshot'} sx={{ mt: 0.75 }} />
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 700, textAlign: { xs: 'left', md: 'right' } }}>
+                    Rp{formatCurrency(fee.amount)}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <Alert severity="info">Belum ada snapshot rincian biaya.</Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Document checklist snapshot */}
-      <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-          Checklist Dokumen
-        </Typography>
+      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
+        <CardContent sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+            Checklist Dokumen
+          </Typography>
         {tx.document_checklists?.length ? (
           <Box>
             {tx.document_checklists.map((doc) => {
@@ -322,7 +351,8 @@ export default function TransaksiDetailPage() {
         ) : (
           <Alert severity="info">Belum ada snapshot checklist dokumen.</Alert>
         )}
-      </Paper>
+        </CardContent>
+      </Card>
 
       {/* Actions */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>

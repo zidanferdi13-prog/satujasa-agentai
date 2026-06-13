@@ -1,82 +1,142 @@
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+
 export default function Footer() {
   return (
-    <footer className="bg-surface-container-lowest border-t border-outline-variant/30">
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-gutter px-margin-desktop py-16 max-w-container-max mx-auto">
+    <Box
+      component="footer"
+      sx={{ bgcolor: '#ffffff', borderTop: '1px solid', borderColor: 'rgba(208, 212, 228, 0.3)' }}
+    >
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(6, 1fr)' },
+          gap: 4,
+          px: { xs: 2, md: 4 },
+          py: { xs: 6, md: 8 },
+          maxWidth: 1200,
+          mx: 'auto',
+        }}
+      >
         {/* Brand */}
-        <div className="col-span-2">
-          <div className="text-headline-md font-headline-md font-bold text-primary mb-6">
+        <Box sx={{ gridColumn: { xs: 'span 2', md: 'span 2' } }}>
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 700, color: '#6161ff', mb: 2 }}
+          >
             STNK SatuJasa
-          </div>
-          <p className="text-on-surface-variant text-sm max-w-xs mb-8">
+          </Typography>
+          <Typography sx={{ color: '#535768', fontSize: 14, maxWidth: 280, mb: 4 }}>
             Pionir solusi digital manajemen biro jasa surat kendaraan bermotor di Indonesia.
-          </p>
-          <div className="flex gap-4">
-            <span className="material-symbols-outlined text-primary hover:scale-110 transition-transform cursor-pointer">
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box component="span" className="material-symbols-outlined" sx={{ color: '#6161ff', cursor: 'pointer', '&:hover': { transform: 'scale(1.1)' }, transition: 'transform 0.2s' }}>
               public
-            </span>
-            <span className="material-symbols-outlined text-primary hover:scale-110 transition-transform cursor-pointer">
+            </Box>
+            <Box component="span" className="material-symbols-outlined" sx={{ color: '#6161ff', cursor: 'pointer', '&:hover': { transform: 'scale(1.1)' }, transition: 'transform 0.2s' }}>
               smartphone
-            </span>
-            <span className="material-symbols-outlined text-primary hover:scale-110 transition-transform cursor-pointer">
+            </Box>
+            <Box component="span" className="material-symbols-outlined" sx={{ color: '#6161ff', cursor: 'pointer', '&:hover': { transform: 'scale(1.1)' }, transition: 'transform 0.2s' }}>
               alternate_email
-            </span>
-          </div>
-        </div>
+            </Box>
+          </Box>
+        </Box>
 
         {/* Product */}
-        <div>
-          <h5 className="font-bold mb-6">Product</h5>
-          <ul className="space-y-4 text-sm text-on-surface-variant">
-            <li>
-              <a className="hover:text-primary transition-colors" href="#">Features</a>
-            </li>
-            <li>
-              <a className="hover:text-primary transition-colors" href="#">Pricing</a>
-            </li>
-            <li>
-              <a className="hover:text-primary transition-colors" href="#">Updates</a>
-            </li>
-          </ul>
-        </div>
+        <Box>
+          <Typography sx={{ fontWeight: 700, mb: 2 }}>Product</Typography>
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {['Features', 'Pricing', 'Updates'].map((item) => (
+              <Box component="li" key={item}>
+                <Typography
+                  component="a"
+                  href="#"
+                  sx={{ color: '#535768', fontSize: 14, textDecoration: 'none', '&:hover': { color: '#6161ff' } }}
+                >
+                  {item}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
 
         {/* Company */}
-        <div>
-          <h5 className="font-bold mb-6">Company</h5>
-          <ul className="space-y-4 text-sm text-on-surface-variant">
-            <li>
-              <a className="hover:text-primary transition-colors" href="#">About</a>
-            </li>
-            <li>
-              <a className="hover:text-primary transition-colors" href="#">Contact</a>
-            </li>
-            <li>
-              <a className="hover:text-primary transition-colors" href="#">Careers</a>
-            </li>
-          </ul>
-        </div>
+        <Box>
+          <Typography sx={{ fontWeight: 700, mb: 2 }}>Company</Typography>
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {['About', 'Contact', 'Careers'].map((item) => (
+              <Box component="li" key={item}>
+                <Typography
+                  component="a"
+                  href="#"
+                  sx={{ color: '#535768', fontSize: 14, textDecoration: 'none', '&:hover': { color: '#6161ff' } }}
+                >
+                  {item}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
 
         {/* Subscribe */}
-        <div className="col-span-2">
-          <h5 className="font-bold mb-6">Subscribe</h5>
-          <p className="text-sm text-on-surface-variant mb-4">
+        <Box sx={{ gridColumn: { xs: 'span 2', md: 'span 2' } }}>
+          <Typography sx={{ fontWeight: 700, mb: 2 }}>Subscribe</Typography>
+          <Typography sx={{ color: '#535768', fontSize: 14, mb: 2 }}>
             Dapatkan tips manajemen bisnis langsung di email Anda.
-          </p>
-          <div className="flex gap-2">
-            <input
-              className="bg-surface-container border border-outline-variant rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-primary focus:outline-none"
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box
+              component="input"
               placeholder="Email Anda"
               type="email"
+              sx={{
+                flexGrow: 1,
+                bgcolor: '#f5f6f8',
+                border: '1px solid',
+                borderColor: '#d0d4e4',
+                borderRadius: 2,
+                px: 2,
+                py: 1.5,
+                fontSize: 14,
+                outline: 'none',
+                '&:focus': { borderColor: '#6161ff', boxShadow: '0 0 0 2px rgba(97,97,255,0.15)' },
+              }}
             />
-            <button className="bg-primary text-on-primary p-2 rounded-xl">
-              <span className="material-symbols-outlined">send</span>
-            </button>
-          </div>
-        </div>
-      </div>
+            <Box
+              component="button"
+              sx={{
+                bgcolor: '#6161ff',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: 2,
+                p: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                '&:hover': { bgcolor: '#4a4ae6' },
+              }}
+            >
+              <Box component="span" className="material-symbols-outlined" sx={{ fontSize: 20 }}>
+                send
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
-      <div className="border-t border-outline-variant/10 py-8 text-center text-label-sm text-on-surface-variant">
-        © 2024 STNK SatuJasa. All rights reserved.
-      </div>
-    </footer>
+      <Box
+        sx={{
+          borderTop: '1px solid',
+          borderColor: 'rgba(208, 212, 228, 0.1)',
+          py: 3,
+          textAlign: 'center',
+          color: '#535768',
+          fontSize: 13,
+        }}
+      >
+        &copy; 2024 STNK SatuJasa. All rights reserved.
+      </Box>
+    </Box>
   );
 }
