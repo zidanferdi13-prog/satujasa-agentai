@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   FlatList,
   TouchableOpacity,
   TextInput,
@@ -18,6 +17,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { StatusBadge } from '@/components/StatusBadge';
 import { SkeletonCard } from '@/components/SkeletonCard';
 import { TransactionStatus } from '@/contracts';
+import { colors, spacing, radius, cardShadow, typography } from '@/theme/designTokens';
 
 interface AdminUserTransaction {
   id: string;
@@ -37,6 +37,23 @@ interface AdminUserTransaction {
 
 type TabType = 'active' | 'done' | 'cancelled';
 
+const tabs: { key: TabType; label: string }[] = [
+  { key: 'active', label: 'Aktif' },
+  { key: 'done', label: 'Selesai' },
+  { key: 'cancelled', label: 'Dibatalkan' },
+];
+
+function formatDateID(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+function formatCurrencyID(amount: string): string {
+  return `Rp ${parseInt(amount).toLocaleString('id-ID')}`;
+}
+
 export default function TransactionsListScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('active');
@@ -45,7 +62,6 @@ export default function TransactionsListScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
 
   const statusMap: Record<TabType, TransactionStatus[]> = {
     active: ['DRAFT', 'DOKUMEN_DITERIMA', 'PROSES_SAMSAT', 'MENUNGGU_PEMBAYARAN'],
@@ -58,7 +74,7 @@ export default function TransactionsListScreen() {
       setError(null);
       const statusList = statusMap[tabType];
       const statusParam = statusList.join(',');
-      
+
       const response = await api.get<{ data: AdminUserTransaction[] }>(
         '/admin-user/transactions',
         {
@@ -71,7 +87,6 @@ export default function TransactionsListScreen() {
         }
       );
       setTransactions(response.data.data);
-      setPage(1);
     } catch (err: any) {
       setError(err?.message || 'Gagal memuat berkas');
     } finally {
@@ -95,33 +110,23 @@ export default function TransactionsListScreen() {
     fetchTransactions(activeTab, text);
   };
 
-  const renderTab = (tab: TabType, label: string) => (
-    <TouchableOpacity
-      key={tab}
-      style={[styles.tab, activeTab === tab && styles.tabActive]}
-      onPress={() => setActiveTab(tab)}
-    >
-      <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-
   const renderTransaction = ({ item }: { item: AdminUserTransaction }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => router.push(`/transactions/${item.id}`)}
     >
-      <View style={styles.cardHeader}>
-        <View style={styles.cardTitle}>
-          <Text style={styles.customerName}>{item.customer_name}</Text>
-          <Text style={styles.platNumber}>Plate: {item.vehicle_plate}</Text>
-        </View>
+      <View style={styles.cardTop}>
+        <Text style={styles.customerName}>{item.customer_name}</Text>
         <StatusBadge status={item.status} size="small" />
       </View>
-      <View style={styles.cardFooter}>
-        <Text style={styles.cost}>Rp {parseInt(item.total_cost).toLocaleString('id-ID')}</Text>
-        <Text style={styles.date}>{new Date(item.created_at).toLocaleDateString('id-ID')}</Text>
+      <View style={styles.cardMeta}>
+        <Text style={styles.metaText}>{item.vehicle_plate}</Text>
+        <Text style={styles.metaDot}>·</Text>
+        <Text style={styles.metaText}>{item.service_name}</Text>
+      </View>
+      <View style={styles.cardBottom}>
+        <Text style={styles.cost}>{formatCurrencyID(item.total_cost)}</Text>
+        <Text style={styles.date}>{formatDateID(item.created_at)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -144,22 +149,41 @@ export default function TransactionsListScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Cari nama / plat"
-          placeholderTextColor="#A0A0A0"
-          value={search}
-          onChangeText={handleSearch}
-        />
+      {/* Search */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchInputWrap}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Cari nama atau plat..."
+            placeholderTextColor={colors.iron}
+            value={search}
+            onChangeText={handleSearch}
+          />
+        </View>
       </View>
 
-      <View style={styles.tabsContainer}>
-        {renderTab('active', 'Aktif')}
-        {renderTab('done', 'Selesai')}
-        {renderTab('cancelled', 'Dibatalkan')}
+      {/* Pill Tabs */}
+      <View style={styles.tabRow}>
+        {tabs.map((t) => (
+          <TouchableOpacity
+            key={t.key}
+            style={[styles.tabPill, activeTab === t.key && styles.tabPillActive]}
+            onPress={() => setActiveTab(t.key)}
+          >
+            <Text
+              style={[
+                styles.tabPillText,
+                activeTab === t.key && styles.tabPillTextActive,
+              ]}
+            >
+              {t.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
+      {/* List */}
       {transactions.length === 0 ? (
         <EmptyState
           icon="📋"
@@ -182,52 +206,108 @@ export default function TransactionsListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F1E9' },
-  header: { paddingHorizontal: 16, paddingVertical: 12 },
+  container: { flex: 1, backgroundColor: colors.cloud },
+  searchSection: {
+    paddingHorizontal: spacing[16],
+    paddingTop: spacing[12] ?? 12,
+    paddingBottom: spacing[8],
+  },
+  searchInputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.snow,
+    borderRadius: radius.inputs,
+    borderWidth: 1,
+    borderColor: colors.pebble,
+    paddingHorizontal: spacing[12] ?? 12,
+  },
+  searchIcon: { fontSize: 16, marginRight: spacing[8] },
   searchInput: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#D5CDBF',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: '#16201D',
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
+    flex: 1,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#D5CDBF',
+    fontSize: typography.sizes.bodySm,
+    color: colors.ink,
   },
-  tab: { flex: 1, paddingVertical: 8, marginHorizontal: 4, alignItems: 'center' },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: '#174B3B' },
-  tabText: { color: '#65706B', fontSize: 13, fontWeight: '600' },
-  tabTextActive: { color: '#174B3B' },
-  listContent: { paddingHorizontal: 16, paddingVertical: 12 },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D5CDBF',
-    padding: 12,
-    marginBottom: 12,
-  },
-  cardHeader: {
+  tabRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    gap: spacing[8],
   },
-  cardTitle: { flex: 1 },
-  customerName: { color: '#16201D', fontWeight: '600', fontSize: 14 },
-  platNumber: { color: '#65706B', fontSize: 12, marginTop: 2 },
-  cardFooter: {
+  tabPill: {
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[16],
+    paddingVertical: 8,
+    backgroundColor: colors.snow,
+    borderWidth: 1,
+    borderColor: colors.pebble,
+  },
+  tabPillActive: {
+    backgroundColor: colors.mondayViolet,
+    borderColor: colors.mondayViolet,
+  },
+  tabPillText: {
+    fontSize: typography.sizes.bodySm,
+    fontWeight: typography.weights.medium,
+    color: colors.slate,
+  },
+  tabPillTextActive: {
+    color: colors.snow,
+  },
+  listContent: {
+    paddingHorizontal: spacing[16],
+    paddingVertical: spacing[8],
+    paddingBottom: spacing[32],
+  },
+  card: {
+    backgroundColor: colors.snow,
+    borderRadius: radius.cards,
+    padding: spacing[16],
+    marginBottom: spacing[12] ?? 12,
+    ...cardShadow('default'),
+  },
+  cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: spacing[8],
   },
-  cost: { color: '#174B3B', fontWeight: '700', fontSize: 13 },
-  date: { color: '#8B572A', fontSize: 12 },
+  customerName: {
+    fontSize: typography.sizes.body,
+    fontWeight: typography.weights.medium,
+    color: colors.ink,
+    flex: 1,
+    marginRight: spacing[8],
+  },
+  cardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing[12] ?? 12,
+  },
+  metaText: {
+    fontSize: typography.sizes.caption,
+    color: colors.slate,
+  },
+  metaDot: {
+    fontSize: typography.sizes.caption,
+    color: colors.iron,
+    marginHorizontal: 6,
+  },
+  cardBottom: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: spacing[8],
+    borderTopWidth: 1,
+    borderTopColor: colors.fog,
+  },
+  cost: {
+    fontSize: typography.sizes.bodySm,
+    fontWeight: typography.weights.bold,
+    color: colors.mondayViolet,
+  },
+  date: {
+    fontSize: typography.sizes.caption,
+    color: colors.slate,
+  },
 });

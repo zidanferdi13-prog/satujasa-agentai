@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
 import { clearTokens } from '@/lib/auth';
+import { colors, spacing, radius, cardShadow, typography, themeStyles } from '@/theme/designTokens';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -102,41 +103,35 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F1E9' },
-  content: { padding: 16, paddingBottom: 32 },
-  header: { marginBottom: 24 },
-  title: { color: '#16201D', fontSize: 20, fontWeight: '700' },
-  subtitle: { color: '#65706B', fontSize: 14, marginTop: 4 },
-  section: { marginBottom: 24 },
-  sectionTitle: {
-    color: '#16201D',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
+  container: { flex: 1, backgroundColor: colors.cloud },
+  content: { padding: spacing[16], paddingBottom: spacing[32] },
+  header: { marginBottom: spacing[24] },
+  title: { color: colors.ink, fontSize: typography.sizes.subheading, fontWeight: typography.weights.bold },
+  subtitle: { color: colors.slate, fontSize: typography.sizes.bodySm, marginTop: spacing[4] ?? 4 },
+  section: { marginBottom: spacing[24] },
+  sectionTitle: themeStyles.sectionTitle,
   infoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#D5CDBF',
-    padding: 16,
+    backgroundColor: colors.snow,
+    borderRadius: radius.cards,
+    padding: spacing[16],
+    ...cardShadow('default'),
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: spacing[12] ?? 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F4F1E9',
+    borderBottomColor: colors.fog,
   },
-  infoLabel: { color: '#65706B', fontSize: 13 },
-  infoValue: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  infoLabel: { color: colors.slate, fontSize: typography.sizes.bodySm },
+  infoValue: { color: colors.ink, fontWeight: typography.weights.medium, fontSize: typography.sizes.bodySm },
   logoutButton: {
-    backgroundColor: '#D32F2F',
+    backgroundColor: colors.error,
     paddingVertical: 14,
-    borderRadius: 8,
+    borderRadius: radius.buttons,
     alignItems: 'center',
   },
   buttonDisabled: { opacity: 0.6 },
-  logoutButtonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  logoutButtonText: { color: colors.snow, fontWeight: typography.weights.bold, fontSize: typography.sizes.body },
 });
