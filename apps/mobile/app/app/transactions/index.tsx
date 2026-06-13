@@ -48,9 +48,9 @@ export default function TransactionsListScreen() {
   const [page, setPage] = useState(1);
 
   const statusMap: Record<TabType, TransactionStatus[]> = {
-    active: ['received', 'document_check', 'payment_pending', 'processing', 'at_samsat', 'needs_revision'],
-    done: ['done'],
-    cancelled: ['cancelled'],
+    active: ['DRAFT', 'DOKUMEN_DITERIMA', 'PROSES_SAMSAT', 'MENUNGGU_PEMBAYARAN'],
+    done: ['SELESAI'],
+    cancelled: ['DIBATALKAN'],
   };
 
   const fetchTransactions = async (tabType: TabType, searchQuery: string = '') => {
