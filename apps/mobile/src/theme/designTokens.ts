@@ -53,8 +53,11 @@ export const colors = {
 
 export const spacing = {
   unit: 8,
+  4: 4,
   8: 8,
+  12: 12,
   16: 16,
+  20: 20,
   24: 24,
   32: 32,
   40: 40,
