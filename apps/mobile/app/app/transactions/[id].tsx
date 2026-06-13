@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Modal,
+  TextInput,
+  ActivityIndicator,
   StyleSheet,
   SafeAreaView,
   ScrollView,
@@ -16,9 +19,12 @@ import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorState } from '@/components/ErrorState';
 import { StatusBadge } from '@/components/StatusBadge';
 import {
+  ActivityLogEntry,
+  ActivityLogResponse,
   TransactionDocumentChecklistSnapshot,
   TransactionFeeSnapshot,
   TransactionStatus,
+  UpdateFeeDetailsRequest,
   VALID_TRANSITIONS,
 } from '@/contracts';
 
@@ -49,6 +55,12 @@ export default function TransactionDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [editingFees, setEditingFees] = useState(false);
+  const [feeEdits, setFeeEdits] = useState<FeeEditItem[]>([]);
+  const [savingFees, setSavingFees] = useState(false);
+  const [logs, setLogs] = useState<ActivityLogEntry[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState<string | null>(null);
 
   const fetchTransaction = async () => {
     if (!id) return;
@@ -65,9 +77,82 @@ export default function TransactionDetailScreen() {
     }
   };
 
+  const fetchLogs = async () => {
+    if (!id) return;
+    try {
+      setLogsError(null);
+      setLogsLoading(true);
+      const response = await api.get<ActivityLogResponse>(
+        `/admin-user/transactions/${id}/logs`
+      );
+      setLogs(response.data.logs ?? []);
+    } catch (err: any) {
+      setLogsError(err?.message || 'Gagal memuat aktivitas');
+    } finally {
+      setLogsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTransaction();
   }, [id]);
+
+  useEffect(() => {
+    if (!loading && transaction?.id) {
+      fetchLogs();
+    }
+  }, [loading, transaction?.id]);
+
+  interface FeeEditItem {
+    componentCode: string;
+    componentName: string;
+    amount: string;
+  }
+
+  const openFeeEditor = () => {
+    if (!transaction?.fee_details) return;
+    setFeeEdits(
+      transaction.fee_details
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map((fee) => ({
+          componentCode: fee.component_code,
+          componentName: fee.component_name,
+          amount: fee.amount,
+        }))
+    );
+    setEditingFees(true);
+  };
+
+  const handleFeeEditChange = (componentCode: string, text: string) => {
+    const num = text.replace(/[^0-9]/g, '');
+    setFeeEdits((prev) =>
+      prev.map((f) => (f.componentCode === componentCode ? { ...f, amount: num } : f))
+    );
+  };
+
+  const handleFeeSave = async () => {
+    if (!transaction) return;
+    setSavingFees(true);
+    try {
+      const payload: UpdateFeeDetailsRequest = {
+        feeDetails: feeEdits.map((f) => ({
+          componentCode: f.componentCode,
+          amount: parseInt(f.amount || '0', 10),
+        })),
+      };
+      await api.patch(`/admin-user/transactions/${transaction.id}/fees`, payload);
+      setEditingFees(false);
+      await fetchTransaction();
+      Alert.alert('Sukses', 'Biaya berhasil diperbarui');
+    } catch (err: any) {
+      Alert.alert('Error', err?.response?.data?.error || err?.message || 'Gagal memperbarui biaya');
+    } finally {
+      setSavingFees(false);
+    }
+  };
+
+  const feeTotalPreview = feeEdits.reduce((sum, fee) => sum + parseInt(fee.amount || '0', 10), 0);
 
   const validNextStatuses = transaction
     ? VALID_TRANSITIONS[transaction.status]
@@ -101,6 +186,7 @@ export default function TransactionDetailScreen() {
       );
       setTransaction({ ...transaction, ...response.data });
       Alert.alert('Sukses', 'Status berhasil diperbarui');
+      fetchLogs();
     } catch (err: any) {
       Alert.alert('Error', err?.message || 'Gagal update status');
     } finally {
@@ -154,13 +240,13 @@ export default function TransactionDetailScreen() {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Tanggal Dibuat</Text>
             <Text style={styles.infoValue}>
-              {new Date(transaction.created_at).toLocaleDateString('id-ID')}
+              {formatDateID(transaction.created_at)}
             </Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Terakhir Diperbarui</Text>
             <Text style={styles.infoValue}>
-              {new Date(transaction.updated_at).toLocaleDateString('id-ID')}
+              {formatDateID(transaction.updated_at)}
             </Text>
           </View>
         </View>
@@ -170,14 +256,14 @@ export default function TransactionDetailScreen() {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Biaya Utama</Text>
             <Text style={styles.infoValue}>
-              Rp {parseInt(transaction.total_cost).toLocaleString('id-ID')}
+              {formatCurrencyID(transaction.total_cost)}
             </Text>
           </View>
-          {parseInt(transaction.additional_cost) > 0 && (
+          {toNumber(transaction.additional_cost) > 0 && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Biaya Tambahan</Text>
               <Text style={styles.infoValue}>
-                Rp {parseInt(transaction.additional_cost).toLocaleString('id-ID')}
+                {formatCurrencyID(transaction.additional_cost)}
               </Text>
             </View>
           )}
@@ -185,7 +271,12 @@ export default function TransactionDetailScreen() {
 
         {transaction.fee_details && transaction.fee_details.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Rincian Biaya Tersimpan</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Rincian Biaya Tersimpan</Text>
+              <TouchableOpacity style={styles.editFeeButton} onPress={openFeeEditor}>
+                <Text style={styles.editFeeButtonText}>✏️ Edit</Text>
+              </TouchableOpacity>
+            </View>
             {transaction.fee_details
               .slice()
               .sort((a, b) => a.sort_order - b.sort_order)
@@ -198,7 +289,7 @@ export default function TransactionDetailScreen() {
                     </Text>
                   </View>
                   <Text style={styles.snapshotAmount}>
-                    Rp {parseInt(fee.amount).toLocaleString('id-ID')}
+                    {formatCurrencyID(fee.amount)}
                   </Text>
                 </View>
               ))}
@@ -247,6 +338,42 @@ export default function TransactionDetailScreen() {
         )}
 
         <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Aktivitas</Text>
+          {logsLoading ? (
+            <Text style={styles.logsEmpty}>Memuat aktivitas...</Text>
+          ) : logsError ? (
+            <View>
+              <Text style={styles.logsError}>{logsError}</Text>
+              <TouchableOpacity style={styles.statusButton} onPress={fetchLogs}>
+                <Text style={styles.statusButtonText}>↻ Muat Ulang</Text>
+              </TouchableOpacity>
+            </View>
+          ) : logs.length === 0 ? (
+            <Text style={styles.logsEmpty}>Belum ada aktivitas</Text>
+          ) : (
+            logs.map((log) => (
+              <View key={log.id} style={styles.logEntry}>
+                <View style={styles.logDot} />
+                <View style={styles.logContent}>
+                  <Text style={styles.logStatus}>
+                    {log.from_status || '—'} → {log.to_status}
+                  </Text>
+                  {log.changed_by?.email && (
+                    <Text style={styles.logActor}>{log.changed_by.email}</Text>
+                  )}
+                  <Text style={styles.logTimestamp}>
+                    {formatTimestampID(log.created_at)}
+                  </Text>
+                  {log.notes && (
+                    <Text style={styles.logNotes}>“{log.notes}”</Text>
+                  )}
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>Aksi</Text>
           <TouchableOpacity style={styles.actionButton} onPress={handleOpenWA}>
             <Text style={styles.actionButtonIcon}>💬</Text>
@@ -257,6 +384,47 @@ export default function TransactionDetailScreen() {
             <Text style={styles.actionButtonText}>Bagikan Link Monitoring</Text>
           </TouchableOpacity>
         </View>
+
+        <Modal visible={editingFees} animationType="slide" transparent onRequestClose={() => setEditingFees(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Edit Biaya</Text>
+              <ScrollView style={styles.modalScroll}>
+                {feeEdits.map((fee) => (
+                  <View key={fee.componentCode} style={styles.modalRow}>
+                    <View style={styles.modalInfo}>
+                      <Text style={styles.modalFeeName}>{fee.componentName}</Text>
+                      <Text style={styles.modalFeeCode}>{fee.componentCode}</Text>
+                    </View>
+                    <TextInput
+                      style={styles.modalInput}
+                      value={fee.amount}
+                      onChangeText={(text) => handleFeeEditChange(fee.componentCode, text)}
+                      keyboardType="number-pad"
+                      editable={!savingFees}
+                    />
+                  </View>
+                ))}
+                <View style={styles.modalTotalRow}>
+                  <Text style={styles.modalTotalLabel}>Preview Total</Text>
+                  <Text style={styles.modalTotalValue}>{formatCurrencyID(feeTotalPreview)}</Text>
+                </View>
+              </ScrollView>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity style={styles.modalCancelButton} onPress={() => setEditingFees(false)} disabled={savingFees}>
+                  <Text style={styles.modalCancelText}>Batal</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalSaveButton} onPress={handleFeeSave} disabled={savingFees}>
+                  {savingFees ? (
+                    <ActivityIndicator color="#FFFFFF" size="small" />
+                  ) : (
+                    <Text style={styles.modalSaveText}>Simpan</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
@@ -264,16 +432,36 @@ export default function TransactionDetailScreen() {
 
 function getStatusLabel(status: TransactionStatus): string {
   const labels: Record<TransactionStatus, string> = {
-    received: 'Diterima',
-    document_check: 'Cek Dokumen',
-    payment_pending: 'Menunggu Bayar',
-    processing: 'Proses',
-    at_samsat: 'Di Samsat',
-    needs_revision: 'Revisi Dokumen',
-    done: 'Selesai',
-    cancelled: 'Dibatalkan',
+    DRAFT: 'Terima Dokumen',
+    DOKUMEN_DITERIMA: 'Proses Samsat',
+    PROSES_SAMSAT: 'Menunggu Pembayaran',
+    MENUNGGU_PEMBAYARAN: 'Selesai',
+    SELESAI: 'Selesai',
+    DIBATALKAN: 'Dibatalkan',
   };
   return labels[status];
+}
+
+function toNumber(value: string | number | null | undefined): number {
+  return Number(value ?? 0) || 0;
+}
+
+function formatCurrencyID(value: string | number | null | undefined): string {
+  return `Rp ${toNumber(value).toLocaleString('id-ID')}`;
+}
+
+function formatDateID(iso: string): string {
+  return new Date(iso).toLocaleDateString('id-ID');
+}
+
+function formatTimestampID(iso: string): string {
+  return new Date(iso).toLocaleString('id-ID', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 const styles = StyleSheet.create({
@@ -282,7 +470,10 @@ const styles = StyleSheet.create({
   header: { marginBottom: 24 },
   transactionId: { color: '#65706B', fontSize: 12, marginTop: 8 },
   section: { marginBottom: 24, backgroundColor: '#FFFFFF', borderRadius: 8, padding: 16 },
-  sectionTitle: { color: '#16201D', fontSize: 14, fontWeight: '700', marginBottom: 12 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  sectionTitle: { color: '#16201D', fontSize: 14, fontWeight: '700' },
+  editFeeButton: { backgroundColor: '#F4F1E9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: '#D5CDBF' },
+  editFeeButtonText: { color: '#174B3B', fontSize: 12, fontWeight: '600' },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -337,4 +528,30 @@ const styles = StyleSheet.create({
   },
   actionButtonIcon: { fontSize: 18, marginRight: 12 },
   actionButtonText: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  logsEmpty: { color: '#65706B', fontSize: 13, fontStyle: 'italic', textAlign: 'center', paddingVertical: 8 },
+  logsError: { color: '#C62828', fontSize: 13, marginBottom: 8 },
+  logEntry: { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-start' },
+  logDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#D5CDBF', marginTop: 6, marginRight: 12 },
+  logContent: { flex: 1 },
+  logStatus: { color: '#16201D', fontWeight: '600', fontSize: 13 },
+  logActor: { color: '#65706B', fontSize: 12, marginTop: 2 },
+  logTimestamp: { color: '#A09A8F', fontSize: 11, marginTop: 1 },
+  logNotes: { color: '#65706B', fontSize: 12, fontStyle: 'italic', marginTop: 2 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalContent: { backgroundColor: '#FFFFFF', borderRadius: 12, width: '100%', maxHeight: '80%', padding: 20 },
+  modalTitle: { color: '#16201D', fontSize: 18, fontWeight: '700', marginBottom: 16 },
+  modalScroll: { maxHeight: 400 },
+  modalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F4F1E9' },
+  modalInfo: { flex: 1, paddingRight: 12 },
+  modalFeeName: { color: '#16201D', fontWeight: '700', fontSize: 13 },
+  modalFeeCode: { color: '#65706B', fontSize: 12, marginTop: 2 },
+  modalInput: { backgroundColor: '#F9F7F2', borderWidth: 1, borderColor: '#D5CDBF', borderRadius: 8, padding: 10, width: 120, textAlign: 'right', color: '#16201D', fontWeight: '700' },
+  modalTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#D5CDBF' },
+  modalTotalLabel: { color: '#16201D', fontWeight: '700' },
+  modalTotalValue: { color: '#174B3B', fontWeight: '800', fontSize: 14 },
+  modalButtons: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16, gap: 12 },
+  modalCancelButton: { paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, borderWidth: 1, borderColor: '#D5CDBF' },
+  modalCancelText: { color: '#65706B', fontWeight: '600' },
+  modalSaveButton: { backgroundColor: '#174B3B', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, minWidth: 100, alignItems: 'center' },
+  modalSaveText: { color: '#FFFFFF', fontWeight: '700' },
 });

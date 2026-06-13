@@ -21,26 +21,22 @@ export const TIER_DEFAULTS: Record<SubscriptionTier, { max_tenants: number; max_
 
 // ─── Transaction Statuses ────────────────────────────────────────────────────
 export const transactionStatuses = [
-  'received',
-  'document_check',
-  'payment_pending',
-  'processing',
-  'at_samsat',
-  'needs_revision',
-  'done',
-  'cancelled',
+  'DRAFT',
+  'DOKUMEN_DITERIMA',
+  'PROSES_SAMSAT',
+  'MENUNGGU_PEMBAYARAN',
+  'SELESAI',
+  'DIBATALKAN',
 ] as const
 export type TransactionStatus = (typeof transactionStatuses)[number]
 
 export const VALID_TRANSITIONS: Record<TransactionStatus, TransactionStatus[]> = {
-  received: ['document_check', 'cancelled'],
-  document_check: ['payment_pending', 'needs_revision', 'cancelled'],
-  payment_pending: ['processing', 'cancelled'],
-  processing: ['at_samsat', 'cancelled'],
-  at_samsat: ['done', 'cancelled'],
-  needs_revision: ['document_check', 'cancelled'],
-  done: [],
-  cancelled: [],
+  DRAFT: ['DOKUMEN_DITERIMA', 'DIBATALKAN'],
+  DOKUMEN_DITERIMA: ['PROSES_SAMSAT', 'DIBATALKAN'],
+  PROSES_SAMSAT: ['MENUNGGU_PEMBAYARAN', 'DIBATALKAN'],
+  MENUNGGU_PEMBAYARAN: ['SELESAI', 'DIBATALKAN'],
+  SELESAI: [],
+  DIBATALKAN: [],
 }
 
 // ─── Service Catalog ─────────────────────────────────────────────────────────
@@ -281,6 +277,10 @@ export interface UpdateTransactionStatusRequest {
   notes?: string
 }
 
+export interface UpdateFeeDetailsRequest {
+  feeDetails: { componentCode: string; amount: number }[]
+}
+
 export interface MonitoringResponse {
   service_name: string
   status: TransactionStatus
@@ -326,4 +326,23 @@ export interface AdminUserDashboard {
   active_transactions: number
   done_transactions: number
   total_revenue: string
+}
+
+// ─── Activity Log Types ─────────────────────────────────────────────────────
+export interface ActivityLogChangedBy {
+  id: string
+  email: string
+}
+
+export interface ActivityLogEntry {
+  id: string
+  from_status: string
+  to_status: string
+  notes: string | null
+  created_at: string
+  changed_by: ActivityLogChangedBy
+}
+
+export interface ActivityLogResponse {
+  logs: ActivityLogEntry[]
 }
