@@ -98,6 +98,131 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
+  // GET /report — Owner detailed transaction report
+  router.get('/report', async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const period = (req.query.period as string | undefined) ?? 'monthly'
+      const startDateParam = req.query.start_date as string | undefined
+      const endDateParam = req.query.end_date as string | undefined
+      const tenantIdParam = req.query.tenant_id as string | undefined
+
+      if (!['monthly', 'range'].includes(period)) {
+        res.status(400).json({ error: 'invalid_period' })
+        return
+      }
+      if (period === 'range' && (!startDateParam || !endDateParam)) {
+        res.status(400).json({ error: 'date_range_required' })
+        return
+      }
+
+      const ownerTenants = await db
+        .select({ id: schema.tenants.id, name: schema.tenants.name })
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+
+      const tenantIds = tenantIdParam ? [tenantIdParam] : ownerTenants.map((tenant) => tenant.id)
+      const allowedTenantIds = new Set(ownerTenants.map((tenant) => tenant.id))
+      if (tenantIdParam && !allowedTenantIds.has(tenantIdParam)) {
+        res.status(404).json({ error: 'tenant_not_found' })
+        return
+      }
+
+      if (tenantIds.length === 0) {
+        res.json({
+          period,
+          summary: {
+            total_transactions: 0,
+            total_revenue: '0',
+            active_transactions: 0,
+            completed_transactions: 0,
+            cancelled_transactions: 0,
+          },
+          status_distribution: [],
+          by_tenant: [],
+          monthly_revenue: [],
+        })
+        return
+      }
+
+      const now = new Date()
+      const startDate = period === 'range'
+        ? new Date(startDateParam!)
+        : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+      const endDate = period === 'range'
+        ? new Date(endDateParam!)
+        : new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1))
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()) || startDate > endDate) {
+        res.status(400).json({ error: 'invalid_date_range' })
+        return
+      }
+
+      const tenantFilter = sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map((id) => sql`${id}`), sql`, `)})`
+      const dateFilter = sql`${schema.transactions.created_at} >= ${startDate.toISOString()} AND ${schema.transactions.created_at} < ${endDate.toISOString()}`
+      const baseFilter = and(tenantFilter, dateFilter, isNull(schema.transactions.deleted_at))
+      const completedStatusSql = sql`${schema.transactions.status}::text IN ('done', 'SELESAI')`
+      const cancelledStatusSql = sql`${schema.transactions.status}::text IN ('cancelled', 'DIBATALKAN')`
+      const inactiveStatusSql = sql`${schema.transactions.status}::text IN ('done', 'SELESAI', 'cancelled', 'DIBATALKAN')`
+
+      const [summary] = await db
+        .select({
+          total_transactions: sql<number>`count(*)::int`,
+          total_revenue: sql<string>`COALESCE(sum(CASE WHEN ${completedStatusSql} THEN total_cost + additional_cost ELSE 0 END), 0)::text`,
+          active_transactions: sql<number>`count(*) FILTER (WHERE NOT ${inactiveStatusSql})::int`,
+          completed_transactions: sql<number>`count(*) FILTER (WHERE ${completedStatusSql})::int`,
+          cancelled_transactions: sql<number>`count(*) FILTER (WHERE ${cancelledStatusSql})::int`,
+        })
+        .from(schema.transactions)
+        .where(baseFilter)
+
+      const statusDistribution = await db
+        .select({ status: schema.transactions.status, count: sql<number>`count(*)::int` })
+        .from(schema.transactions)
+        .where(baseFilter)
+        .groupBy(schema.transactions.status)
+
+      const byTenant = await db
+        .select({
+          tenant_id: schema.tenants.id,
+          tenant_name: schema.tenants.name,
+          transaction_count: sql<number>`count(${schema.transactions.id})::int`,
+          revenue: sql<string>`COALESCE(sum(CASE WHEN ${completedStatusSql} THEN total_cost + additional_cost ELSE 0 END), 0)::text`,
+        })
+        .from(schema.tenants)
+        .innerJoin(schema.transactions, eq(schema.transactions.tenant_id, schema.tenants.id))
+        .where(baseFilter)
+        .groupBy(schema.tenants.id, schema.tenants.name)
+
+      const monthlyRevenue = await db
+        .select({
+          month: sql<string>`to_char(date_trunc('month', ${schema.transactions.created_at}), 'YYYY-MM')`,
+          revenue: sql<string>`COALESCE(sum(CASE WHEN ${completedStatusSql} THEN total_cost + additional_cost ELSE 0 END), 0)::text`,
+          transaction_count: sql<number>`count(*)::int`,
+        })
+        .from(schema.transactions)
+        .where(baseFilter)
+        .groupBy(sql`date_trunc('month', ${schema.transactions.created_at})`)
+        .orderBy(sql`date_trunc('month', ${schema.transactions.created_at})`)
+
+      res.json({
+        period,
+        summary: summary ?? {
+          total_transactions: 0,
+          total_revenue: '0',
+          active_transactions: 0,
+          completed_transactions: 0,
+          cancelled_transactions: 0,
+        },
+        status_distribution: statusDistribution,
+        by_tenant: byTenant,
+        monthly_revenue: monthlyRevenue,
+      })
+    } catch (error) {
+      console.error('Owner report error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   // ─── Tenants ─────────────────────────────────────────────────────────────
   router.get('/tenants', async (req, res) => {
     try {

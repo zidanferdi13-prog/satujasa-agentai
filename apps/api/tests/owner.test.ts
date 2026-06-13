@@ -128,6 +128,42 @@ describe('Owner Routes', () => {
     expect(response.body).toHaveProperty('total_revenue')
   })
 
+  it('returns owner report data', async () => {
+    const response = await request(app)
+      .get('/api/v1/owner/report')
+      .set('Authorization', `Bearer ${ownerToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.period).toBe('monthly')
+    expect(response.body).toHaveProperty('summary')
+    expect(response.body.summary).toHaveProperty('total_transactions')
+    expect(response.body.summary).toHaveProperty('total_revenue')
+    expect(response.body.summary).toHaveProperty('active_transactions')
+    expect(response.body.summary).toHaveProperty('completed_transactions')
+    expect(response.body.summary).toHaveProperty('cancelled_transactions')
+    expect(Array.isArray(response.body.status_distribution)).toBe(true)
+    expect(Array.isArray(response.body.by_tenant)).toBe(true)
+    expect(Array.isArray(response.body.monthly_revenue)).toBe(true)
+  })
+
+  it('rejects owner report range without dates', async () => {
+    const response = await request(app)
+      .get('/api/v1/owner/report?period=range')
+      .set('Authorization', `Bearer ${ownerToken}`)
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('date_range_required')
+  })
+
+  it('rejects owner report tenant outside owner scope', async () => {
+    const response = await request(app)
+      .get('/api/v1/owner/report?tenant_id=00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${ownerToken}`)
+
+    expect(response.status).toBe(404)
+    expect(response.body.error).toBe('tenant_not_found')
+  })
+
   // Test 6: POST /owner/transactions → 201 (setelah punya tenant)
   it('creates transaction for tenant', async () => {
     const response = await request(app)
