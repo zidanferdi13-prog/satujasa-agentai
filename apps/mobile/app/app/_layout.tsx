@@ -2,6 +2,7 @@ import React from 'react';
 import { ColorValue, Text } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useAuthStore } from '@/stores/authStore';
+import { colors, typography } from '@/theme/designTokens';
 
 export default function AppLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -14,11 +15,27 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: '#F4F1E9' },
-        headerTitleStyle: { color: '#16201D', fontWeight: '600' },
-        tabBarActiveTintColor: '#174B3B',
-        tabBarInactiveTintColor: '#8B572A',
-        tabBarStyle: { backgroundColor: '#F4F1E9', borderTopColor: '#D5CDBF' },
+        headerStyle: { backgroundColor: colors.snow },
+        headerTitleStyle: {
+          color: colors.ink,
+          fontWeight: typography.weights.medium,
+          fontSize: typography.sizes.subheading,
+        },
+        headerShadowVisible: false,
+        tabBarActiveTintColor: colors.mondayViolet,
+        tabBarInactiveTintColor: colors.slate,
+        tabBarStyle: {
+          backgroundColor: colors.snow,
+          borderTopColor: colors.fog,
+          borderTopWidth: 1,
+          paddingBottom: 4,
+          paddingTop: 4,
+          height: 60,
+        },
+        tabBarLabelStyle: {
+          fontSize: typography.sizes.caption,
+          fontWeight: typography.weights.medium,
+        },
       }}
     >
       <Tabs.Screen
@@ -26,7 +43,7 @@ export default function AppLayout() {
         options={{
           title: 'Dashboard',
           tabBarLabel: 'Dashboard',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>📊</Text>,
+          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 22 }}>📊</Text>,
         }}
       />
       <Tabs.Screen
@@ -34,7 +51,7 @@ export default function AppLayout() {
         options={{
           title: 'Berkas',
           tabBarLabel: 'Berkas',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>📋</Text>,
+          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 22 }}>📋</Text>,
         }}
       />
       <Tabs.Screen
@@ -42,7 +59,7 @@ export default function AppLayout() {
         options={{
           title: 'Harga',
           tabBarLabel: 'Harga',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>💰</Text>,
+          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 22 }}>💰</Text>,
         }}
       />
       <Tabs.Screen
@@ -50,7 +67,7 @@ export default function AppLayout() {
         options={{
           title: 'Pengaturan',
           tabBarLabel: 'Pengaturan',
-          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 24 }}>⚙️</Text>,
+          tabBarIcon: ({ color }: { color: ColorValue }) => <Text style={{ color, fontSize: 22 }}>⚙️</Text>,
         }}
       />
     </Tabs>
