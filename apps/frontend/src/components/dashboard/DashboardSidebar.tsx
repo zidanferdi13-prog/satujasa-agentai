@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import icon from '../../../assets/icon.png';
 import { removeToken } from '@/lib/auth';
 import type { UserRole } from '@/types/auth';
@@ -38,25 +40,42 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
   }
 
   return (
-    <aside className="flex h-full flex-col overflow-y-auto bg-[linear-gradient(180deg,var(--color-inverse-surface)_0%,#0b1c30_100%)] p-4 text-inverse-on-surface shadow-xl">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        overflowY: 'auto',
+        bgcolor: '#ffffff',
+        borderRight: '1px solid',
+        borderColor: '#d0d4e4',
+        p: 2,
+      }}
+    >
       <Link
         href={getRoleHome(role)}
-        className="mb-10 mt-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-white/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-fixed-dim"
         onClick={onClose}
+        style={{ textDecoration: 'none' }}
       >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white shadow-lg shadow-primary/20 ring-1 ring-white/80">
-          <Image src={icon} alt="" className="h-12 w-12 rounded-md" />
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-headline-sm font-bold text-on-primary">STNK SatuJasa</p>
-          <p className="truncate text-label-sm font-bold uppercase tracking-wider text-outline-variant/70">Operational Command</p>
-        </div>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1.5, py: 1.5, mb: 3, mt: 1 }}>
+          <Box sx={{ width: 36, height: 36, borderRadius: 1.5, overflow: 'hidden', flexShrink: 0 }}>
+            <Image src={icon} alt="" width={36} height={36} />
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 15, color: '#333333', lineHeight: 1.2 }}>
+              STNK SatuJasa
+            </Typography>
+            <Typography sx={{ fontSize: 10, color: '#808080', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Operational Command
+            </Typography>
+          </Box>
+        </Box>
       </Link>
 
-      <nav className="flex flex-1 flex-col gap-2" aria-label={`Menu ${roleLabels[role]}`}>
-        <div className="px-2 pb-2">
-          <span className="px-3 text-label-sm font-bold uppercase tracking-[0.16em] text-outline-variant/60">Navigasi</span>
-        </div>
+      <Box component="nav" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        <Typography sx={{ px: 2.5, pb: 1, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.16em', color: '#808080' }}>
+          Navigasi
+        </Typography>
 
         {items.map((item) => {
           const active = isActiveItem(item, currentPath);
@@ -66,65 +85,112 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
               href={item.href}
               onClick={onClose}
               aria-current={active ? 'page' : undefined}
-              className={`group flex items-center gap-4 rounded-lg px-4 py-3.5 text-label-md transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-fixed-dim ${
-                active
-                  ? 'bg-surface text-primary opacity-95 shadow-sm'
-                  : 'text-outline-variant hover:text-surface-variant'
-              }`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                borderRadius: 8,
+                padding: '10px 16px',
+                textDecoration: 'none',
+                fontSize: 14,
+                fontWeight: 600,
+                backgroundColor: active ? '#e7ecff' : 'transparent',
+                color: active ? '#6161ff' : '#535768',
+                transition: 'all 0.15s',
+              }}
             >
-              {item.icon ? (
-                <span className={`material-symbols-outlined text-[23px] transition-transform ${active ? "[font-variation-settings:'FILL'_1]" : 'group-hover:scale-110'}`}>
-                  {item.icon}
-                </span>
-              ) : null}
-              <span className="font-semibold">{item.label}</span>
-              {item.badge ? <span className="ml-auto rounded-full bg-primary-fixed px-2 py-0.5 text-[11px] font-bold text-primary">{item.badge}</span> : null}
+              {item.icon && (
+                <span className="material-symbols-outlined" style={{ fontSize: 22 }}>{item.icon}</span>
+              )}
+              <span>{item.label}</span>
+              {item.badge && (
+                <Box sx={{ ml: 'auto', borderRadius: '9999px', bgcolor: '#6161ff', color: '#ffffff', px: 1, py: 0.25, fontSize: 11, fontWeight: 700 }}>
+                  {item.badge}
+                </Box>
+              )}
             </Link>
           );
         })}
-      </nav>
+      </Box>
 
-      <div className="mt-auto space-y-3">
-        <div className="rounded-xl border border-surface-container/10 bg-surface-container/5 p-4">
-          <div className="mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary [font-variation-settings:'FILL'_1]">shield</span>
-            <span className="text-label-sm font-bold uppercase tracking-[0.14em] text-on-primary">Secure Panel</span>
-          </div>
-          <p className="text-[11px] leading-relaxed text-outline-variant/80">
+      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: '#d0d4e4', bgcolor: '#f5f6f8', p: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#6161ff' }}>shield</span>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#333333' }}>
+              Secure Panel
+            </Typography>
+          </Box>
+          <Typography sx={{ fontSize: 11, color: '#808080', lineHeight: 1.5 }}>
             Akses menu mengikuti role aktif dan tetap berada dalam area kerja dashboard.
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-error/30 bg-error/10 px-4 py-3 text-label-md font-bold text-error-container transition-colors hover:bg-error hover:text-on-error focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-error-container"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            borderRadius: 8,
+            padding: '10px 16px',
+            border: 'none',
+            backgroundColor: 'transparent',
+            color: '#b3261e',
+            fontSize: 14,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
         >
-          <span className="material-symbols-outlined text-[20px]">logout</span>
-          Sign Out
+          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>logout</span>
+          Keluar
         </button>
-      </div>
-    </aside>
+      </Box>
+    </Box>
   );
 }
 
 export default function DashboardSidebar(props: DashboardSidebarProps) {
   return (
     <>
-      <div className="hidden h-screen w-[280px] shrink-0 lg:fixed lg:left-0 lg:top-0 lg:z-50 lg:block">
+      <Box sx={{ display: { xs: 'none', lg: 'block' }, width: 280, flexShrink: 0, position: 'fixed', left: 0, top: 0, zIndex: 50, height: '100vh' }}>
         <SidebarContent {...props} />
-      </div>
+      </Box>
 
-      <div
-        className={`fixed inset-0 z-40 bg-inverse-surface/45 backdrop-blur-sm transition-opacity lg:hidden ${props.open ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+      {/* Mobile overlay */}
+      <Box
         onClick={props.onClose}
         aria-hidden="true"
+        sx={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 40,
+          bgcolor: 'rgba(51,51,51,0.45)',
+          backdropFilter: 'blur(4px)',
+          transition: 'opacity 0.3s',
+          opacity: props.open ? 1 : 0,
+          pointerEvents: props.open ? 'auto' : 'none',
+          display: { lg: 'none' },
+        }}
       />
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-[min(280px,88vw)] transition-transform duration-300 lg:hidden ${props.open ? 'translate-x-0' : '-translate-x-full'}`}
+
+      {/* Mobile drawer */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          zIndex: 50,
+          width: 'min(280px, 88vw)',
+          transition: 'transform 0.3s',
+          transform: props.open ? 'translateX(0)' : 'translateX(-100%)',
+          display: { lg: 'none' },
+        }}
       >
         <SidebarContent {...props} />
-      </div>
+      </Box>
     </>
   );
 }

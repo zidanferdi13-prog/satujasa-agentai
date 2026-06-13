@@ -7,6 +7,9 @@ import type { UserRole } from '@/types/auth';
 import DashboardSidebar from './DashboardSidebar';
 import DashboardTopBar from './DashboardTopBar';
 import type { RoleMenuItem } from './types';
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 
 type RoleDashboardShellProps = {
   role: UserRole;
@@ -41,7 +44,7 @@ export default function RoleDashboardShell({ role, menuItems, children }: RoleDa
   const title = useMemo(() => getPageTitle(pathname, menuItems), [pathname, menuItems]);
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface landing-texture">
+    <Box sx={{ minHeight: '100vh', bgcolor: '#f5f6f8' }}>
       <DashboardSidebar
         role={role}
         items={menuItems}
@@ -50,24 +53,31 @@ export default function RoleDashboardShell({ role, menuItems, children }: RoleDa
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main className="flex min-h-screen flex-col lg:ml-[280px]">
+      <Box
+        component="main"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+          ml: { lg: '280px' },
+        }}
+      >
         <DashboardTopBar
           title={title}
           user={user}
           role={role}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <div className="flex-1 p-4 md:p-8 lg:p-10">
-          <div className="mx-auto max-w-6xl">
-            <section className="glass-card relative min-h-[500px] overflow-hidden rounded-2xl p-6 shadow-sm md:p-10">
-              <div className="pointer-events-none absolute right-0 top-0 p-8 text-primary opacity-[0.04]">
-                <span className="material-symbols-outlined text-[160px]">admin_panel_settings</span>
-              </div>
-              <div className="relative z-10">{children}</div>
-            </section>
-          </div>
-        </div>
-      </main>
-    </div>
+        <Box sx={{ flex: 1, p: { xs: 2, md: 4, lg: 5 } }}>
+          <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+            <Card sx={{ minHeight: 500, overflow: 'hidden' }}>
+              <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+                {children}
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   );
 }
