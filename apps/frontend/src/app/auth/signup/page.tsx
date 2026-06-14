@@ -62,7 +62,7 @@ export default function SignUpPage() {
           disabled={isPending}
           fullWidth
           size="large"
-          sx={{ py: 1.75 }}
+          sx={{ py: 1.75, borderRadius: '12px' }}
         >
           {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />}
           {isPending ? 'Memproses…' : 'Ajukan Pendaftaran'}

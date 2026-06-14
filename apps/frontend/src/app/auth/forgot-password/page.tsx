@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
           disabled={isPending}
           fullWidth
           size="large"
-          sx={{ py: 1.75 }}
+          sx={{ py: 1.75, borderRadius: '12px' }}
         >
           {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />}
           {isPending ? 'Memproses…' : 'Minta Bantuan Reset'}
@@ -78,7 +78,7 @@ export default function ForgotPasswordPage() {
         <Link
           href="/auth/signin"
           style={{
-            borderRadius: 24, padding: 16, textAlign: 'center', fontWeight: 700,
+            borderRadius: 12, padding: 16, textAlign: 'center', fontWeight: 700,
             color: '#6161ff', textDecoration: 'none', backgroundColor: '#f5f6f8', display: 'block',
           }}
         >
@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
         <Link
           href="/auth/help"
           style={{
-            borderRadius: 24, padding: 16, textAlign: 'center', fontWeight: 700,
+            borderRadius: 12, padding: 16, textAlign: 'center', fontWeight: 700,
             color: '#535768', textDecoration: 'none', backgroundColor: '#f5f6f8', display: 'block',
           }}
         >
