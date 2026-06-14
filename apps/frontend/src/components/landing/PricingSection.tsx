@@ -93,6 +93,7 @@ export default function PricingSection() {
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
+                overflow: plan.badge ? 'visible' : undefined,
                 ...(plan.highlight
                   ? {
                       bgcolor: '#6161ff',

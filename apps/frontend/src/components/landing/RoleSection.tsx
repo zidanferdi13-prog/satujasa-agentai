@@ -1,10 +1,5 @@
 const roles = [
   {
-    icon: 'admin_panel_settings',
-    title: 'Super Admin',
-    desc: 'Akses penuh ke semua fitur dan konfigurasi sistem utama.',
-  },
-  {
     icon: 'store',
     title: 'Owner',
     desc: 'Melihat laporan semua cabang dan manajemen admin cabang.',

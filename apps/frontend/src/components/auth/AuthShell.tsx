@@ -139,7 +139,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
               <Box component="img" src={icon.src} alt="" sx={{ width: 36, height: 36, borderRadius: 2 }} />
               <Box sx={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em', color: '#6161ff' }}>STNK SatuJasa</Box>
             </Link>
-            <Card sx={{ borderRadius: 6, border: '1px solid', borderColor: 'divider' }}>
+            <Card sx={{ borderRadius: '8px !important', border: '1px solid', borderColor: 'divider' }}>
               <CardContent sx={{ p: { xs: 3, md: 4 } }}>
                 {children}
               </CardContent>

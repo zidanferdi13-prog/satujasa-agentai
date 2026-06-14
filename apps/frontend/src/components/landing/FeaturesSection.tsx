@@ -55,7 +55,7 @@ export default function FeaturesSection() {
               key={title}
               sx={{
                 borderRadius: '2rem',
-                p: index === 0 ? { lg: 3.5 } : 2.5,
+                p: index === 0 ? { xs: 2.5, lg: 3.5 } : 2.5,
                 transition: 'transform 0.2s',
                 '&:hover': { transform: 'translateY(-4px)' },
                 ...(index === 0 ? { gridRow: { lg: 'span 2' } } : {}),
