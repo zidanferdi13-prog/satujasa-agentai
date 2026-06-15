@@ -17,7 +17,17 @@ export function createApp(config: AppConfig) {
 
   app.disable('x-powered-by')
   app.use(helmet())
-  app.use(cors({ origin: config.WEB_ORIGIN, credentials: true }))
+  const corsOrigins = config.WEB_ORIGIN.split(',')
+    .map(s => s.trim())
+    .filter(Boolean)
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (server-to-server, curl, etc.)
+      if (!origin || corsOrigins.includes(origin)) return callback(null, true)
+      callback(null, false)
+    },
+    credentials: true,
+  }))
   app.use(express.json({ limit: '1mb' }))
   app.use(cookieParser())
 
