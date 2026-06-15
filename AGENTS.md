@@ -29,8 +29,7 @@ Entry point untuk semua AI coding agents. Baca file ini pertama kali sebelum mel
 stnk-jasa/
 ├── apps/
 │   ├── api/          # Express backend (TypeScript + Drizzle + PostgreSQL)
-│   ├── frontend/     # Next.js 16 frontend (Tailwind + shadcn/ui + MUI)
-│   └── mobile/       # Expo + React Native (Admin User only)
+│   └── frontend/     # Next.js 16 frontend (Tailwind + shadcn/ui + MUI)
 ├── packages/
 │   └── contracts/    # Shared TypeScript types, enums, DTOs (@stnk/contracts)
 ├── docs/             # Project documentation (source of truth)
@@ -43,6 +42,8 @@ stnk-jasa/
 └── shared/
     └── tasks/        # PM task files per role
 ```
+
+> **Mobile app** sudah dipisah ke repo terpisah: `/opt/stnk-ai-team/projects/stnk-jasa-mob/`
 
 ## Dependency Order
 
