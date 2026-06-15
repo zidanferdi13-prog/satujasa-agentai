@@ -110,6 +110,28 @@
   --color-info: #3b82f6;
   --color-info-bg: rgba(59, 130, 246, 0.12);
   --color-info-border: rgba(59, 130, 246, 0.3);
+
+  /* ── Dashboard Design Tokens ── */
+  --dash-bg: #f6f8fc;
+  --dash-surface: #ffffff;
+  --dash-surface-soft: #f9faff;
+  --dash-text: #1d2433;
+  --dash-muted: #6b7280;
+  --dash-line: #e5e9f3;
+  --dash-primary: #4f46e5;
+  --dash-primary-2: #6366f1;
+  --dash-primary-soft: #eef2ff;
+  --dash-violet: #8b5cf6;
+  --dash-green: #22c55e;
+  --dash-green-soft: #ecfdf3;
+  --dash-orange: #f59e0b;
+  --dash-orange-soft: #fff7ed;
+  --dash-blue-soft: #eff6ff;
+  --dash-shadow: 0 20px 45px rgba(30, 41, 59, 0.07);
+  --dash-shadow-soft: 0 12px 28px rgba(30, 41, 59, 0.06);
+  --dash-radius-xl: 28px;
+  --dash-radius-lg: 22px;
+  --dash-radius-md: 16px;
 }
 
 /* ── Glass card ── */
