@@ -28,6 +28,7 @@ export default function DashboardHero({ data }: DashboardHeroProps) {
         display: 'grid',
         gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' },
         gap: { xs: 3, md: 4 },
+        mb: 3,
       }}
     >
       {/* ── Left: Greeting + Chips ── */}
