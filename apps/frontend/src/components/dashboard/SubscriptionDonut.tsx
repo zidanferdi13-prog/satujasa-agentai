@@ -62,18 +62,19 @@ export default function SubscriptionDonut({ data }: SubscriptionDonutProps) {
     <Card
       sx={{
         borderRadius: '22px',
-        border: '1px solid var(--dash-line)',
-        boxShadow: 'var(--dash-shadow-soft)',
-        background: '#ffffff',
+        border: '1px solid #e5e9f3',
+        boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+        background: 'rgba(255,255,255,0.94)',
+        height: '100%',
       }}
     >
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16, color: 'var(--dash-text)', mb: 2 }}>
+        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 2.5 }}>
           Distribusi Subscription
         </Typography>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: '170px 1fr', gap: 3, alignItems: 'center' }}>
-          {/* Donut chart */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          {/* Donut chart with center text */}
           <Box
             sx={{
               position: 'relative',
@@ -84,6 +85,7 @@ export default function SubscriptionDonut({ data }: SubscriptionDonutProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              boxShadow: '0 8px 20px rgba(79, 70, 229, 0.12)',
               '&::before': {
                 content: '""',
                 position: 'absolute',
@@ -91,48 +93,70 @@ export default function SubscriptionDonut({ data }: SubscriptionDonutProps) {
                 height: HOLE_SIZE,
                 borderRadius: '50%',
                 background: '#ffffff',
+                boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.04)',
               },
             }}
           >
-            <Typography
-              sx={{
-                position: 'relative',
-                zIndex: 1,
-                fontSize: 22,
-                fontWeight: 800,
-                color: 'var(--dash-text)',
-              }}
-            >
-              {total}
-            </Typography>
+            <Box sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+              <Typography
+                sx={{
+                  fontSize: 24,
+                  fontWeight: 800,
+                  color: 'var(--dash-text)',
+                  lineHeight: 1,
+                }}
+              >
+                {total}
+              </Typography>
+              <Typography
+                sx={{
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: '#8a91a3',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.08em',
+                  mt: 0.5,
+                }}
+              >
+                Total Owners
+              </Typography>
+            </Box>
           </Box>
 
           {/* Legend */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {SEGMENTS.map((seg) => {
               const count = dist[seg.key];
               const pct = total > 0 ? ((count / total) * 100).toFixed(0) : '0';
               return (
                 <Box
                   key={seg.key}
-                  sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    p: 1.5,
+                    borderRadius: '12px',
+                    transition: 'background-color 0.15s',
+                    '&:hover': { bgcolor: '#f8f9fc' },
+                  }}
                 >
                   <Box
                     sx={{
-                      width: 10,
-                      height: 10,
+                      width: 12,
+                      height: 12,
                       borderRadius: '50%',
                       bgcolor: seg.color,
                       flexShrink: 0,
                     }}
                   />
-                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text)', minWidth: 50 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text)', flex: 1 }}>
                     {seg.label}
                   </Typography>
-                  <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'var(--dash-text)', minWidth: 30, textAlign: 'right' }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'var(--dash-text)', minWidth: 30, textAlign: 'right' }}>
                     {count}
                   </Typography>
-                  <Typography sx={{ fontSize: 12, color: '#8a91a3' }}>
+                  <Typography sx={{ fontSize: 12, color: '#8a91a3', minWidth: 40, textAlign: 'right' }}>
                     {pct}%
                   </Typography>
                 </Box>
@@ -142,13 +166,13 @@ export default function SubscriptionDonut({ data }: SubscriptionDonutProps) {
         </Box>
 
         {/* Bottom link */}
-        <Box sx={{ mt: 2, textAlign: 'right' }}>
+        <Box sx={{ mt: 2.5, textAlign: 'center' }}>
           <Button
             component={Link}
             href="/admin/subscriptions"
             variant="text"
             sx={{
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
               color: 'var(--dash-primary)',
               textTransform: 'none',

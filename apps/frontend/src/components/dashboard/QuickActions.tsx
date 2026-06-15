@@ -71,22 +71,28 @@ export default function QuickActions() {
     <Card
       sx={{
         borderRadius: '22px',
-        border: '1px solid var(--dash-line)',
-        boxShadow: 'var(--dash-shadow-soft)',
-        background: '#ffffff',
+        border: '1px solid #e5e9f3',
+        boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+        background: 'rgba(255,255,255,0.94)',
+        height: '100%',
       }}
     >
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16, color: 'var(--dash-text)', mb: 2 }}>
-          Aksi Cepat
-        </Typography>
+        <Box sx={{ mb: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+            Aksi Cepat
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: 13, color: '#8a91a3' }}>
+            Shortcut menu utama
+          </Typography>
+        </Box>
 
-        {/* 4-column grid; collapses to 2 on mobile */}
+        {/* 2x2 grid */}
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' },
-            gap: 2,
+            gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr' },
+            gap: 1.5,
           }}
         >
           {ACTIONS.map((action) => (
@@ -97,26 +103,34 @@ export default function QuickActions() {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 1,
-                p: 1.5,
-                borderRadius: '16px',
+                gap: 1.5,
+                p: 2.5,
+                borderRadius: '18px',
                 cursor: 'pointer',
-                transition: 'background-color 0.15s',
+                transition: 'all 0.2s',
+                border: '1px solid transparent',
                 '&:hover': {
                   bgcolor: '#f8f9fc',
+                  borderColor: '#e5e9f3',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 16px rgba(30, 41, 59, 0.08)',
                 },
               }}
             >
-              {/* Icon background circle */}
+              {/* Icon background rounded square */}
               <Box
                 sx={{
-                  width: 54,
-                  height: 54,
-                  borderRadius: '17px',
+                  width: 56,
+                  height: 56,
+                  borderRadius: '18px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   bgcolor: action.bgColor,
+                  transition: 'transform 0.2s',
+                  '.MuiBox-root:hover &': {
+                    transform: 'scale(1.05)',
+                  },
                 }}
               >
                 <MaterialIcon name={action.icon} />
@@ -125,11 +139,11 @@ export default function QuickActions() {
               {/* Title */}
               <Typography
                 sx={{
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: 700,
                   color: 'var(--dash-text)',
                   textAlign: 'center',
-                  lineHeight: 1.2,
+                  lineHeight: 1.3,
                 }}
               >
                 {action.title}
@@ -141,7 +155,7 @@ export default function QuickActions() {
                   fontSize: 11,
                   color: '#8a91a3',
                   textAlign: 'center',
-                  lineHeight: 1.2,
+                  lineHeight: 1.3,
                 }}
               >
                 {action.subtitle}

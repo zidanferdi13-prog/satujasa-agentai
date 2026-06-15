@@ -65,32 +65,37 @@ export default function PlatformSummary({ data }: PlatformSummaryProps) {
     <Card
       sx={{
         borderRadius: '22px',
-        border: '1px solid var(--dash-line)',
-        boxShadow: 'var(--dash-shadow-soft)',
-        background: '#ffffff',
+        border: '1px solid #e5e9f3',
+        boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+        background: 'rgba(255,255,255,0.94)',
       }}
     >
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16, color: 'var(--dash-text)', mb: 2 }}>
-          Platform Summary
-        </Typography>
+        <Box sx={{ mb: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+            Platform Summary
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: 13, color: '#8a91a3' }}>
+            Ringkasan penggunaan resource
+          </Typography>
+        </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {rows.map((row) => {
             const pct = row.total > 0 ? Math.min((row.used / row.total) * 100, 100) : 0;
 
             return (
               <Box key={row.label}>
                 {/* Label row */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 500, color: 'var(--dash-text)' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text)' }}>
                     {row.label}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'var(--dash-text)' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'var(--dash-text)' }}>
                       {pct.toFixed(0)}%
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: '#8a91a3' }}>
+                    <Typography sx={{ fontSize: 12, color: '#8a91a3' }}>
                       {row.used}/{row.total} {row.unit}
                     </Typography>
                   </Box>
@@ -99,7 +104,7 @@ export default function PlatformSummary({ data }: PlatformSummaryProps) {
                 {/* Progress bar */}
                 <Box
                   sx={{
-                    height: 7,
+                    height: 8,
                     borderRadius: '999px',
                     bgcolor: '#edf0fb',
                     overflow: 'hidden',
@@ -110,8 +115,9 @@ export default function PlatformSummary({ data }: PlatformSummaryProps) {
                       height: '100%',
                       borderRadius: '999px',
                       width: `${pct}%`,
-                      background: 'linear-gradient(90deg, var(--dash-primary), var(--dash-primary-2))',
+                      background: 'linear-gradient(90deg, #4f46e5 0%, #6366f1 100%)',
                       transition: 'width 0.4s ease',
+                      boxShadow: pct > 80 ? '0 2px 8px rgba(79, 70, 229, 0.3)' : 'none',
                     }}
                   />
                 </Box>

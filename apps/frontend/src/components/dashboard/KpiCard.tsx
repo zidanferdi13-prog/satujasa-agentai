@@ -85,29 +85,29 @@ export default function KpiCard({
     <Card
       sx={{
         borderRadius: '22px',
-        boxShadow: 'var(--dash-shadow-soft)',
-        border: '1px solid var(--dash-line)',
-        background: '#ffffff',
+        boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+        border: '1px solid #e5e9f3',
+        background: 'rgba(255,255,255,0.94)',
         transition: 'box-shadow 0.2s, transform 0.2s',
         '&:hover': {
-          boxShadow: 'var(--dash-shadow)',
-          transform: 'translateY(-2px)',
+          boxShadow: '0 24px 48px rgba(30, 41, 59, 0.1)',
+          transform: 'translateY(-3px)',
         },
       }}
     >
-      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {/* Top row: icon + value */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          {/* Icon container */}
+          {/* Icon rounded square */}
           <Box
             sx={{
               width: 48,
               height: 48,
-              borderRadius: '50%',
+              borderRadius: '15px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: `${color}1a`, // 0.1 opacity via hex alpha
+              backgroundColor: `${color}15`,
               flexShrink: 0,
             }}
           >
@@ -139,13 +139,15 @@ export default function KpiCard({
           </Typography>
         </Box>
 
-        {/* Label */}
+        {/* Label uppercase */}
         <Typography
           variant="body2"
           sx={{
-            fontSize: 13,
-            fontWeight: 500,
+            fontSize: 12,
+            fontWeight: 600,
             color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
           }}
         >
           {label}
@@ -157,7 +159,7 @@ export default function KpiCard({
             <Box
               component="span"
               sx={{
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 700,
                 color: arrowColor,
                 lineHeight: 1,

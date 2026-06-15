@@ -64,24 +64,24 @@ export default function SystemHealth({ data }: SystemHealthProps) {
     <Card
       sx={{
         borderRadius: '22px',
-        border: '1px solid var(--dash-line)',
-        boxShadow: 'var(--dash-shadow-soft)',
-        background: '#ffffff',
+        border: '1px solid #e5e9f3',
+        boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+        background: 'rgba(255,255,255,0.94)',
+        height: '100%',
       }}
     >
       <Box sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16, color: 'var(--dash-text)', mb: 2 }}>
-          System Health
-        </Typography>
+        <Box sx={{ mb: 2.5 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+            System Health
+          </Typography>
+          <Typography variant="body2" sx={{ fontSize: 13, color: '#8a91a3' }}>
+            Status layanan platform
+          </Typography>
+        </Box>
 
-        {/* 3-column grid; collapses to 1 on mobile */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
-            gap: 2,
-          }}
-        >
+        {/* Status list */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {SERVICE_CONFIG.map((svc) => {
             const status = health[svc.key];
             const label = STATUS_LABEL[status] ?? 'Unknown';
@@ -93,24 +93,53 @@ export default function SystemHealth({ data }: SystemHealthProps) {
                 key={svc.key}
                 sx={{
                   display: 'flex',
-                  flexDirection: 'column',
                   alignItems: 'center',
-                  gap: 1.5,
+                  gap: 2,
                   p: 2,
-                  borderRadius: '16px',
-                  border: '1px solid var(--dash-line)',
+                  borderRadius: '14px',
+                  border: '1px solid #e5e9f3',
+                  transition: 'all 0.15s',
+                  '&:hover': {
+                    bgcolor: '#f8f9fc',
+                    borderColor: '#d0d4e4',
+                  },
                 }}
               >
-                <MaterialIcon name={svc.icon} />
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text)' }}>
-                  {svc.label}
-                </Typography>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: bg,
+                    flexShrink: 0,
+                  }}
+                >
+                  <Box
+                    component="span"
+                    className="material-symbols-outlined"
+                    sx={{ fontSize: 22, color, lineHeight: 1 }}
+                  >
+                    {svc.icon}
+                  </Box>
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'var(--dash-text)', mb: 0.3 }}>
+                    {svc.label}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: '#8a91a3' }}>
+                    {label}
+                  </Typography>
+                </Box>
                 <Box
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',
+                    gap: 0.5,
                     px: 1.5,
-                    py: 0.4,
+                    py: 0.5,
                     borderRadius: '999px',
                     fontSize: 11,
                     fontWeight: 600,
@@ -118,6 +147,15 @@ export default function SystemHealth({ data }: SystemHealthProps) {
                     bgcolor: bg,
                   }}
                 >
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: color,
+                      flexShrink: 0,
+                    }}
+                  />
                   {label}
                 </Box>
               </Box>
@@ -132,14 +170,14 @@ export default function SystemHealth({ data }: SystemHealthProps) {
           variant="outlined"
           fullWidth
           sx={{
-            mt: 2,
-            borderRadius: '12px',
-            fontSize: 13,
+            mt: 2.5,
+            borderRadius: '14px',
+            fontSize: 14,
             fontWeight: 600,
             color: 'var(--dash-primary)',
-            borderColor: 'var(--dash-line)',
+            borderColor: '#e5e9f3',
             textTransform: 'none',
-            py: 1,
+            py: 1.25,
             '&:hover': {
               borderColor: 'var(--dash-primary)',
               bgcolor: 'transparent',

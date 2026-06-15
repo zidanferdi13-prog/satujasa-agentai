@@ -89,25 +89,32 @@ export default function RevenueChart({ data }: RevenueChartProps) {
     <Card
       sx={{
         borderRadius: '22px',
-        border: '1px solid var(--dash-line)',
-        boxShadow: 'var(--dash-shadow-soft)',
-        background: '#ffffff',
+        border: '1px solid #e5e9f3',
+        boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+        background: 'rgba(255,255,255,0.94)',
+        height: '100%',
       }}
     >
       <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {/* Header row */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16, color: 'var(--dash-text)' }}>
-            Revenue
-          </Typography>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+              Trend Revenue
+            </Typography>
+            <Typography variant="body2" sx={{ fontSize: 13, color: '#8a91a3' }}>
+              12 Bulan Terakhir
+            </Typography>
+          </Box>
           <FormControl size="small" sx={{ minWidth: 130 }}>
             <Select
               value={period}
               onChange={(e) => setPeriod(e.target.value as PeriodKey)}
               sx={{
                 fontSize: 13,
-                borderRadius: '10px',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'var(--dash-line)' },
+                borderRadius: '12px',
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e9f3' },
+                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#4f46e5' },
               }}
             >
               <MenuItem value="12">12 Bulan</MenuItem>

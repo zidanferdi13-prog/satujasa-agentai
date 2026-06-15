@@ -20,126 +20,110 @@ function getGreeting(): string {
 export default function DashboardHero({ data }: DashboardHeroProps) {
   const { data: user } = useCurrentUser();
   const greeting = useMemo(() => getGreeting(), []);
-  const userName = user?.name ?? 'Pengguna';
+  const userName = user?.name ?? 'Super Admin';
 
   return (
     <Box
       sx={{
+        mb: '28px',
+        p: { xs: '28px 24px', md: '36px 40px' },
+        borderRadius: '28px',
+        background: 'linear-gradient(135deg, #f8faff 0%, #eef2ff 50%, #f0f9ff 100%)',
+        border: '1px solid rgba(79, 70, 229, 0.08)',
+        boxShadow: '0 20px 45px rgba(30, 41, 59, 0.07)',
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', md: '1.15fr 0.85fr' },
+        gridTemplateColumns: { xs: '1fr', md: '1.3fr 0.7fr' },
         gap: { xs: 3, md: 4 },
-        mb: 3,
+        alignItems: 'center',
+        overflow: 'hidden',
+        position: 'relative',
       }}
     >
-      {/* ── Left: Greeting + Chips ── */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        {/* Greeting */}
+      {/* Left Content */}
+      <Box sx={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Typography
-          variant="h4"
+          variant="h3"
           component="h1"
           sx={{
-            fontSize: { xs: 26, md: 32 },
+            fontSize: { xs: 28, md: 36 },
             fontWeight: 800,
             color: 'var(--dash-text)',
             lineHeight: 1.2,
+            mb: 1,
           }}
         >
-          {greeting}, {userName}
+          {greeting}, {userName}! 👋
         </Typography>
 
-        {/* Subtitle */}
         <Typography
           variant="body1"
           sx={{
             fontSize: 15,
             color: 'var(--dash-muted)',
             fontWeight: 400,
-            mt: -0.5,
+            lineHeight: 1.6,
+            mb: 1,
           }}
         >
-          Kelola dan pantau seluruh ekosistem SatuJasa
+          Berikut ringkasan performa terbaru platform STNK SatuJasa.
         </Typography>
 
-        {/* Chips Row */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 1 }}>
-          {/* Workspace chip */}
           <Box
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.8,
-              background: 'rgba(255,255,255,0.78)',
-              border: '1px solid #edf0fb',
+              background: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(79, 70, 229, 0.12)',
               borderRadius: '14px',
-              px: '13px',
+              px: '14px',
               py: '10px',
               fontSize: 13,
-              fontWeight: 700,
-              color: '#394154',
+              fontWeight: 600,
+              color: '#4f46e5',
             }}
           >
-            <Box
-              component="span"
-              sx={{
-                display: 'inline-flex',
-                fontSize: 15,
-                lineHeight: 1,
-              }}
-            >
-              🏢
-            </Box>
-            <span>Workspace: STNK</span>
+            <span style={{ fontSize: 15 }}>🏢</span>
+            <span>Workspace: Admin</span>
           </Box>
 
-          {/* Role chip */}
           <Box
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.8,
-              background: 'rgba(255,255,255,0.78)',
-              border: '1px solid #edf0fb',
+              background: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(139, 92, 246, 0.12)',
               borderRadius: '14px',
-              px: '13px',
+              px: '14px',
               py: '10px',
               fontSize: 13,
-              fontWeight: 700,
-              color: '#394154',
+              fontWeight: 600,
+              color: '#8b5cf6',
             }}
           >
-            <Box
-              component="span"
-              sx={{
-                display: 'inline-flex',
-                fontSize: 15,
-                lineHeight: 1,
-              }}
-            >
-              👤
-            </Box>
-            <span>{user?.role ?? '—'}</span>
+            <span style={{ fontSize: 15 }}>👤</span>
+            <span>Role: {user?.role ?? 'Super Admin'}</span>
           </Box>
 
-          {/* Status chip */}
           <Box
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 0.8,
-              background: 'rgba(255,255,255,0.78)',
-              border: '1px solid #edf0fb',
+              background: 'rgba(255,255,255,0.85)',
+              border: '1px solid rgba(34, 197, 94, 0.12)',
               borderRadius: '14px',
-              px: '13px',
+              px: '14px',
               py: '10px',
               fontSize: 13,
-              fontWeight: 700,
-              color: '#394154',
+              fontWeight: 600,
+              color: '#22c55e',
             }}
           >
             <Box
-              component="span"
               sx={{
-                display: 'inline-flex',
                 width: 8,
                 height: 8,
                 borderRadius: '50%',
@@ -147,100 +131,106 @@ export default function DashboardHero({ data }: DashboardHeroProps) {
                 flexShrink: 0,
               }}
             />
-            <span>Active</span>
+            <span>Akses Penuh</span>
           </Box>
         </Box>
       </Box>
 
-      {/* ── Right: Hero Art ── */}
+      {/* Right Illustration */}
       <Box
         sx={{
           display: { xs: 'none', md: 'flex' },
           alignItems: 'center',
           justifyContent: 'center',
-          minHeight: 200,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <Box
           sx={{
             position: 'relative',
             width: '100%',
-            maxWidth: 340,
-            aspectRatio: '4 / 3',
-            background: 'radial-gradient(circle at 30% 30%, rgba(79,70,229,0.12) 0%, transparent 60%), linear-gradient(145deg, #f8faff 0%, #eef2ff 100%)',
-            borderRadius: '26px',
-            border: '1px solid rgba(79,70,229,0.15)',
+            maxWidth: 320,
+            aspectRatio: '1.2 / 1',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            overflow: 'hidden',
           }}
         >
-          {/* Device mockup */}
+          {/* Floating cards */}
           <Box
             sx={{
-              width: '75%',
-              height: '75%',
-              borderRadius: '18px',
-              background: '#ffffff',
-              border: '1px solid #e5e9f3',
-              transform: 'rotate(-3deg)',
-              boxShadow: '0 12px 40px rgba(30,41,59,0.08)',
-              display: 'flex',
-              flexDirection: 'column',
+              position: 'absolute',
+              top: '10%',
+              left: '5%',
+              width: '45%',
               p: 2,
-              gap: 1.5,
+              borderRadius: '18px',
+              background: 'rgba(255,255,255,0.95)',
+              border: '1px solid rgba(79, 70, 229, 0.1)',
+              boxShadow: '0 12px 32px rgba(30,41,59,0.1)',
+              transform: 'rotate(-6deg)',
             }}
           >
-            {/* Bars */}
-            <Box
-              sx={{
-                height: 8,
-                width: '55%',
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #4f46e5 0%, #6366f1 100%)',
-              }}
-            />
-            <Box
-              sx={{
-                height: 8,
-                width: '80%',
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%)',
-              }}
-            />
-            <Box
-              sx={{
-                height: 8,
-                width: '65%',
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #22c55e 0%, #4ade80 100%)',
-              }}
-            />
-            <Box
-              sx={{
-                height: 8,
-                width: '90%',
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%)',
-              }}
-            />
-            <Box
-              sx={{
-                height: 8,
-                width: '45%',
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #ef4444 0%, #f87171 100%)',
-              }}
-            />
-            <Box
-              sx={{
-                height: 8,
-                width: '72%',
-                borderRadius: 4,
-                background: 'linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%)',
-              }}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <span style={{ fontSize: 20 }}>📊</span>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Analytics
+              </Typography>
+            </Box>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#4f46e5' }}>
+              +24%
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              position: 'absolute',
+              top: '25%',
+              right: '0%',
+              width: '50%',
+              p: 2,
+              borderRadius: '18px',
+              background: 'rgba(255,255,255,0.95)',
+              border: '1px solid rgba(34, 197, 94, 0.1)',
+              boxShadow: '0 12px 32px rgba(30,41,59,0.1)',
+              transform: 'rotate(4deg)',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <span style={{ fontSize: 20 }}>💰</span>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Revenue
+              </Typography>
+            </Box>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#22c55e' }}>
+              Rp 48M
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '10%',
+              left: '15%',
+              width: '55%',
+              p: 2,
+              borderRadius: '18px',
+              background: 'rgba(255,255,255,0.95)',
+              border: '1px solid rgba(139, 92, 246, 0.1)',
+              boxShadow: '0 12px 32px rgba(30,41,59,0.1)',
+              transform: 'rotate(-2deg)',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <span style={{ fontSize: 20 }}>👥</span>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Users
+              </Typography>
+            </Box>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#8b5cf6' }}>
+              1,850
+            </Typography>
           </Box>
         </Box>
       </Box>

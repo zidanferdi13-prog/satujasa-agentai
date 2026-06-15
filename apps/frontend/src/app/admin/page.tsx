@@ -78,7 +78,7 @@ export default function AdminDashboardPage() {
   return (
     <Box
       sx={{
-        p: { xs: 2, md: '26px 34px 42px' },
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
         minHeight: '100vh',
         background: `
           radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
@@ -87,16 +87,20 @@ export default function AdminDashboardPage() {
         `,
       }}
     >
-      {/* Hero */}
+      {/* Hero Section */}
       <DashboardHero data={safe} />
 
-      {/* KPI Grid */}
+      {/* KPI Cards Grid */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-          gap: '18px',
-          mb: '22px',
+          gridTemplateColumns: {
+            xs: '1fr',
+            sm: 'repeat(2, 1fr)',
+            lg: 'repeat(4, 1fr)'
+          },
+          gap: '20px',
+          mb: '24px',
         }}
       >
         {KPI_CONFIG.map((kpi) => {
@@ -127,34 +131,35 @@ export default function AdminDashboardPage() {
         })}
       </Box>
 
-      {/* Middle: Revenue + Sub Donut (left stack) | Activity (right) */}
+      {/* Analytics Section: Revenue Chart + Activity Feed */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1.55fr 1.25fr' },
-          gap: '18px',
-          mb: '22px',
+          gridTemplateColumns: { xs: '1fr', lg: '1.6fr 1fr' },
+          gap: '20px',
+          mb: '24px',
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <RevenueChart data={undefined} />
-          <SubscriptionDonut data={safe.subscription_distribution} />
-        </Box>
+        <RevenueChart data={undefined} />
         <ActivityFeed data={safe.recent_activity} />
       </Box>
 
-      {/* Bottom: System Health + Quick Actions + Platform Summary */}
+      {/* Middle Section: Subscription + System Health + Quick Actions */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1fr 1.15fr 1.25fr' },
-          gap: '18px',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: '1fr 1fr 1fr' },
+          gap: '20px',
+          mb: '24px',
         }}
       >
+        <SubscriptionDonut data={safe.subscription_distribution} />
         <SystemHealth data={safe.system_health} />
         <QuickActions />
-        <PlatformSummary data={safe.platform_stats} />
       </Box>
+
+      {/* Platform Summary */}
+      <PlatformSummary data={safe.platform_stats} />
     </Box>
   );
 }
