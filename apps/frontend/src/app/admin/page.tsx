@@ -23,10 +23,10 @@ const KPI_CONFIG: Array<{
   deltaKey: keyof DashboardResponse | null;
   deltaLabel: string;
 }> = [
-  { icon: 'group', label: 'Total Owner', dataKey: 'total_owners', color: '#4f46e5', deltaKey: 'active_owners', deltaLabel: 'active' },
-  { icon: 'business', label: 'Total Tenant', dataKey: 'total_tenants', color: '#8b5cf6', deltaKey: null, deltaLabel: '' },
-  { icon: 'receipt_long', label: 'Transaksi', dataKey: 'total_transactions', color: '#22c55e', deltaKey: null, deltaLabel: '' },
-  { icon: 'payments', label: 'Revenue', dataKey: 'total_revenue', color: '#f59e0b', deltaKey: null, deltaLabel: 'total' },
+  { icon: '👥', label: 'Total Owner', dataKey: 'total_owners', color: '#4f46e5', deltaKey: 'active_owners', deltaLabel: 'active' },
+  { icon: '🏢', label: 'Total Tenant', dataKey: 'total_tenants', color: '#8b5cf6', deltaKey: null, deltaLabel: '' },
+  { icon: '🧑‍💻', label: 'Transaksi', dataKey: 'total_transactions', color: '#22c55e', deltaKey: null, deltaLabel: '' },
+  { icon: '💳', label: 'Revenue', dataKey: 'total_revenue', color: '#f59e0b', deltaKey: null, deltaLabel: 'total' },
 ];
 
 function DashboardSkeleton() {
