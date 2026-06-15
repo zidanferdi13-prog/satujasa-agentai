@@ -8,8 +8,6 @@ import DashboardSidebar from './DashboardSidebar';
 import DashboardTopBar from './DashboardTopBar';
 import type { RoleMenuItem } from './types';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 
 type RoleDashboardShellProps = {
   role: UserRole;
@@ -68,14 +66,8 @@ export default function RoleDashboardShell({ role, menuItems, children }: RoleDa
           role={role}
           onMenuClick={() => setSidebarOpen(true)}
         />
-        <Box sx={{ flex: 1, p: { xs: 2, md: 4, lg: 5 } }}>
-          <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
-            <Card sx={{ minHeight: 500, overflow: 'hidden' }}>
-              <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-                {children}
-              </CardContent>
-            </Card>
-          </Box>
+        <Box sx={{ flex: 1, p: '1px 0 0 0' }}>
+          {children}
         </Box>
       </Box>
     </Box>
