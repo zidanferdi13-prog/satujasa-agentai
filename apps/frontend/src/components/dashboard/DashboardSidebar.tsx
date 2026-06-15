@@ -45,7 +45,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        overflowY: 'auto',
+        overflow: 'hidden',
         bgcolor: '#ffffff',
         borderRight: '1px solid',
         borderColor: '#d0d4e4',
@@ -72,7 +72,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
         </Box>
       </Link>
 
-      <Box component="nav" sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+      <Box component="nav" sx={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <Typography sx={{ px: 2.5, pb: 1, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.16em', color: '#808080' }}>
           Navigasi
         </Typography>
@@ -114,7 +114,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
       </Box>
 
       <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-        <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: '#d0d4e4', bgcolor: '#f5f6f8', p: 2 }}>
+        <Box sx={{ borderRadius: 1.5, border: '1px solid', borderColor: '#d0d4e4', bgcolor: '#f5f6f8', p: 1.5, mb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75 }}>
             <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#6161ff' }}>shield</span>
             <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#333333' }}>
