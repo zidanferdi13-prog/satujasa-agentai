@@ -127,17 +127,19 @@ export default function AdminDashboardPage() {
         })}
       </Box>
 
-      {/* Middle: Revenue + Sub Donut + Activity */}
+      {/* Middle: Revenue + Sub Donut (left stack) | Activity (right) */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', lg: '1.55fr 1fr 1.25fr' },
+          gridTemplateColumns: { xs: '1fr', lg: '1.55fr 1.25fr' },
           gap: '18px',
           mb: '22px',
         }}
       >
-        <RevenueChart data={undefined} />
-        <SubscriptionDonut data={safe.subscription_distribution} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          <RevenueChart data={undefined} />
+          <SubscriptionDonut data={safe.subscription_distribution} />
+        </Box>
         <ActivityFeed data={safe.recent_activity} />
       </Box>
 
