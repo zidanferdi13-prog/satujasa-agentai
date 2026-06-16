@@ -1315,5 +1315,81 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
+  // ─── Bisnis List ──────────────────────────────────────────────────────────
+  router.get('/bisnis', async (req, res) => {
+    try {
+      const ownerId = req.user!.userId
+      const search = typeof req.query.search === 'string' ? req.query.search.trim() : ''
+      const statusFilter = typeof req.query.status === 'string' ? req.query.status.trim().toLowerCase() : ''
+
+      const tenantRows = await db
+        .select({ id: schema.tenants.id, name: schema.tenants.name, created_at: schema.tenants.created_at })
+        .from(schema.tenants)
+        .where(and(
+          eq(schema.tenants.owner_id, ownerId),
+          isNull(schema.tenants.deleted_at),
+        ))
+        .orderBy(sql`${schema.tenants.created_at} DESC`)
+
+      const allIds = tenantRows.map(t => t.id)
+
+      // Transaction counts per tenant
+      const txCountMap = new Map<string, number>()
+      const activeTxMap = new Map<string, boolean>()
+      if (allIds.length > 0) {
+        const txRows = await db
+          .select({ tenant_id: schema.transactions.tenant_id, count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(allIds.map(id => sql`${id}`), sql`, `)})`,
+            isNull(schema.transactions.deleted_at),
+          ))
+          .groupBy(schema.transactions.tenant_id)
+        for (const r of txRows) { if (r.tenant_id) txCountMap.set(r.tenant_id, r.count) }
+
+        const activeRows = await db
+          .select({ tenant_id: schema.transactions.tenant_id, count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(allIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`status NOT IN ('done', 'cancelled', 'SELESAI', 'DIBATALKAN')`,
+            isNull(schema.transactions.deleted_at),
+          ))
+          .groupBy(schema.transactions.tenant_id)
+        for (const r of activeRows) { if (r.tenant_id) activeTxMap.set(r.tenant_id, r.count > 0) }
+      }
+
+      let items = tenantRows.map(t => {
+        const txCount = txCountMap.get(t.id) ?? 0
+        const hasActive = activeTxMap.get(t.id) ?? false
+        const status = hasActive ? 'active' : txCount > 0 ? 'inactive' : 'pending'
+        return {
+          id: t.id,
+          name: t.name,
+          status,
+          tenant_count: 1,
+          transaction_count: txCount,
+          created_at: t.created_at.toISOString(),
+        }
+      })
+
+      // Filter by status
+      if (statusFilter) {
+        items = items.filter(i => i.status === statusFilter)
+      }
+
+      // Filter by search (ILIKE on name)
+      if (search) {
+        const q = search.toLowerCase()
+        items = items.filter(i => i.name.toLowerCase().includes(q))
+      }
+
+      res.json({ data: items, meta: { total: items.length } })
+    } catch (e) {
+      console.error('Owner bisnis list error:', e)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   return router
 }

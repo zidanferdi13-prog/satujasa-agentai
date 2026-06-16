@@ -171,6 +171,40 @@ describe('Owner Routes', () => {
     expect(response.body.error).toBe('tenant_not_found')
   })
 
+  // Test 5b: GET /owner/bisnis → 200 + list
+  it('returns owner bisnis list', async () => {
+    const response = await request(app)
+      .get('/api/v1/owner/bisnis')
+      .set('Authorization', `Bearer ${ownerToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('data')
+    expect(response.body).toHaveProperty('meta')
+    expect(Array.isArray(response.body.data)).toBe(true)
+    expect(response.body.data.length).toBeGreaterThan(0)
+
+    const item = response.body.data[0]
+    expect(item).toHaveProperty('id')
+    expect(item).toHaveProperty('name')
+    expect(item).toHaveProperty('status')
+    expect(item).toHaveProperty('tenant_count')
+    expect(item).toHaveProperty('transaction_count')
+    expect(item).toHaveProperty('created_at')
+  })
+
+  // Test 5c: GET /owner/bisnis?search= → filter
+  it('filters owner bisnis by search', async () => {
+    const response = await request(app)
+      .get('/api/v1/owner/bisnis?search=Test+Tenant+Pro')
+      .set('Authorization', `Bearer ${ownerToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data.length).toBeGreaterThan(0)
+    response.body.data.forEach((item: { name: string }) => {
+      expect(item.name.toLowerCase()).toContain('test tenant pro')
+    })
+  })
+
   // Test 6: POST /owner/transactions → 201 (setelah punya tenant)
   it('creates transaction for tenant', async () => {
     const response = await request(app)
