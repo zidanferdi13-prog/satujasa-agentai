@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -25,6 +26,7 @@ interface OwnersDataTableProps {
 }
 
 export default function OwnersDataTable({ data, onSearch, onTierChange }: OwnersDataTableProps) {
+  const router = useRouter();
   const [search, setSearch] = useState('');
 
   const getTierVariant = (tier: string | null): 'info' | 'success' | 'warning' | 'error' => {
@@ -191,6 +193,7 @@ export default function OwnersDataTable({ data, onSearch, onTierChange }: Owners
                         color: '#8a91a3',
                         '&:hover': { bgcolor: '#eef2ff', color: '#4f46e5' },
                       }}
+                      onClick={() => router.push(`/admin/owners/${owner.id}`)}
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_vert</span>
                     </IconButton>
