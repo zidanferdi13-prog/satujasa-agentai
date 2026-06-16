@@ -33,23 +33,51 @@ function KpiCard({ icon, label, value, trend, color, sparkData }: KpiCardProps) 
   const isPositive = trendNum >= 0;
 
   return (
-    <Card sx={{ p: 2.5, borderRadius: '22px', border: '1px solid #e8eaf0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column', gap: 1.5, position: 'relative', overflow: 'visible' }}>
+    <Card
+      sx={{
+        p: 2,
+        borderRadius: '18px',
+        border: '1px solid #e5e9f3',
+        boxShadow: '0 10px 24px rgba(30, 41, 59, 0.06)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.5,
+        position: 'relative',
+        overflow: 'visible',
+        bgcolor: 'rgba(255,255,255,0.94)',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 14px 32px rgba(30, 41, 59, 0.09)',
+        },
+      }}
+    >
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${color}15`, color, fontSize: 20 }}>
+        <Box sx={{ width: 48, height: 48, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${color}15`, color, fontSize: 22 }}>
           <span className="material-symbols-outlined">{icon}</span>
         </Box>
         <Sparkline data={sparkData} color={color} />
       </Box>
       <Box>
-        <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#8b8fa3', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</Typography>
-        <Typography sx={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1, mt: 0.5 }}>{value}</Typography>
-      </Box>
-      <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-        <Typography sx={{ fontSize: 12, fontWeight: 700, color: isPositive ? '#22c7b8' : '#ef4444', display: 'flex', alignItems: 'center', gap: 0.3 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>{isPositive ? 'trending_up' : 'trending_down'}</span>
-          {isPositive ? '+' : ''}{trend}%
-        </Typography>
-        <Typography sx={{ fontSize: 11, color: '#a0a4b8' }}>vs bulan lalu</Typography>
+        <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#8b8fa3', textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.5 }}>{label}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+          <Typography sx={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1 }}>{value}</Typography>
+          <Typography
+            sx={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: isPositive ? '#22c7b8' : '#ef4444',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.3,
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              {isPositive ? 'trending_up' : 'trending_down'}
+            </span>
+            {isPositive ? '+' : ''}{trend}%
+          </Typography>
+        </Box>
       </Box>
     </Card>
   );

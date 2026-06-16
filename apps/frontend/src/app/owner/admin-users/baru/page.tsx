@@ -1,6 +1,5 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,7 +13,6 @@ import InputLabel from '@mui/material/InputLabel';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import apiClient from '@/lib/axios';
 
 interface Tenant {
@@ -32,14 +30,12 @@ interface CreateAdminUserPayload {
 export default function AdminUserBaruPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
-  const defaultTenantId = searchParams?.get('tenant_id') || '';
 
   const [form, setForm] = useState<CreateAdminUserPayload>({
     email: '',
     phone: '',
     password: '',
-    tenant_id: defaultTenantId,
+    tenant_id: '',
   });
   const [error, setError] = useState('');
 
@@ -83,16 +79,66 @@ export default function AdminUserBaruPage() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 640 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
-        Tambah Admin User
-      </Typography>
+    <Box
+      sx={{
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+        minHeight: '100vh',
+        background: `
+          radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+          radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+          #f6f8fc
+        `,
+      }}
+    >
+      <Box sx={{ mb: '28px' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontSize: { xs: 28, md: 32 },
+            fontWeight: 800,
+            color: 'var(--dash-text)',
+            lineHeight: 1.2,
+            mb: 1,
+          }}
+        >
+          Tambah Admin User 👥
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: 15,
+            color: 'var(--dash-muted)',
+            fontWeight: 400,
+            lineHeight: 1.6,
+          }}
+        >
+          Daftarkan admin user baru untuk tenant Anda.
+        </Typography>
+      </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '14px' }}>{error}</Alert>}
 
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: { xs: 3, md: 4 },
+          maxWidth: 640,
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+            Data Admin User
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+            Isi informasi lengkap admin user baru
+          </Typography>
+        </Box>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <TextField
             label="Email"
             type="email"
@@ -101,6 +147,9 @@ export default function AdminUserBaruPage() {
             placeholder="admin@example.com"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.10)' } },
+            }}
           />
           <TextField
             label="No. Telepon"
@@ -109,6 +158,9 @@ export default function AdminUserBaruPage() {
             placeholder="08123456789"
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.10)' } },
+            }}
           />
 
           <FormControl fullWidth required>
@@ -117,6 +169,7 @@ export default function AdminUserBaruPage() {
               value={form.tenant_id}
               label="Tenant"
               onChange={(e) => setForm({ ...form, tenant_id: e.target.value })}
+              sx={{ borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5' } }}
             >
               {tenants?.data?.map((t) => (
                 <MenuItem key={t.id} value={t.id}>
@@ -135,17 +188,49 @@ export default function AdminUserBaruPage() {
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
             helperText="Minimal 6 karakter"
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.10)' } },
+            }}
           />
 
-          <Button variant="outlined" onClick={() => router.back()} disabled={isPending} fullWidth sx={{ mb: 1 }}>
-            Batal
-          </Button>
-          <Button type="submit" variant="contained" disabled={isPending} fullWidth>
-            {isPending ? 'Menyimpan...' : 'Buat Admin User'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={() => router.back()}
+              disabled={isPending}
+              fullWidth
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                py: 1.25,
+                fontWeight: 700,
+                borderColor: '#e5e9f3',
+                color: '#6b7280',
+                '&:hover': { borderColor: '#d0d4e4', bgcolor: '#f8f9fc' },
+              }}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={isPending}
+              fullWidth
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                py: 1.25,
+                fontWeight: 700,
+                bgcolor: 'var(--dash-primary)',
+                boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+                '&:hover': { bgcolor: 'var(--dash-primary-2)' },
+              }}
+            >
+              {isPending ? 'Menyimpan...' : 'Buat Admin User'}
+            </Button>
+          </Box>
         </form>
-      </CardContent>
-      </Card>
+      </Box>
     </Box>
   );
 }

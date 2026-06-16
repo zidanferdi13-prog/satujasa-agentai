@@ -9,7 +9,6 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import apiClient from '@/lib/axios';
 
 interface SubscriptionInfo {
@@ -70,36 +69,112 @@ export default function TenantBaruPage() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 640 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
-        Tambah Tenant Baru
-      </Typography>
+    <Box
+      sx={{
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+        minHeight: '100vh',
+        background: `
+          radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+          radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+          #f6f8fc
+        `,
+      }}
+    >
+      <Box sx={{ mb: '28px' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontSize: { xs: 28, md: 32 },
+            fontWeight: 800,
+            color: 'var(--dash-text)',
+            lineHeight: 1.2,
+            mb: 1,
+          }}
+        >
+          Tambah Tenant Baru 🏢
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: 15,
+            color: 'var(--dash-muted)',
+            fontWeight: 400,
+            lineHeight: 1.6,
+          }}
+        >
+          Daftarkan tenant baru untuk memperluas bisnis Anda.
+        </Typography>
+      </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 3, borderRadius: '14px' }}>{error}</Alert>}
 
       {quotaExceeded && (
-        <Alert severity="warning" sx={{ mb: 3 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+        <Alert
+          severity="warning"
+          sx={{
+            mb: 3,
+            borderRadius: '14px',
+            border: '1px solid rgba(246, 163, 38, 0.3)',
+            bgcolor: 'rgba(255, 247, 237, 0.95)',
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: 14, mb: 0.5 }}>
             Kuota tenant sudah penuh
           </Typography>
-          <Typography variant="body2">
+          <Typography sx={{ fontSize: 13 }}>
             Anda sudah menggunakan {quotaUsed} dari {quotaMax} tenant. Upgrade paket untuk menambah lebih banyak.
           </Typography>
         </Alert>
       )}
 
-      {subscription && (
-        <Card variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'background.default', borderRadius: 2 }}>
-          <Typography variant="caption" color="text.secondary">Quota Tenant</Typography>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {quotaUsed} / {quotaMax} digunakan
-          </Typography>
-        </Card>
+      {subscription && !quotaExceeded && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 3,
+            p: 2.5,
+            borderRadius: '16px',
+            background: 'rgba(255,255,255,0.94)',
+            border: '1px solid #e5e9f3',
+          }}
+        >
+          <Box sx={{ width: 48, height: 48, borderRadius: '13px', display: 'grid', placeItems: 'center', bgcolor: '#eef2ff', color: '#4f46e5' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 24 }}>data_usage</span>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.3 }}>
+              Kuota Tenant
+            </Typography>
+            <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1d2433' }}>
+              {quotaUsed} / {quotaMax} digunakan
+            </Typography>
+          </Box>
+        </Box>
       )}
 
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: { xs: 3, md: 4 },
+          maxWidth: 640,
+        }}
+      >
+        <Box sx={{ mb: 3 }}>
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+            Data Tenant
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+            Isi informasi lengkap tenant baru
+          </Typography>
+        </Box>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <TextField
             label="Nama Tenant"
             fullWidth
@@ -107,6 +182,9 @@ export default function TenantBaruPage() {
             placeholder="Biro Jasa Mandiri"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.10)' } },
+            }}
           />
           <TextField
             label="Alamat"
@@ -117,6 +195,9 @@ export default function TenantBaruPage() {
             placeholder="Jl. Merdeka No. 123, Jakarta"
             value={form.address}
             onChange={(e) => setForm({ ...form, address: e.target.value })}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.10)' } },
+            }}
           />
           <TextField
             label="No. Telepon (opsional)"
@@ -125,17 +206,49 @@ export default function TenantBaruPage() {
             placeholder="08123456789"
             value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            sx={{
+              '& .MuiOutlinedInput-root': { borderRadius: '12px', backgroundColor: '#f8f9fc', '&:hover': { backgroundColor: '#ffffff' }, '&.Mui-focused': { backgroundColor: '#ffffff', borderColor: '#4f46e5', boxShadow: '0 0 0 3px rgba(79,70,229,0.10)' } },
+            }}
           />
 
-          <Button variant="outlined" onClick={() => router.back()} disabled={isPending} fullWidth sx={{ mb: 1 }}>
-            Batal
-          </Button>
-          <Button type="submit" variant="contained" disabled={quotaExceeded || isPending} fullWidth>
-            {isPending ? 'Menyimpan...' : 'Buat Tenant'}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+            <Button
+              variant="outlined"
+              onClick={() => router.back()}
+              disabled={isPending}
+              fullWidth
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                py: 1.25,
+                fontWeight: 700,
+                borderColor: '#e5e9f3',
+                color: '#6b7280',
+                '&:hover': { borderColor: '#d0d4e4', bgcolor: '#f8f9fc' },
+              }}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={quotaExceeded || isPending}
+              fullWidth
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                py: 1.25,
+                fontWeight: 700,
+                bgcolor: 'var(--dash-primary)',
+                boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+                '&:hover': { bgcolor: 'var(--dash-primary-2)' },
+              }}
+            >
+              {isPending ? 'Menyimpan...' : 'Buat Tenant'}
+            </Button>
+          </Box>
         </form>
-      </CardContent>
-      </Card>
+      </Box>
     </Box>
   );
 }

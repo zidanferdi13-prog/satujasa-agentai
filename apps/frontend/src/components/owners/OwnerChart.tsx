@@ -65,28 +65,31 @@ export default function OwnerChart({ data = [] }: OwnerChartProps) {
   });
 
   return (
-    <Card sx={{ borderRadius: '22px', border: '1px solid #e8eaf0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', p: 2.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1a1d2e' }}>Transaksi 30 Hari</Typography>
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.5, borderRadius: '8px', bgcolor: '#f0eeff' }}>
+    <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', p: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
+        <Box>
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>Trend Transaksi</Typography>
+          <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>Performa transaksi 30 hari terakhir</Typography>
+        </Box>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.5, borderRadius: '10px', bgcolor: '#f0eeff', border: '1px solid rgba(98, 84, 243, 0.12)' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#6254f3' }}>schedule</span>
-          <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#6254f3' }}>30 hari terakhir</Typography>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6254f3' }}>30 hari terakhir</Typography>
         </Box>
       </Box>
 
       {/* Mini Stats */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 2.5 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 3, p: 2, borderRadius: '14px', bgcolor: '#f8f9fc', border: '1px solid #eef0f6' }}>
         <Box>
-          <Typography sx={{ fontSize: 11, color: '#8b8fa3', fontWeight: 500 }}>Total Transaksi</Typography>
-          <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#1a1d2e' }}>{totalTransactions}</Typography>
+          <Typography sx={{ fontSize: 11, color: '#8b8fa3', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.5 }}>Total Transaksi</Typography>
+          <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#1d2433' }}>{totalTransactions}</Typography>
         </Box>
         <Box>
-          <Typography sx={{ fontSize: 11, color: '#8b8fa3', fontWeight: 500 }}>Rata-rata Harian</Typography>
-          <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#1a1d2e' }}>{avgDaily}</Typography>
+          <Typography sx={{ fontSize: 11, color: '#8b8fa3', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.5 }}>Rata-rata Harian</Typography>
+          <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#1d2433' }}>{avgDaily}</Typography>
         </Box>
         <Box>
-          <Typography sx={{ fontSize: 11, color: '#8b8fa3', fontWeight: 500 }}>Transaksi Sukses</Typography>
-          <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#22c7b8' }}>98.2%</Typography>
+          <Typography sx={{ fontSize: 11, color: '#8b8fa3', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', mb: 0.5 }}>Transaksi Sukses</Typography>
+          <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#22c7b8' }}>98.2%</Typography>
         </Box>
       </Box>
 

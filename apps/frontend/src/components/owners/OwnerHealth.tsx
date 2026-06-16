@@ -70,12 +70,17 @@ export default function OwnerHealth({ health }: OwnerHealthProps) {
   ];
 
   return (
-    <Card sx={{ borderRadius: '22px', border: '1px solid #e8eaf0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', p: 2.5 }}>
-      <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1a1d2e', mb: 2 }}>
-        System Health
-      </Typography>
+    <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', p: 3 }}>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>
+          System Health
+        </Typography>
+        <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>
+          Status layanan platform Anda
+        </Typography>
+      </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         {items.map((item) => (
           <HealthItem key={item.label} label={item.label} status={item.status} />
         ))}
@@ -83,14 +88,16 @@ export default function OwnerHealth({ health }: OwnerHealthProps) {
 
       <Box
         sx={{
-          mt: 2,
-          p: 1.5,
-          borderRadius: '12px',
+          mt: 2.5,
+          p: 1.75,
+          borderRadius: '14px',
           bgcolor: allOk ? '#e6faf8' : '#fff4e6',
           textAlign: 'center',
+          border: '1px solid',
+          borderColor: allOk ? 'rgba(34, 199, 184, 0.3)' : 'rgba(246, 163, 38, 0.3)',
         }}
       >
-        <Typography sx={{ fontSize: 12, fontWeight: 600, color: allOk ? '#22c7b8' : '#f6a326' }}>
+        <Typography sx={{ fontSize: 12, fontWeight: 700, color: allOk ? '#22c7b8' : '#f6a326' }}>
           {allOk ? '✅ Semua sistem berjalan dengan baik' : '⚠️ Beberapa sistem perlu perhatian'}
         </Typography>
       </Box>

@@ -6,12 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
-import CircularProgress from '@mui/material/CircularProgress';
-import MetricCard from '@/components/shared/MetricCard';
 import StatusPill from '@/components/shared/StatusPill';
 import apiClient from '@/lib/axios';
 
@@ -58,82 +53,311 @@ export default function TenantDetailPage() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-        <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
+    <Box
+      sx={{
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+        minHeight: '100vh',
+        background: `
+          radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+          radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+          #f6f8fc
+        `,
+      }}
+    >
+      {/* Back Button + Header */}
+      <Box sx={{ mb: '28px', display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Button
+          variant="text"
+          onClick={() => router.back()}
+          sx={{
+            minWidth: 0,
+            width: 40,
+            height: 40,
+            borderRadius: '12px',
+            border: '1px solid #e5e9f3',
+            bgcolor: 'rgba(255,255,255,0.94)',
+            color: '#6b7280',
+            '&:hover': {
+              bgcolor: '#f8f9fc',
+              borderColor: '#d0d4e4',
+            },
+          }}
+        >
           <span className="material-symbols-outlined">arrow_back</span>
         </Button>
-        <Typography variant="h4" sx={{ fontWeight: 700, flex: 1 }}>
-          {tenant.name}
-        </Typography>
+        <Box sx={{ flex: 1 }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{
+              fontSize: { xs: 28, md: 32 },
+              fontWeight: 800,
+              color: 'var(--dash-text)',
+              lineHeight: 1.2,
+              mb: 0.5,
+            }}
+          >
+            {tenant.name}
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: 15,
+              color: 'var(--dash-muted)',
+              fontWeight: 400,
+            }}
+          >
+            Detail informasi tenant dan admin users
+          </Typography>
+        </Box>
         <StatusPill status="Aktif" variant="success" />
       </Box>
 
-      {/* MetricCards */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 4 }}>
-        <MetricCard
-          label="Admin User"
-          value={tenant.admin_users?.length ?? 0}
-        />
-        <MetricCard
-          label="Dibuat"
-          value={new Date(tenant.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-        />
-      </Box>
-
-      {/* Info */}
-      <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Alamat</Typography>
-              <Typography variant="body1" sx={{ mt: 0.5 }}>{tenant.address || '-'}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Telepon</Typography>
-              <Typography variant="body1" sx={{ mt: 0.5 }}>{tenant.phone || '-'}</Typography>
-            </Box>
+      {/* Metric Cards */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          gap: 2,
+          mb: 4,
+        }}
+      >
+        <Box
+          sx={{
+            borderRadius: '22px',
+            border: '1px solid #e5e9f3',
+            boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+            background: 'rgba(255,255,255,0.94)',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: '16px',
+              display: 'grid',
+              placeItems: 'center',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+              boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#ffffff' }}>
+              group
+            </span>
           </Box>
-        </CardContent>
-      </Card>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.5 }}>
+              Admin User
+            </Typography>
+            <Typography sx={{ fontSize: 32, fontWeight: 800, color: '#1d2433', lineHeight: 1 }}>
+              {tenant.admin_users?.length ?? 0}
+            </Typography>
+          </Box>
+        </Box>
 
-      {/* Admin Users */}
-      <Divider sx={{ my: 3 }} />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-          Admin User ({tenant.admin_users?.length ?? 0})
-        </Typography>
-        <Link href={`/owner/admin-users/baru?tenant_id=${tenant.id}`}>
-          <Button size="small" variant="contained">
-            Tambah Admin
-          </Button>
-        </Link>
+        <Box
+          sx={{
+            borderRadius: '22px',
+            border: '1px solid #e5e9f3',
+            boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+            background: 'rgba(255,255,255,0.94)',
+            p: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: '16px',
+              display: 'grid',
+              placeItems: 'center',
+              background: 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)',
+              boxShadow: '0 8px 16px rgba(34, 197, 94, 0.2)',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 28, color: '#ffffff' }}>
+              calendar_month
+            </span>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.5 }}>
+              Dibuat
+            </Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#1d2433', lineHeight: 1.2 }}>
+              {new Date(tenant.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
 
-      {tenant.admin_users && tenant.admin_users.length > 0 ? (
-        <Box sx={{ display: 'grid', gap: 2 }}>
-          {tenant.admin_users.map((user) => (
-            <Card key={user.id} variant="outlined">
-              <CardContent sx={{ py: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {user.email}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {user.phone}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      ) : (
-        <Card variant="outlined">
-          <CardContent sx={{ textAlign: 'center', py: 4 }}>
-            <Typography variant="body2" color="text.secondary">
-              Belum ada admin user di tenant ini.
+      {/* Tenant Info Card */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+          mb: 4,
+        }}
+      >
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 3 }}>
+          Informasi Tenant
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Alamat
             </Typography>
-          </CardContent>
-        </Card>
-      )}
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 500, lineHeight: 1.6 }}>
+              {tenant.address || '-'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Telepon
+            </Typography>
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 500, lineHeight: 1.6 }}>
+              {tenant.phone || '-'}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Admin Users Section */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+              Admin User ({tenant.admin_users?.length ?? 0})
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              Daftar admin yang memiliki akses ke tenant ini
+            </Typography>
+          </Box>
+          <Link href={`/owner/admin-users/baru?tenant_id=${tenant.id}`}>
+            <Button
+              size="small"
+              variant="contained"
+              startIcon={<span className="material-symbols-outlined">person_add</span>}
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                bgcolor: 'var(--dash-primary)',
+                px: 2.5,
+                py: 1,
+                fontWeight: 700,
+                boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+                '&:hover': {
+                  bgcolor: 'var(--dash-primary-2)',
+                  boxShadow: '0 10px 20px rgba(79, 70, 229, 0.25)',
+                },
+              }}
+            >
+              Tambah Admin
+            </Button>
+          </Link>
+        </Box>
+
+        {tenant.admin_users && tenant.admin_users.length > 0 ? (
+          <Box sx={{ display: 'grid', gap: 1.5 }}>
+            {tenant.admin_users.map((user) => (
+              <Box
+                key={user.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 2,
+                  p: 2.5,
+                  borderRadius: '16px',
+                  border: '1px solid #e5e9f3',
+                  bgcolor: 'rgba(248, 249, 252, 0.5)',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: '#f8f9fc',
+                    borderColor: '#d0d4e4',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(30, 41, 59, 0.08)',
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: '14px',
+                    display: 'grid',
+                    placeItems: 'center',
+                    background: 'linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%)',
+                    boxShadow: '0 6px 12px rgba(139, 92, 246, 0.2)',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 24, color: '#ffffff' }}>
+                    person
+                  </span>
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1d2433', mb: 0.25 }}>
+                    {user.email}
+                  </Typography>
+                  <Typography sx={{ fontSize: 13, color: '#6b7280' }}>
+                    {user.phone}
+                  </Typography>
+                </Box>
+                <StatusPill status="Aktif" variant="success" />
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 6,
+              borderRadius: '16px',
+              border: '2px dashed #e5e9f3',
+              bgcolor: 'rgba(248, 249, 252, 0.3)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: '20px',
+                display: 'grid',
+                placeItems: 'center',
+                bgcolor: '#eef2ff',
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 40, color: '#4f46e5' }}>
+                person_off
+              </span>
+            </Box>
+            <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1d2433', mb: 0.5 }}>
+              Belum ada admin user
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              Tambahkan admin untuk mengelola tenant ini
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }

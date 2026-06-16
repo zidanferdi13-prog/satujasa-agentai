@@ -86,25 +86,23 @@ export default function OwnerPage() {
         trends={kpi.trends}
       />
 
-      {/* 3-Column Layout */}
+      {/* Main Grid Layout */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr', lg: '1.35fr 1.15fr 0.72fr' },
+          gridTemplateColumns: { xs: '1fr', lg: '1.5fr 1fr' },
           gap: 3,
           alignItems: 'start',
         }}
       >
-        {/* Column 1: Tenant Table */}
-        <OwnerTenantTable tenants={data?.tenants} />
-
-        {/* Column 2: Chart + Quick Actions */}
+        {/* Left Column: Tenant Table + Chart + Quick Actions */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <OwnerTenantTable tenants={data?.tenants} />
           <OwnerChart data={data?.chart_30d} />
           <OwnerQuickActions />
         </Box>
 
-        {/* Column 3: Activity + Subscription + Health */}
+        {/* Right Column: Activity + Subscription + Health */}
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <OwnerActivityFeed activities={data?.activity} />
           <OwnerSubscription subscription={data?.subscription} />

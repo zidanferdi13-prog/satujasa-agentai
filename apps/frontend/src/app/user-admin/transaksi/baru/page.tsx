@@ -184,90 +184,443 @@ export default function TransaksiBaru() {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 820 }}>
-      <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
-        Tambah Transaksi
-      </Typography>
+    <Box
+      sx={{
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+        minHeight: '100vh',
+        background: `
+          radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+          radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+          #f6f8fc
+        `,
+      }}
+    >
+      {/* Page Header */}
+      <Box sx={{ mb: '28px' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontSize: { xs: 28, md: 32 },
+            fontWeight: 800,
+            color: 'var(--dash-text)',
+            lineHeight: 1.2,
+            mb: 1,
+          }}
+        >
+          Tambah Transaksi 📝
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: 15,
+            color: 'var(--dash-muted)',
+            fontWeight: 400,
+            lineHeight: 1.6,
+          }}
+        >
+          Buat transaksi layanan STNK baru.
+        </Typography>
+      </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+      {error && (
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            borderRadius: '14px',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            bgcolor: 'rgba(254, 242, 242, 0.95)',
+          }}
+        >
+          {error}
+        </Alert>
+      )}
 
-      <Card variant="outlined" sx={{ borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <TextField label="Nama Customer" fullWidth required value={form.customer_name} onChange={(e) => handleChange('customer_name', e.target.value)} />
-          <TextField label="No. HP Customer" fullWidth required value={form.customer_phone} onChange={(e) => handleChange('customer_phone', e.target.value)} />
-          <TextField label="Plat Nomor" fullWidth required placeholder="B 1234 ABC" value={form.plate_number} onChange={(e) => handleChange('plate_number', e.target.value)} />
-
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-            <FormControl fullWidth required>
-              <InputLabel>Jenis Kendaraan</InputLabel>
-              <Select value={form.vehicle_type_code} label="Jenis Kendaraan" onChange={(e) => handleChange('vehicle_type_code', e.target.value)}>
-                {VEHICLE_TYPES.map((type) => <MenuItem key={type.code} value={type.code}>{type.name}</MenuItem>)}
-              </Select>
-            </FormControl>
-            <FormControl fullWidth required>
-              <InputLabel>Wilayah</InputLabel>
-              <Select value={form.province_city} label="Wilayah" onChange={(e) => handleChange('province_city', e.target.value)}>
-                {JAVA_LOCATIONS.map((loc) => (
-                  <MenuItem key={`${loc.provinceCode}-${loc.cityCode}`} value={`${loc.provinceCode}|${loc.cityCode}|${loc.cityName}`}>
-                    {loc.cityName}, {loc.provinceName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+      <Box sx={{ maxWidth: 820 }}>
+        <Box
+          sx={{
+            borderRadius: '22px',
+            border: '1px solid #e5e9f3',
+            boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+            background: 'rgba(255,255,255,0.94)',
+            p: { xs: 3, md: 4 },
+          }}
+        >
+          <Box sx={{ mb: 3 }}>
+            <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+              Data Transaksi
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              Isi informasi lengkap transaksi baru
+            </Typography>
           </Box>
 
-          <FormControl fullWidth required>
-            <InputLabel>Layanan</InputLabel>
-            <Select value={form.service_id} label="Layanan" onChange={(e) => handleChange('service_id', e.target.value)}>
-              {services?.map((svc) => <MenuItem key={svc.service_id} value={svc.service_id}>{svc.service_name}</MenuItem>)}
-            </Select>
-          </FormControl>
-
-          <TextField label="Jatuh Tempo Pajak (opsional)" fullWidth type="date" value={form.tax_due_date} onChange={(e) => handleChange('tax_due_date', e.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
-
-          <Divider />
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Rincian Biaya</Typography>
-            {isLoadingRequirements && <Alert severity="info">Mengambil rincian biaya...</Alert>}
-            {!isLoadingRequirements && !feeRows.length && <Alert severity="info">Pilih layanan dan kendaraan untuk melihat rincian biaya.</Alert>}
-            {feeRows.map((fee) => (
-              <Box key={fee.componentCode} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, alignItems: 'center', py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{fee.componentName}</Typography>
-                  <Chip size="small" label={fee.isEditable ? 'Manual editable' : 'Tidak dapat diedit'} color={fee.isEditable ? 'success' : 'default'} variant="outlined" sx={{ mt: 0.75 }} />
-                </Box>
-                <TextField
-                  type="number"
-                  size="small"
-                  value={fee.amount}
-                  placeholder="Rp 0"
-                  disabled={!fee.isEditable}
-                  onChange={(e) => handleFeeChange(fee.componentCode, e.target.value)}
-                  slotProps={{
-                    input: { startAdornment: <InputAdornment position="start">Rp</InputAdornment> },
-                    htmlInput: { min: 0 },
-                  }}
-                />
-              </Box>
-            ))}
-            {!!feeRows.length && <Typography variant="h6" sx={{ mt: 2, textAlign: 'right', fontWeight: 800 }}>Preview Total: Rp{formatCurrency(totalPreview)}</Typography>}
-          </Box>
-
-          {!!requirements?.documents?.length && (
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>Dokumen yang Dibutuhkan</Typography>
-              {requirements.documents.map((doc) => <Chip key={doc.documentCode} label={doc.documentName} sx={{ mr: 1, mb: 1 }} />)}
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Customer Info Section */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Informasi Customer
+              </Typography>
+              <TextField
+                label="Nama Customer"
+                fullWidth
+                required
+                value={form.customer_name}
+                onChange={(e) => handleChange('customer_name', e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f8f9fc',
+                    '&:hover': { backgroundColor: '#ffffff' },
+                    '&.Mui-focused': {
+                      backgroundColor: '#ffffff',
+                      borderColor: '#4f46e5',
+                      boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                    },
+                  },
+                }}
+              />
+              <TextField
+                label="No. HP Customer"
+                fullWidth
+                required
+                value={form.customer_phone}
+                onChange={(e) => handleChange('customer_phone', e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f8f9fc',
+                    '&:hover': { backgroundColor: '#ffffff' },
+                    '&.Mui-focused': {
+                      backgroundColor: '#ffffff',
+                      borderColor: '#4f46e5',
+                      boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                    },
+                  },
+                }}
+              />
+              <TextField
+                label="Plat Nomor"
+                fullWidth
+                required
+                placeholder="B 1234 ABC"
+                value={form.plate_number}
+                onChange={(e) => handleChange('plate_number', e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f8f9fc',
+                    '&:hover': { backgroundColor: '#ffffff' },
+                    '&.Mui-focused': {
+                      backgroundColor: '#ffffff',
+                      borderColor: '#4f46e5',
+                      boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                    },
+                  },
+                }}
+              />
             </Box>
-          )}
 
-          <TextField label="Catatan (opsional)" fullWidth multiline rows={3} value={form.notes} onChange={(e) => handleChange('notes', e.target.value)} />
+            {/* Vehicle & Service Section */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Kendaraan & Layanan
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                <FormControl fullWidth required>
+                  <InputLabel>Jenis Kendaraan</InputLabel>
+                  <Select
+                    value={form.vehicle_type_code}
+                    label="Jenis Kendaraan"
+                    onChange={(e) => handleChange('vehicle_type_code', e.target.value)}
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: '#f8f9fc',
+                      '&:hover': { backgroundColor: '#ffffff' },
+                      '&.Mui-focused': {
+                        backgroundColor: '#ffffff',
+                        borderColor: '#4f46e5',
+                        boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                      },
+                    }}
+                  >
+                    {VEHICLE_TYPES.map((type) => (
+                      <MenuItem key={type.code} value={type.code}>
+                        {type.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <FormControl fullWidth required>
+                  <InputLabel>Wilayah</InputLabel>
+                  <Select
+                    value={form.province_city}
+                    label="Wilayah"
+                    onChange={(e) => handleChange('province_city', e.target.value)}
+                    sx={{
+                      borderRadius: '12px',
+                      backgroundColor: '#f8f9fc',
+                      '&:hover': { backgroundColor: '#ffffff' },
+                      '&.Mui-focused': {
+                        backgroundColor: '#ffffff',
+                        borderColor: '#4f46e5',
+                        boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                      },
+                    }}
+                  >
+                    {JAVA_LOCATIONS.map((loc) => (
+                      <MenuItem key={`${loc.provinceCode}-${loc.cityCode}`} value={`${loc.provinceCode}|${loc.cityCode}|${loc.cityName}`}>
+                        {loc.cityName}, {loc.provinceName}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
 
-          <Button variant="outlined" onClick={() => router.back()} disabled={isPending} fullWidth sx={{ mb: 1 }}>Batal</Button>
-          <Button type="submit" variant="contained" disabled={isPending || !feeRows.length} fullWidth>{isPending ? 'Menyimpan...' : 'Simpan Transaksi'}</Button>
-        </form>
-      </CardContent>
-      </Card>
+              <FormControl fullWidth required>
+                <InputLabel>Layanan</InputLabel>
+                <Select
+                  value={form.service_id}
+                  label="Layanan"
+                  onChange={(e) => handleChange('service_id', e.target.value)}
+                  sx={{
+                    borderRadius: '12px',
+                    backgroundColor: '#f8f9fc',
+                    '&:hover': { backgroundColor: '#ffffff' },
+                    '&.Mui-focused': {
+                      backgroundColor: '#ffffff',
+                      borderColor: '#4f46e5',
+                      boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                    },
+                  }}
+                >
+                  {services?.map((svc) => (
+                    <MenuItem key={svc.service_id} value={svc.service_id}>
+                      {svc.service_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                label="Jatuh Tempo Pajak (opsional)"
+                fullWidth
+                type="date"
+                value={form.tax_due_date}
+                onChange={(e) => handleChange('tax_due_date', e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f8f9fc',
+                    '&:hover': { backgroundColor: '#ffffff' },
+                    '&.Mui-focused': {
+                      backgroundColor: '#ffffff',
+                      borderColor: '#4f46e5',
+                      boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            <Divider sx={{ my: 2 }} />
+
+            {/* Fee Details Section */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Rincian Biaya
+              </Typography>
+
+              {isLoadingRequirements && (
+                <Alert
+                  severity="info"
+                  sx={{
+                    borderRadius: '14px',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    bgcolor: 'rgba(239, 246, 255, 0.95)',
+                  }}
+                >
+                  Mengambil rincian biaya...
+                </Alert>
+              )}
+
+              {!isLoadingRequirements && !feeRows.length && (
+                <Alert
+                  severity="info"
+                  sx={{
+                    borderRadius: '14px',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    bgcolor: 'rgba(239, 246, 255, 0.95)',
+                  }}
+                >
+                  Pilih layanan dan kendaraan untuk melihat rincian biaya.
+                </Alert>
+              )}
+
+              {feeRows.map((fee) => (
+                <Box
+                  key={fee.componentCode}
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '1fr 180px' },
+                    gap: 2,
+                    alignItems: 'center',
+                    py: 2,
+                    borderBottom: '1px solid',
+                    borderColor: '#e5e9f3',
+                  }}
+                >
+                  <Box>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1d2433' }}>
+                      {fee.componentName}
+                    </Typography>
+                    <Chip
+                      size="small"
+                      label={fee.isEditable ? 'Manual editable' : 'Tidak dapat diedit'}
+                      color={fee.isEditable ? 'success' : 'default'}
+                      variant="outlined"
+                      sx={{
+                        mt: 1,
+                        borderRadius: '8px',
+                        fontSize: 11,
+                        fontWeight: 600,
+                      }}
+                    />
+                  </Box>
+                  <TextField
+                    type="number"
+                    size="small"
+                    value={fee.amount}
+                    placeholder="Rp 0"
+                    disabled={!fee.isEditable}
+                    onChange={(e) => handleFeeChange(fee.componentCode, e.target.value)}
+                    slotProps={{
+                      input: { startAdornment: <InputAdornment position="start">Rp</InputAdornment> },
+                      htmlInput: { min: 0 },
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '10px',
+                        backgroundColor: '#f8f9fc',
+                        '&:hover': { backgroundColor: '#ffffff' },
+                        '&.Mui-focused': {
+                          backgroundColor: '#ffffff',
+                          borderColor: '#4f46e5',
+                          boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+              ))}
+
+              {!!feeRows.length && (
+                <Typography sx={{ fontSize: 18, textAlign: 'right', fontWeight: 800, color: '#1d2433', mt: 1 }}>
+                  Preview Total: Rp{formatCurrency(totalPreview)}
+                </Typography>
+              )}
+            </Box>
+
+            {/* Document Requirements Section */}
+            {!!requirements?.documents?.length && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Dokumen yang Dibutuhkan
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {requirements.documents.map((doc) => (
+                    <Chip
+                      key={doc.documentCode}
+                      label={doc.documentName}
+                      sx={{
+                        borderRadius: '10px',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        bgcolor: '#eef2ff',
+                        color: '#4f46e5',
+                        border: '1px solid rgba(79, 70, 229, 0.2)',
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )}
+
+            {/* Notes Section */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Catatan Tambahan
+              </Typography>
+              <TextField
+                label="Catatan (opsional)"
+                fullWidth
+                multiline
+                rows={3}
+                value={form.notes}
+                onChange={(e) => handleChange('notes', e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '12px',
+                    backgroundColor: '#f8f9fc',
+                    '&:hover': { backgroundColor: '#ffffff' },
+                    '&.Mui-focused': {
+                      backgroundColor: '#ffffff',
+                      borderColor: '#4f46e5',
+                      boxShadow: '0 0 0 3px rgba(79,70,229,0.10)',
+                    },
+                  },
+                }}
+              />
+            </Box>
+
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+              <Button
+                variant="outlined"
+                onClick={() => router.back()}
+                disabled={isPending}
+                fullWidth
+                sx={{
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  py: 1.25,
+                  fontWeight: 700,
+                  borderColor: '#e5e9f3',
+                  color: '#6b7280',
+                  '&:hover': {
+                    borderColor: '#d0d4e4',
+                    bgcolor: '#f8f9fc',
+                  },
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={isPending || !feeRows.length}
+                fullWidth
+                sx={{
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  py: 1.25,
+                  fontWeight: 700,
+                  bgcolor: 'var(--dash-primary)',
+                  boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+                  '&:hover': {
+                    bgcolor: 'var(--dash-primary-2)',
+                    boxShadow: '0 10px 20px rgba(79, 70, 229, 0.25)',
+                  },
+                }}
+              >
+                {isPending ? 'Menyimpan...' : 'Simpan Transaksi'}
+              </Button>
+            </Box>
+          </form>
+        </Box>
+      </Box>
     </Box>
   );
 }

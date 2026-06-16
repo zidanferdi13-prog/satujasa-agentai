@@ -61,36 +61,70 @@ function isRecent(dateStr: string | null): boolean {
 
 export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps) {
   return (
-    <Card sx={{ borderRadius: '22px', border: '1px solid #e8eaf0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', overflow: 'hidden' }}>
-      <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid #f0f1f5' }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1a1d2e' }}>Tenant List</Typography>
+    <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', overflow: 'hidden' }}>
+      <Box sx={{ px: 3, py: 2.25, borderBottom: '1px solid #f0f1f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box>
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>Tenant List</Typography>
+          <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>Daftar tenant yang terdaftar pada akun Anda</Typography>
+        </Box>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+          <Typography sx={{ fontSize: 12, color: '#8a91a3' }}>Terakhir diperbarui:</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#1d2433' }}>
+            {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+          </Typography>
+        </Box>
       </Box>
 
       <TableContainer>
         <Table>
           <TableHead sx={{ bgcolor: '#f8f9fc' }}>
-            <TableRow>
-              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6b7084', py: 1.5 }}>Tenant</TableCell>
-              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6b7084', py: 1.5 }}>Paket</TableCell>
-              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6b7084', py: 1.5 }}>Status</TableCell>
-              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#6b7084', py: 1.5 }}>Aktivitas Terakhir</TableCell>
-              <TableCell sx={{ py: 1.5 }}></TableCell>
+            <TableRow sx={{ borderBottom: '2px solid #e5e9f3' }}>
+              <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Tenant</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Paket</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Status</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Aktivitas Terakhir</TableCell>
+              <TableCell sx={{ py: 2 }}></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {tenants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} align="center" sx={{ py: 6 }}>
-                  <Typography sx={{ color: '#a0a4b8', fontSize: 14 }}>Belum ada tenant</Typography>
+                <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ width: 72, height: 72, borderRadius: '22px', display: 'grid', placeItems: 'center', bgcolor: '#f0f1f5' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: 36, color: '#8a91a3' }}>domain</span>
+                    </Box>
+                    <Typography sx={{ color: '#1d2433', fontSize: 16, fontWeight: 800 }}>Belum ada tenant</Typography>
+                    <Typography sx={{ color: '#8a91a3', fontSize: 13 }}>Tambahkan tenant baru untuk memulai.</Typography>
+                  </Box>
                 </TableCell>
               </TableRow>
             ) : (
               tenants.map((tenant) => (
-                <TableRow key={tenant.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                <TableRow
+                  key={tenant.id}
+                  hover
+                  sx={{
+                    '& td': { borderBottom: '1px solid #f0f1f5', py: 2.1 },
+                    '&:hover': { bgcolor: '#f8f9fc' },
+                    '&:last-child td': { borderBottom: 0 },
+                  }}
+                >
                   <TableCell>
-                    <Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1a1d2e' }}>{tenant.name}</Typography>
-                      <Typography sx={{ fontSize: 12, color: '#8b8fa3' }}>{tenant.admin_user_count} admin • {tenant.active_transactions} transaksi aktif</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box sx={{ width: 42, height: 42, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: '#eef2ff', color: '#4f46e5', fontWeight: 800, fontSize: 16 }}>
+                        {(tenant.name || 'TN').slice(0, 2).toUpperCase()}
+                      </Box>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433', lineHeight: 1.35 }}>{tenant.name}</Typography>
+                        <Typography sx={{ fontSize: 12, color: '#8a91a3', lineHeight: 1.35, mt: 0.2 }}>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle' }}>group</span>
+                          {' '}{tenant.admin_user_count} admin
+                          <Box component="span" sx={{ mx: 0.5 }}>•</Box>
+                          <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle' }}>receipt</span>
+                          {' '}{tenant.active_transactions} transaksi
+                        </Typography>
+                      </Box>
                     </Box>
                   </TableCell>
                   <TableCell>
@@ -104,13 +138,18 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
                   </TableCell>
                   <TableCell>
                     <Typography sx={{ fontSize: 13, color: '#6b7084' }}>
-                      {tenant.last_activity ? new Date(tenant.last_activity).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-                      <Box component="span" sx={{ fontSize: 11, color: '#a0a4b8', ml: 0.5 }}>({formatRelative(tenant.last_activity)})</Box>
+                      {tenant.last_activity
+                        ? new Date(tenant.last_activity).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : '—'}
                     </Typography>
+                    <Typography sx={{ fontSize: 11, color: '#a0a4b8', mt: 0.15 }}>{formatRelative(tenant.last_activity)}</Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small">
-                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>more_vert</span>
+                    <IconButton
+                      size="small"
+                      sx={{ width: 34, height: 34, borderRadius: '10px', color: '#8a91a3', '&:hover': { bgcolor: '#eef2ff', color: '#4f46e5' } }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_vert</span>
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -121,13 +160,13 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
       </TableContainer>
 
       {tenants.length > 0 && (
-        <Box sx={{ px: 2.5, py: 1.5, borderTop: '1px solid #f0f1f5', display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Typography sx={{ fontSize: 12, color: '#8b8fa3', mr: 2, alignSelf: 'center' }}>Halaman 1 dari 1</Typography>
-          <IconButton size="small" disabled sx={{ width: 28, height: 28 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_left</span>
+        <Box sx={{ px: 3, py: 1.75, borderTop: '1px solid #f0f1f5', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1.5 }}>
+          <Typography sx={{ fontSize: 13, color: '#8a91a3', mr: 1 }}>Halaman 1 dari 1</Typography>
+          <IconButton size="small" disabled sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 } }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
           </IconButton>
-          <IconButton size="small" disabled sx={{ width: 28, height: 28 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
+          <IconButton size="small" disabled sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 } }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
           </IconButton>
         </Box>
       )}

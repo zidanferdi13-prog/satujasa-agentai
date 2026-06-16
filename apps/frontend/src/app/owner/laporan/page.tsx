@@ -1,28 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
-import Alert from '@mui/material/Alert';
-import Skeleton from '@mui/material/Skeleton';
-import TextField from '@mui/material/TextField';
+import Card from '@mui/material/Card';
+import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import FilterBar from '@/components/shared/FilterBar';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Skeleton from '@mui/material/Skeleton';
+import Alert from '@mui/material/Alert';
 import apiClient from '@/lib/axios';
 
-interface Summary {
+interface ReportSummary {
   totalTransactions: number;
   revenue: number;
   active: number;
@@ -49,7 +40,7 @@ interface MonthlyRow {
 }
 
 interface OwnerReport {
-  summary: Summary;
+  summary: ReportSummary;
   statusDistribution: StatusRow[];
   tenantBreakdown: TenantRow[];
   monthlyRevenue: MonthlyRow[];
@@ -60,238 +51,559 @@ interface TenantOption {
   name?: string | null;
 }
 
-type PeriodMode = 'monthly' | 'range';
-
-type RawRecord = Record<string, unknown>;
-
-function asRecord(value: unknown): RawRecord {
-  return value && typeof value === 'object' ? (value as RawRecord) : {};
-}
-
-function num(value: unknown): number {
-  const parsed = Number(value ?? 0);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
 function formatCurrency(value: number) {
-  return `Rp${value.toLocaleString('id-ID')}`;
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
-function normalizeTenants(rawValue: unknown): TenantOption[] {
-  const raw = asRecord(rawValue);
-  const list = Array.isArray(rawValue) ? rawValue : raw.data;
-  return Array.isArray(list) ? (list as TenantOption[]) : [];
-}
-
-function normalizeReport(rawValue: unknown): OwnerReport {
-  const raw = asRecord(rawValue);
-  const summary = asRecord(raw.summary ?? raw.totals);
-  const statusRows = (raw.statusDistribution ?? raw.status_distribution ?? raw.byStatus ?? []) as RawRecord[];
-  const tenantRows = (raw.tenantBreakdown ?? raw.tenant_breakdown ?? raw.byTenant ?? []) as RawRecord[];
-  const monthlyRows = (raw.monthlyRevenue ?? raw.monthly_revenue ?? raw.revenueByMonth ?? []) as RawRecord[];
-
-  return {
-    summary: {
-      totalTransactions: num(summary.totalTransactions ?? summary.total_transactions ?? raw.total_transactions),
-      revenue: num(summary.revenue ?? summary.totalRevenue ?? summary.total_revenue ?? raw.total_revenue),
-      active: num(summary.active ?? summary.activeTransactions ?? summary.active_transactions),
-      completed: num(summary.completed ?? summary.completedTransactions ?? summary.completed_transactions),
-      cancelled: num(summary.cancelled ?? summary.cancelledTransactions ?? summary.cancelled_transactions),
-    },
-    statusDistribution: statusRows.map((row) => ({
-      status: String(row.status ?? row.name ?? '-'),
-      count: num(row.count ?? row.transaction_count),
-      revenue: row.revenue === undefined ? undefined : num(row.revenue),
-    })),
-    tenantBreakdown: tenantRows.map((row) => ({
-      tenantName: String(row.tenantName ?? row.tenant_name ?? row.name ?? '-'),
-      transactionCount: num(row.transactionCount ?? row.transaction_count ?? row.count),
-      revenue: num(row.revenue ?? row.total_revenue),
-    })),
-    monthlyRevenue: monthlyRows.map((row) => ({
-      month: String(row.month ?? row.period ?? row.label ?? '-'),
-      transactionCount: row.transactionCount === undefined && row.transaction_count === undefined
-        ? undefined
-        : num(row.transactionCount ?? row.transaction_count),
-      revenue: num(row.revenue ?? row.total_revenue),
-    })),
-  };
-}
-
-export default function OwnerLaporanPage() {
-  const [period, setPeriod] = useState<PeriodMode>('monthly');
+export default function LaporanPage() {
+  const [period, setPeriod] = useState('monthly');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [tenantId, setTenantId] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const params = useMemo(() => {
-    const next: Record<string, string> = { period };
-    if (period === 'range') {
-      if (startDate) next.start_date = startDate;
-      if (endDate) next.end_date = endDate;
-    }
-    if (tenantId) next.tenant_id = tenantId;
-    if (statusFilter) next.status = statusFilter;
-    return next;
-  }, [period, startDate, endDate, tenantId, statusFilter]);
-
-  const { data: tenants = [], isLoading: tenantsLoading, isError: tenantsError } = useQuery<TenantOption[]>({
+  // Fetch tenant options
+  const { data: tenants } = useQuery<TenantOption[]>({
     queryKey: ['owner-tenants'],
-    queryFn: () => apiClient.get('/owner/tenants').then((r) => normalizeTenants(r.data)),
+    queryFn: () => apiClient.get('/owner/tenants').then((r) => r.data?.data ?? r.data ?? []),
   });
 
-  const { data, isLoading, isError } = useQuery<OwnerReport>({
-    queryKey: ['owner-report', params],
-    queryFn: () => apiClient.get('/owner/report', { params }).then((r) => normalizeReport(r.data?.data ?? r.data)),
+  // Build query params
+  const params: Record<string, string> = {};
+  if (period === 'range' && startDate && endDate) {
+    params.start_date = startDate;
+    params.end_date = endDate;
+  }
+  if (tenantId) params.tenant_id = tenantId;
+  if (statusFilter) params.status = statusFilter;
+
+  // Fetch report data
+  const { data, isLoading, isError, refetch } = useQuery<OwnerReport>({
+    queryKey: ['owner-report', period, startDate, endDate, tenantId, statusFilter],
+    queryFn: () => apiClient.get('/owner/reports', { params }).then((r) => r.data?.data ?? r.data),
   });
 
   const summary = data?.summary;
+  const statusDistribution = data?.statusDistribution ?? [];
+  const tenantBreakdown = data?.tenantBreakdown ?? [];
+  const monthlyRevenue = data?.monthlyRevenue ?? [];
+
   const hasData = Boolean(
     summary && (
       summary.totalTransactions > 0 ||
       summary.revenue > 0 ||
-      data.statusDistribution.length > 0 ||
-      data.tenantBreakdown.length > 0 ||
-      data.monthlyRevenue.length > 0
-    ),
+      statusDistribution.length > 0 ||
+      tenantBreakdown.length > 0 ||
+      monthlyRevenue.length > 0
+    )
   );
 
   return (
-    <Box sx={{ p: { xs: 3, md: 4 } }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 4 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>Laporan</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Ringkasan performa tenant dan transaksi.
-          </Typography>
-        </Box>
-        <ToggleButtonGroup
-          value={period}
-          exclusive
-          onChange={(_, value) => value && setPeriod(value)}
-          size="small"
+    <Box
+      sx={{
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+        minHeight: '100vh',
+        background: `
+          radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+          radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+          #f6f8fc
+        `,
+      }}
+    >
+      {/* Page Header */}
+      <Box sx={{ mb: '28px' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontSize: { xs: 28, md: 32 },
+            fontWeight: 800,
+            color: 'var(--dash-text)',
+            lineHeight: 1.2,
+            mb: 1,
+          }}
         >
-          <ToggleButton value="monthly">Bulanan</ToggleButton>
-          <ToggleButton value="range">Rentang Tanggal</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'minmax(240px, 360px)' }, gap: 2, mb: 3 }}>
-        <TextField
-          select
-          size="small"
-          label="Tenant"
-          value={tenantId}
-          onChange={(e) => setTenantId(e.target.value)}
-          disabled={tenantsLoading}
-          helperText={tenantsError ? 'Gagal memuat daftar tenant. Laporan semua tenant tetap tersedia.' : 'Pilih tenant untuk memfilter laporan'}
+          Laporan 📊
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            fontSize: 15,
+            color: 'var(--dash-muted)',
+            fontWeight: 400,
+            lineHeight: 1.6,
+          }}
         >
-          <MenuItem value="">Semua Tenant</MenuItem>
-          {tenants.map((tenant) => (
-            <MenuItem key={tenant.id} value={tenant.id}>
-              {tenant.name ?? 'Tenant tanpa nama'}
-            </MenuItem>
-          ))}
-        </TextField>
+          Analisis performa bisnis dan transaksi tenant.
+        </Typography>
       </Box>
 
-      <Box sx={{ mb: 3 }}>
-        <FilterBar
-          searchValue=""
-          onSearchChange={() => {}}
-          searchPlaceholder=""
-          filters={[
-            {
-              label: 'Status',
-              value: statusFilter,
-              options: [
-                { label: 'Semua Status', value: '' },
-                { label: 'Active', value: 'active' },
-                { label: 'Completed', value: 'completed' },
-                { label: 'Cancelled', value: 'cancelled' },
-              ],
-              onChange: (v) => { setStatusFilter(v); },
-            },
-          ]}
-          activeChips={statusFilter ? [{ label: `Status: ${statusFilter}`, onRemove: () => setStatusFilter('') }] : []}
-          onClearAll={() => setStatusFilter('')}
-        />
-      </Box>
-
-      {period === 'range' && (
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-          <TextField type="date" size="small" label="Mulai" value={startDate} onChange={(e) => setStartDate(e.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
-          <TextField type="date" size="small" label="Selesai" value={endDate} onChange={(e) => setEndDate(e.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
-        </Box>
+      {isError && (
+        <Alert
+          severity="error"
+          sx={{
+            mb: 3,
+            borderRadius: '14px',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            bgcolor: 'rgba(254, 242, 242, 0.95)',
+          }}
+        >
+          Gagal memuat laporan. Coba refresh halaman.
+        </Alert>
       )}
 
-      {isError && <Alert severity="error" sx={{ mb: 3 }}>Gagal memuat laporan. Coba refresh halaman.</Alert>}
+      {/* Filters */}
+      <Box
+        sx={{
+          borderRadius: '18px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 8px 20px rgba(30, 41, 59, 0.04)',
+          background: 'rgba(255,255,255,0.94)',
+          mb: 3,
+          p: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1d2433', mb: 2 }}>
+          Filter Laporan
+        </Typography>
 
-      {isLoading ? (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2 }}>
-          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} variant="rounded" height={112} />)}
-        </Box>
-      ) : (
-        <>
-          {!hasData && <Alert severity="info" sx={{ mb: 3 }}>Belum ada data laporan untuk periode ini.</Alert>}
-
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }, gap: 2, mb: 4 }}>
-            {[
-              ['Total Transaksi', summary?.totalTransactions ?? 0],
-              ['Revenue', formatCurrency(summary?.revenue ?? 0)],
-              ['Active', summary?.active ?? 0],
-              ['Completed', summary?.completed ?? 0],
-              ['Cancelled', summary?.cancelled ?? 0],
-            ].map(([label, value]) => (
-              <Card key={label}>
-                <CardContent>
-                  <Typography color="text.secondary" sx={{ fontSize: 14 }}>{label}</Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>{value}</Typography>
-                </CardContent>
-              </Card>
-            ))}
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 2, mb: 2 }}>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Periode
+            </Typography>
+            <Select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{
+                borderRadius: '12px',
+                backgroundColor: '#f8f9fc',
+                '&:hover': { backgroundColor: '#ffffff' },
+                '&.Mui-focused': { borderColor: '#4f46e5' },
+              }}
+            >
+              <MenuItem value="monthly">Bulan Ini</MenuItem>
+              <MenuItem value="range">Rentang Tanggal</MenuItem>
+            </Select>
           </Box>
 
-          <ReportTable
-            title="Distribusi Status"
-            headers={['Status', 'Transaksi', 'Revenue']}
-            rows={(data?.statusDistribution ?? []).map((row) => [row.status, row.count, row.revenue === undefined ? '—' : formatCurrency(row.revenue)])}
-          />
-          <ReportTable
-            title="Breakdown Tenant"
-            headers={['Tenant', 'Transaksi', 'Revenue']}
-            rows={(data?.tenantBreakdown ?? []).map((row) => [row.tenantName, row.transactionCount, formatCurrency(row.revenue)])}
-          />
-          <ReportTable
-            title="Revenue Bulanan"
-            headers={['Bulan', 'Transaksi', 'Revenue']}
-            rows={(data?.monthlyRevenue ?? []).map((row) => [row.month, row.transactionCount ?? '—', formatCurrency(row.revenue)])}
-          />
+          {period === 'range' && (
+            <>
+              <Box>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Tanggal Mulai
+                </Typography>
+                <TextField
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  fullWidth
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: '#f8f9fc',
+                      '&:hover': { backgroundColor: '#ffffff' },
+                      '&.Mui-focused': { borderColor: '#4f46e5' },
+                    },
+                  }}
+                />
+              </Box>
+
+              <Box>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Tanggal Akhir
+                </Typography>
+                <TextField
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  fullWidth
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '12px',
+                      backgroundColor: '#f8f9fc',
+                      '&:hover': { backgroundColor: '#ffffff' },
+                      '&.Mui-focused': { borderColor: '#4f46e5' },
+                    },
+                  }}
+                />
+              </Box>
+            </>
+          )}
+
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Tenant
+            </Typography>
+            <Select
+              value={tenantId}
+              onChange={(e) => setTenantId(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{
+                borderRadius: '12px',
+                backgroundColor: '#f8f9fc',
+                '&:hover': { backgroundColor: '#ffffff' },
+                '&.Mui-focused': { borderColor: '#4f46e5' },
+              }}
+            >
+              <MenuItem value="">Semua Tenant</MenuItem>
+              {tenants?.map((t) => (
+                <MenuItem key={t.id} value={t.id}>
+                  {t.name || t.id}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            onClick={() => refetch()}
+            startIcon={<span className="material-symbols-outlined">refresh</span>}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              bgcolor: 'var(--dash-primary)',
+              px: 3,
+              py: 1,
+              fontWeight: 700,
+              boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+              '&:hover': {
+                bgcolor: 'var(--dash-primary-2)',
+                boxShadow: '0 10px 20px rgba(79, 70, 229, 0.25)',
+              },
+            }}
+          >
+            Refresh
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Summary Cards */}
+      {isLoading ? (
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' }, gap: 2, mb: 3 }}>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} variant="rounded" height={120} sx={{ borderRadius: '18px' }} />
+          ))}
+        </Box>
+      ) : !hasData ? (
+        <Card
+          sx={{
+            borderRadius: '22px',
+            border: '1px solid #e5e9f3',
+            boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+            background: 'rgba(255,255,255,0.94)',
+            p: 6,
+            textAlign: 'center',
+          }}
+        >
+          <Box sx={{ width: 72, height: 72, borderRadius: '22px', display: 'grid', placeItems: 'center', bgcolor: '#f0f1f5', mx: 'auto', mb: 2 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 36, color: '#8a91a3' }}>analytics</span>
+          </Box>
+          <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+            Belum ada data laporan
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: '#8a91a3' }}>
+            Ubah filter atau tunggu transaksi baru
+          </Typography>
+        </Card>
+      ) : (
+        <>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' }, gap: 2, mb: 3 }}>
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 2.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: '#eef2ff', color: '#4f46e5' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>shopping_cart</span>
+                </Box>
+              </Box>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Total Transaksi
+              </Typography>
+              <Typography sx={{ fontSize: 28, fontWeight: 800, color: '#1d2433' }}>
+                {summary?.totalTransactions || 0}
+              </Typography>
+            </Card>
+
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 2.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: '#ecfdf3', color: '#22c55e' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>payments</span>
+                </Box>
+              </Box>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Revenue
+              </Typography>
+              <Typography sx={{ fontSize: 28, fontWeight: 800, color: '#1d2433' }}>
+                {formatCurrency(summary?.revenue || 0)}
+              </Typography>
+            </Card>
+
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 2.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: '#fff7ed', color: '#f59e0b' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>pending</span>
+                </Box>
+              </Box>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Active
+              </Typography>
+              <Typography sx={{ fontSize: 28, fontWeight: 800, color: '#1d2433' }}>
+                {summary?.active || 0}
+              </Typography>
+            </Card>
+
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 2.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: '#ecfdf3', color: '#22c55e' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>check_circle</span>
+                </Box>
+              </Box>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Completed
+              </Typography>
+              <Typography sx={{ fontSize: 28, fontWeight: 800, color: '#1d2433' }}>
+                {summary?.completed || 0}
+              </Typography>
+            </Card>
+
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 2.5,
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'grid', placeItems: 'center', bgcolor: '#fef2f2', color: '#ef4444' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 22 }}>cancel</span>
+                </Box>
+              </Box>
+              <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6b7280', mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                Cancelled
+              </Typography>
+              <Typography sx={{ fontSize: 28, fontWeight: 800, color: '#1d2433' }}>
+                {summary?.cancelled || 0}
+              </Typography>
+            </Card>
+          </Box>
+
+          {/* Status Distribution */}
+          {statusDistribution.length > 0 && (
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 3,
+                mb: 3,
+              }}
+            >
+              <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 2 }}>
+                Distribusi Status
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 2 }}>
+                {statusDistribution.map((row, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      p: 2,
+                      borderRadius: '14px',
+                      border: '1px solid #e5e9f3',
+                      bgcolor: 'rgba(248, 249, 252, 0.5)',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#6b7280', mb: 1, textTransform: 'uppercase' }}>
+                      {row.status}
+                    </Typography>
+                    <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+                      {row.count}
+                    </Typography>
+                    {row.revenue !== undefined && (
+                      <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>
+                        {formatCurrency(row.revenue)}
+                      </Typography>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Card>
+          )}
+
+          {/* Tenant Breakdown */}
+          {tenantBreakdown.length > 0 && (
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 3,
+                mb: 3,
+              }}
+            >
+              <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 2 }}>
+                Breakdown per Tenant
+              </Typography>
+              <Box sx={{ overflowX: 'auto' }}>
+                <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <Box component="thead">
+                    <Box component="tr" sx={{ borderBottom: '2px solid #e5e9f3' }}>
+                      <Box component="th" sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.08em', py: 2, textAlign: 'left' }}>
+                        Tenant
+                      </Box>
+                      <Box component="th" sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.08em', py: 2, textAlign: 'right' }}>
+                        Transaksi
+                      </Box>
+                      <Box component="th" sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.08em', py: 2, textAlign: 'right' }}>
+                        Revenue
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box component="tbody">
+                    {tenantBreakdown.map((row, idx) => (
+                      <Box
+                        key={idx}
+                        component="tr"
+                        sx={{
+                          transition: 'all 0.15s',
+                          '&:hover': { bgcolor: '#f8f9fc' },
+                          '& td': { borderBottom: '1px solid #f0f1f5', py: 2 },
+                        }}
+                      >
+                        <Box component="td">
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#1d2433' }}>
+                            {row.tenantName}
+                          </Typography>
+                        </Box>
+                        <Box component="td" sx={{ textAlign: 'right' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#4f46e5' }}>
+                            {row.transactionCount}
+                          </Typography>
+                        </Box>
+                        <Box component="td" sx={{ textAlign: 'right' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#22c55e' }}>
+                            {formatCurrency(row.revenue)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+            </Card>
+          )}
+
+          {/* Monthly Revenue */}
+          {monthlyRevenue.length > 0 && (
+            <Card
+              sx={{
+                borderRadius: '22px',
+                border: '1px solid #e5e9f3',
+                boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+                background: 'rgba(255,255,255,0.94)',
+                p: 3,
+                mb: 3,
+              }}
+            >
+              <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 2 }}>
+                Revenue Bulanan
+              </Typography>
+              <Box sx={{ overflowX: 'auto' }}>
+                <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <Box component="thead">
+                    <Box component="tr" sx={{ borderBottom: '2px solid #e5e9f3' }}>
+                      <Box component="th" sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.08em', py: 2, textAlign: 'left' }}>
+                        Bulan
+                      </Box>
+                      <Box component="th" sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.08em', py: 2, textAlign: 'right' }}>
+                        Transaksi
+                      </Box>
+                      <Box component="th" sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.08em', py: 2, textAlign: 'right' }}>
+                        Revenue
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box component="tbody">
+                    {monthlyRevenue.map((row, idx) => (
+                      <Box
+                        key={idx}
+                        component="tr"
+                        sx={{
+                          transition: 'all 0.15s',
+                          '&:hover': { bgcolor: '#f8f9fc' },
+                          '& td': { borderBottom: '1px solid #f0f1f5', py: 2 },
+                        }}
+                      >
+                        <Box component="td">
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#1d2433' }}>
+                            {row.month}
+                          </Typography>
+                        </Box>
+                        <Box component="td" sx={{ textAlign: 'right' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#4f46e5' }}>
+                            {row.transactionCount || 0}
+                          </Typography>
+                        </Box>
+                        <Box component="td" sx={{ textAlign: 'right' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: '#22c55e' }}>
+                            {formatCurrency(row.revenue)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              </Box>
+            </Card>
+          )}
         </>
       )}
-    </Box>
-  );
-}
-
-function ReportTable({ title, headers, rows }: { title: string; headers: string[]; rows: (string | number)[][] }) {
-  return (
-    <Box sx={{ mb: 4 }}>
-      <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>{title}</Typography>
-      <TableContainer component={Paper} variant="outlined">
-        <Table size="small">
-          <TableHead>
-            <TableRow>{headers.map((header) => <TableCell key={header}>{header}</TableCell>)}</TableRow>
-          </TableHead>
-          <TableBody>
-            {rows.length ? rows.map((row, index) => (
-              <TableRow key={`${title}-${index}`}>{row.map((cell, cellIndex) => <TableCell key={cellIndex}>{cell}</TableCell>)}</TableRow>
-            )) : (
-              <TableRow><TableCell colSpan={headers.length}>Tidak ada data.</TableCell></TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
     </Box>
   );
 }

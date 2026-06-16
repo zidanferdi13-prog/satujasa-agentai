@@ -69,36 +69,55 @@ export default function OwnerSubscription({ subscription }: OwnerSubscriptionPro
   const daysLeft = daysUntil(sub.expires_at);
 
   return (
-    <Card sx={{ borderRadius: '22px', border: '1px solid #e8eaf0', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', p: 2.5 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+    <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', p: 3 }}>
+      <Box sx={{ mb: 2.5 }}>
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>
+          Subscription Plan
+        </Typography>
+        <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>
+          Paket langganan dan penggunaan resource
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, p: 2.5, borderRadius: '16px', bgcolor: '#f8f9fc', border: '1px solid #eef0f6' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '12px',
+              width: 52,
+              height: 52,
+              borderRadius: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: '#f0eeff',
-              color: '#6254f3',
+              background: 'linear-gradient(135deg, #6254f3 0%, #8b5cf6 100%)',
+              color: 'white',
+              boxShadow: '0 8px 16px rgba(98, 84, 243, 0.2)',
             }}
           >
-            <span className="material-symbols-outlined">workspace_premium</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 28 }}>workspace_premium</span>
           </Box>
           <Box>
-            <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1a1d2e' }}>{sub.display_name ?? '—'}</Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>{sub.display_name ?? '—'}</Typography>
             <StatusPill status="Aktif" variant="success" />
           </Box>
         </Box>
       </Box>
 
       {daysLeft !== null && (
-        <Box sx={{ mb: 2.5, p: 1.5, borderRadius: '12px', bgcolor: daysLeft <= 7 ? '#fff4e6' : '#e6faf8' }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: daysLeft <= 7 ? '#f6a326' : '#22c7b8' }}>
+        <Box
+          sx={{
+            mb: 3,
+            p: 1.75,
+            borderRadius: '14px',
+            bgcolor: daysLeft <= 7 ? '#fff4e6' : '#e6faf8',
+            border: '1px solid',
+            borderColor: daysLeft <= 7 ? 'rgba(246, 163, 38, 0.3)' : 'rgba(34, 199, 184, 0.3)',
+          }}
+        >
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: daysLeft <= 7 ? '#f6a326' : '#22c7b8', mb: 0.3 }}>
             {daysLeft <= 7 ? `⚠️ Berakhir dalam ${daysLeft} hari` : `✅ Berakhir dalam ${daysLeft} hari`}
           </Typography>
-          <Typography sx={{ fontSize: 11, color: '#8b8fa3', mt: 0.25 }}>
+          <Typography sx={{ fontSize: 12, color: '#8a91a3' }}>
             {sub.expires_at ? new Date(sub.expires_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
           </Typography>
         </Box>
@@ -111,13 +130,15 @@ export default function OwnerSubscription({ subscription }: OwnerSubscriptionPro
         fullWidth
         variant="contained"
         sx={{
-          mt: 1,
-          borderRadius: '12px',
+          mt: 2,
+          borderRadius: '14px',
           bgcolor: '#6254f3',
-          '&:hover': { bgcolor: '#5244d3' },
+          py: 1.5,
           textTransform: 'none',
-          fontWeight: 600,
-          fontSize: 13,
+          fontWeight: 700,
+          fontSize: 14,
+          boxShadow: '0 8px 20px rgba(98, 84, 243, 0.25)',
+          '&:hover': { bgcolor: '#5244d3', boxShadow: '0 10px 24px rgba(98, 84, 243, 0.3)' },
         }}
       >
         Kelola Langganan

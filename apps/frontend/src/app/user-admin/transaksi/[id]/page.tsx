@@ -196,8 +196,18 @@ export default function TransaksiDetailPage() {
 
   if (isLoading) {
     return (
-      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800 }}>
-        <Skeleton variant="rectangular" width="100%" height={400} sx={{ borderRadius: 3 }} />
+      <Box
+        sx={{
+          p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+          minHeight: '100vh',
+          background: `
+            radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+            radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+            #f6f8fc
+          `,
+        }}
+      >
+        <Skeleton variant="rounded" width="100%" height={600} sx={{ borderRadius: '22px' }} />
       </Box>
     );
   }
@@ -213,96 +223,242 @@ export default function TransaksiDetailPage() {
   const statusActions = getNextStatuses(tx.status);
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 800 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-        <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
+    <Box
+      sx={{
+        p: { xs: '20px', sm: '24px 28px', lg: '32px 40px 48px' },
+        minHeight: '100vh',
+        background: `
+          radial-gradient(circle at 90% 0%, rgba(99, 102, 241, 0.13), transparent 35%),
+          radial-gradient(circle at 0% 100%, rgba(34, 197, 94, 0.08), transparent 32%),
+          #f6f8fc
+        `,
+      }}
+    >
+      {/* Back Button + Header */}
+      <Box sx={{ mb: '28px', display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Button
+          variant="text"
+          onClick={() => router.back()}
+          sx={{
+            minWidth: 0,
+            width: 40,
+            height: 40,
+            borderRadius: '12px',
+            border: '1px solid #e5e9f3',
+            bgcolor: 'rgba(255,255,255,0.94)',
+            color: '#6b7280',
+            '&:hover': {
+              bgcolor: '#f8f9fc',
+              borderColor: '#d0d4e4',
+            },
+          }}
+        >
           <span className="material-symbols-outlined">arrow_back</span>
         </Button>
-        <Typography variant="h4" sx={{ fontWeight: 700, flex: 1 }}>
-          Detail Transaksi
-        </Typography>
+        <Box sx={{ flex: 1 }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            sx={{
+              fontSize: { xs: 28, md: 32 },
+              fontWeight: 800,
+              color: 'var(--dash-text)',
+              lineHeight: 1.2,
+              mb: 0.5,
+            }}
+          >
+            Detail Transaksi
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              fontSize: 15,
+              color: 'var(--dash-muted)',
+              fontWeight: 400,
+            }}
+          >
+            ID: {tx.id}
+          </Typography>
+        </Box>
         <StatusPill status={STATUS_LABELS[tx.status]} variant={getStatusVariant(tx.status)} />
       </Box>
 
-      {/* Info */}
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2.5 }}>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Customer</Typography>
-              <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>{tx.customer_name || '-'}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>No. HP</Typography>
-              <Typography variant="body1" sx={{ mt: 0.5 }}>{tx.customer_phone || '-'}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Plat Nomor</Typography>
-              <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>{tx.vehicle_plate ?? tx.plate_number ?? '-'}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kendaraan</Typography>
-              <Typography variant="body1" sx={{ mt: 0.5 }}>{tx.vehicle_type || '-'}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Layanan</Typography>
-              <Typography variant="body1" sx={{ mt: 0.5 }}>{tx.service_name || '-'}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Biaya</Typography>
-              <Typography variant="body1" sx={{ fontWeight: 600, mt: 0.5 }}>
-                Rp{formatCurrency(tx.total_cost)}
+      {/* Transaction Info Card */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+          mb: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 3 }}>
+          Informasi Transaksi
+        </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Customer
+            </Typography>
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 600 }}>
+              {tx.customer_name || '-'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              No. HP
+            </Typography>
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 500 }}>
+              {tx.customer_phone || '-'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Plat Nomor
+            </Typography>
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 600 }}>
+              {tx.vehicle_plate ?? tx.plate_number ?? '-'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Kendaraan
+            </Typography>
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 500 }}>
+              {tx.vehicle_type || '-'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Layanan
+            </Typography>
+            <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 500 }}>
+              {tx.service_name || '-'}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+              Total Biaya
+            </Typography>
+            <Typography sx={{ fontSize: 18, color: '#1d2433', fontWeight: 800 }}>
+              Rp{formatCurrency(tx.total_cost)}
+            </Typography>
+          </Box>
+          {tx.notes && (
+            <Box sx={{ gridColumn: '1 / -1' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 1 }}>
+                Catatan
+              </Typography>
+              <Typography sx={{ fontSize: 15, color: '#1d2433', fontWeight: 500, lineHeight: 1.6 }}>
+                {tx.notes}
               </Typography>
             </Box>
-            {tx.notes && (
-              <Box sx={{ gridColumn: '1 / -1' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Catatan</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5 }}>{tx.notes}</Typography>
-              </Box>
-            )}
-          </Box>
-        </CardContent>
-      </Card>
-
-      {/* Fee snapshot */}
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Rincian Biaya
-            </Typography>
-            <Button size="small" variant="outlined" onClick={openFeeEditor} disabled={!tx.fee_details?.length}>
-              Edit Biaya
-            </Button>
-          </Box>
-          {tx.fee_details?.length ? (
-            <Box>
-              {tx.fee_details.map((fee) => (
-                <Box key={fee.component_code} sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 180px' }, gap: 2, py: 1.25, borderBottom: '1px solid', borderColor: 'divider' }}>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {fee.component_name ?? fee.component_code}
-                    </Typography>
-                    <Chip size="small" label={fee.is_editable === false ? 'Biaya sistem / locked' : fee.source ?? 'Snapshot'} sx={{ mt: 0.75 }} />
-                  </Box>
-                  <Typography variant="body2" sx={{ fontWeight: 700, textAlign: { xs: 'left', md: 'right' } }}>
-                    Rp{formatCurrency(fee.amount)}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          ) : (
-            <Alert severity="info">Belum ada snapshot rincian biaya.</Alert>
           )}
-        </CardContent>
-      </Card>
+        </Box>
+      </Box>
 
-      {/* Document checklist snapshot */}
-      <Card variant="outlined" sx={{ mb: 3, borderRadius: 2 }}>
-        <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-            Checklist Dokumen
+      {/* Fee Details Card */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+          mb: 3,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433' }}>
+            Rincian Biaya
           </Typography>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={openFeeEditor}
+            disabled={!tx.fee_details?.length}
+            startIcon={<span className="material-symbols-outlined">edit</span>}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              borderColor: '#e5e9f3',
+              color: '#4f46e5',
+              '&:hover': {
+                borderColor: '#4f46e5',
+                bgcolor: '#eef2ff',
+              },
+            }}
+          >
+            Edit Biaya
+          </Button>
+        </Box>
+        {tx.fee_details?.length ? (
+          <Box>
+            {tx.fee_details.map((fee) => (
+              <Box
+                key={fee.component_code}
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '1fr 180px' },
+                  gap: 2,
+                  py: 2,
+                  borderBottom: '1px solid #e5e9f3',
+                }}
+              >
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1d2433' }}>
+                    {fee.component_name ?? fee.component_code}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={fee.is_editable === false ? 'Biaya sistem / locked' : fee.source ?? 'Snapshot'}
+                    sx={{
+                      mt: 1,
+                      borderRadius: '8px',
+                      fontSize: 11,
+                      fontWeight: 600,
+                      bgcolor: '#f8f9fc',
+                      color: '#6b7280',
+                    }}
+                  />
+                </Box>
+                <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433', textAlign: { xs: 'left', md: 'right' } }}>
+                  Rp{formatCurrency(fee.amount)}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        ) : (
+          <Alert
+            severity="info"
+            sx={{
+              borderRadius: '14px',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              bgcolor: 'rgba(239, 246, 255, 0.95)',
+            }}
+          >
+            Belum ada snapshot rincian biaya.
+          </Alert>
+        )}
+      </Box>
+
+      {/* Document Checklist Card */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+          mb: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 3 }}>
+          Checklist Dokumen
+        </Typography>
         {tx.document_checklists?.length ? (
           <Box>
             {tx.document_checklists.map((doc) => {
@@ -315,9 +471,8 @@ export default function TransaksiDetailPage() {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1.5,
-                    py: 1.25,
-                    borderBottom: '1px solid',
-                    borderColor: 'divider',
+                    py: 2,
+                    borderBottom: '1px solid #e5e9f3',
                   }}
                 >
                   <Checkbox
@@ -325,12 +480,17 @@ export default function TransaksiDetailPage() {
                     disabled={isUpdating || !doc.id}
                     onChange={() => handleChecklistToggle(doc)}
                     slotProps={{ input: { 'aria-label': `Checklist ${doc.document_name}` } }}
+                    sx={{
+                      '&.Mui-checked': {
+                        color: '#22c55e',
+                      },
+                    }}
                   />
                   <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1d2433' }}>
                       {doc.document_name}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography sx={{ fontSize: 12, color: '#6b7280' }}>
                       {doc.is_required ? 'Dokumen wajib' : 'Dokumen opsional'}
                     </Typography>
                   </Box>
@@ -342,6 +502,7 @@ export default function TransaksiDetailPage() {
                       label={doc.is_checked ? 'Sudah diterima' : 'Belum diterima'}
                       color={doc.is_checked ? 'success' : 'default'}
                       variant={doc.is_checked ? 'filled' : 'outlined'}
+                      sx={{ borderRadius: '10px', fontWeight: 700 }}
                     />
                   )}
                 </Box>
@@ -349,12 +510,20 @@ export default function TransaksiDetailPage() {
             })}
           </Box>
         ) : (
-          <Alert severity="info">Belum ada snapshot checklist dokumen.</Alert>
+          <Alert
+            severity="info"
+            sx={{
+              borderRadius: '14px',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              bgcolor: 'rgba(239, 246, 255, 0.95)',
+            }}
+          >
+            Belum ada snapshot checklist dokumen.
+          </Alert>
         )}
-        </CardContent>
-      </Card>
+      </Box>
 
-      {/* Actions */}
+      {/* Action Buttons */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
         {!isFinalStatus(tx.status) && statusActions.map((nextStatus) => (
           <Button
@@ -363,31 +532,89 @@ export default function TransaksiDetailPage() {
             color={nextStatus === 'DIBATALKAN' || nextStatus === 'cancelled' ? 'error' : 'primary'}
             onClick={() => setStatusConfirm(nextStatus)}
             disabled={isPending}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 3,
+            }}
           >
             {STATUS_ACTION_LABELS[nextStatus] ?? STATUS_LABELS[nextStatus]}
           </Button>
         ))}
-        <Button variant="outlined" onClick={handleWhatsApp} disabled={!tx.monitoring_token || !tx.customer_phone} startIcon={<span className="material-symbols-outlined text-[20px]">chat</span>}>
+        <Button
+          variant="outlined"
+          onClick={handleWhatsApp}
+          disabled={!tx.monitoring_token || !tx.customer_phone}
+          startIcon={<span className="material-symbols-outlined">chat</span>}
+          sx={{
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 3,
+            borderColor: '#e5e9f3',
+            color: '#22c55e',
+            '&:hover': {
+              borderColor: '#22c55e',
+              bgcolor: '#ecfdf3',
+            },
+          }}
+        >
           Kirim WA
         </Button>
-        <Button variant="outlined" onClick={handleCopyMonitoring} startIcon={<span className="material-symbols-outlined text-[20px]">link</span>}>
+        <Button
+          variant="outlined"
+          onClick={handleCopyMonitoring}
+          startIcon={<span className="material-symbols-outlined">link</span>}
+          sx={{
+            borderRadius: '12px',
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 3,
+            borderColor: '#e5e9f3',
+            color: '#4f46e5',
+            '&:hover': {
+              borderColor: '#4f46e5',
+              bgcolor: '#eef2ff',
+            },
+          }}
+        >
           Copy Link Monitoring
         </Button>
       </Box>
 
-      {/* Timeline */}
-      <Divider sx={{ mb: 3 }} />
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-        Riwayat Status
-      </Typography>
-      <StatusTimeline logs={tx.status_logs ?? []} />
+      {/* Status Timeline */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+          mb: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 3 }}>
+          Riwayat Status
+        </Typography>
+        <StatusTimeline logs={tx.status_logs ?? []} />
+      </Box>
 
-      {/* Aktivitas */}
-      <Divider sx={{ mb: 3, mt: 4 }} />
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-        Aktivitas
-      </Typography>
-      <ActivityTimeline transactionId={id} />
+      {/* Activity Timeline */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 3 }}>
+          Aktivitas
+        </Typography>
+        <ActivityTimeline transactionId={id} />
+      </Box>
 
       {/* Modal */}
       <UpdateStatusModal
@@ -399,7 +626,7 @@ export default function TransaksiDetailPage() {
       />
 
       <Dialog open={!!statusConfirm} onClose={() => !isPending && setStatusConfirm(null)} fullWidth maxWidth="xs">
-        <DialogTitle>Konfirmasi Update Status</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Konfirmasi Update Status</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
             Ubah status transaksi menjadi <strong>{statusConfirm ? STATUS_LABELS[statusConfirm] : ''}</strong>?
@@ -412,6 +639,7 @@ export default function TransaksiDetailPage() {
             color={statusConfirm === 'DIBATALKAN' || statusConfirm === 'cancelled' ? 'error' : 'primary'}
             onClick={() => statusConfirm && updateStatus({ status: statusConfirm })}
             disabled={isPending}
+            sx={{ borderRadius: '12px', fontWeight: 700 }}
           >
             {isPending ? 'Menyimpan...' : 'Konfirmasi'}
           </Button>
@@ -419,7 +647,7 @@ export default function TransaksiDetailPage() {
       </Dialog>
 
       <Dialog open={feeModalOpen} onClose={() => !isSavingFees && setFeeModalOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle>Edit Biaya</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800 }}>Edit Biaya</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>
             {editableFeeRows.map((fee) => (
@@ -452,7 +680,7 @@ export default function TransaksiDetailPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setFeeModalOpen(false)} disabled={isSavingFees}>Batal</Button>
-          <Button variant="contained" onClick={handleSaveFees} disabled={isSavingFees}>
+          <Button variant="contained" onClick={handleSaveFees} disabled={isSavingFees} sx={{ borderRadius: '12px', fontWeight: 700 }}>
             {isSavingFees ? 'Menyimpan...' : 'Simpan Biaya'}
           </Button>
         </DialogActions>
