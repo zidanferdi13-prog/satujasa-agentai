@@ -477,7 +477,42 @@ describe('Admin User Routes', () => {
     )
   })
 
-  // Test 8: Block access to other tenant → 403
+  // Test 8b: GET /admin-user/team → 200 + list
+  it('returns admin-user team list', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin-user/team')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('data')
+    expect(response.body).toHaveProperty('meta')
+    expect(Array.isArray(response.body.data)).toBe(true)
+    expect(typeof response.body.meta.total).toBe('number')
+    expect(response.body.data.length).toBeGreaterThan(0)
+
+    const member = response.body.data[0]
+    expect(member).toHaveProperty('id')
+    expect(member).toHaveProperty('email')
+    expect(member).toHaveProperty('role')
+    expect(member).toHaveProperty('is_active')
+    expect(member).toHaveProperty('created_at')
+    expect(member.is_active).toBe(true)
+  })
+
+  // Test 8c: GET /admin-user/team?search= → filter
+  it('filters admin-user team by search', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin-user/team?search=admin')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data.length).toBeGreaterThan(0)
+    response.body.data.forEach((member: { email: string }) => {
+      expect(member.email.toLowerCase()).toContain('admin')
+    })
+  })
+
+  // Test 9: Block access to other tenant → 403
   it('blocks admin-user access to other tenant services', async () => {
     const otherTenantId = '01ARZ3NDEKTSV4RRFFQ69G5FAV'
     const response = await request(app)
