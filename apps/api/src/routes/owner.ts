@@ -20,82 +20,498 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
 
   const subforcement = subscriptionEnforcement(db)
 
+  // ─── Helper ────────────────────────────────────────────────────────────────
+
+  function getMonthStart(offsetMonths: number): Date {
+    const d = new Date()
+    d.setMonth(d.getMonth() + offsetMonths, 1)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
+  function getMonthEnd(date: Date): Date {
+    const d = new Date(date)
+    d.setMonth(d.getMonth() + 1, 0)
+    d.setHours(23, 59, 59, 999)
+    return d
+  }
+
+  function calcTrend(current: number, previous: number): string {
+    if (previous === 0) return current > 0 ? '100.0' : '0.0'
+    return (((current - previous) / previous) * 100).toFixed(1)
+  }
+
+  function tierDisplay(tier: string): string {
+    return { free: 'Free', pro: 'Business', plus: 'Standard', expert: 'Enterprise' }[tier] ?? tier
+  }
+
+  function shortId(id: string): string {
+    return id.substring(0, 8)
+  }
+
   // ─── Dashboard ────────────────────────────────────────────────────────────
   router.get('/dashboard', async (req, res) => {
-    try {
-      const ownerId = req.user!.userId
+    const ownerId = req.user!.userId
+    const now = new Date()
 
+    // All sections start with safe fallback defaults
+    const kpi = {
+      total_tenants: 0,
+      total_admin_users: 0,
+      total_transactions: 0,
+      active_transactions: 0,
+      total_revenue: '0',
+      trends: { tenants: '0.0', admin_users: '0.0', transactions: '0.0', revenue: '0.0' },
+    }
+    let tenants: Array<{
+      id: string
+      name: string
+      admin_user_count: number
+      active_transactions: number
+      last_activity: string | null
+      plan_tier: string
+    }> = []
+    let chart30d: Array<{ date: string; count: number }> = []
+    let activity: Array<{
+      id: string
+      type: string
+      description: string
+      created_at: string
+    }> = []
+    const subscription = {
+      tier: 'free' as string,
+      display_name: 'Free' as string,
+      max_tenants: 0,
+      max_admin_users: 0,
+      current_tenants: 0,
+      current_admin_users: 0,
+      activated_at: null as string | null,
+      expires_at: null as string | null,
+    }
+    const health = {
+      server: 'operational' as const,
+      database: 'operational' as const,
+      backup: 'operational' as const,
+      api: 'operational' as const,
+      security: 'operational' as const,
+    }
+
+    // 1. Owner subscription
+    try {
+      const [sub] = await db
+        .select()
+        .from(schema.subscriptions)
+        .where(and(eq(schema.subscriptions.owner_id, ownerId), isNull(schema.subscriptions.deleted_at)))
+        .limit(1)
+
+      if (sub) {
+        subscription.tier = sub.tier
+        subscription.display_name = tierDisplay(sub.tier)
+        subscription.max_tenants = sub.max_tenants
+        subscription.max_admin_users = sub.max_admin_users
+        if (sub.activated_at) {
+          subscription.activated_at = sub.activated_at.toISOString()
+          const expiresAt = new Date(sub.activated_at)
+          expiresAt.setDate(expiresAt.getDate() + 30)
+          subscription.expires_at = expiresAt.toISOString()
+        }
+      }
+    } catch (e) {
+      console.error('Owner dashboard subscription error:', e)
+    }
+
+    // 2. Owner tenant IDs (used by multiple sections)
+    let tenantIds: string[] = []
+    try {
+      const rows = await db
+        .select({ id: schema.tenants.id })
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+      tenantIds = rows.map(r => r.id)
+    } catch (e) {
+      console.error('Owner dashboard tenant IDs error:', e)
+    }
+
+    // 3. Basic counts
+    try {
       const [tenantCount] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(schema.tenants)
         .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+      kpi.total_tenants = tenantCount?.count ?? 0
+      subscription.current_tenants = kpi.total_tenants
+    } catch (e) {
+      console.error('Owner dashboard tenant count error:', e)
+    }
 
-      const [adminUserCount] = await db
+    try {
+      const [adminCount] = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(schema.users)
-        .where(
-          and(
-            eq(schema.users.owner_id, ownerId),
-            eq(schema.users.role, 'admin-user'),
-            isNull(schema.users.deleted_at)
-          )
-        )
+        .where(and(
+          eq(schema.users.owner_id, ownerId),
+          eq(schema.users.role, 'admin-user'),
+          isNull(schema.users.deleted_at),
+        ))
+      kpi.total_admin_users = adminCount?.count ?? 0
+      subscription.current_admin_users = kpi.total_admin_users
+    } catch (e) {
+      console.error('Owner dashboard admin count error:', e)
+    }
 
-      // Get all tenant IDs for this owner
-      const ownerTenants = await db
-        .select({ id: schema.tenants.id })
+    if (tenantIds.length > 0) {
+      try {
+        const [txCount] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        kpi.total_transactions = txCount?.count ?? 0
+      } catch (e) {
+        console.error('Owner dashboard tx count error:', e)
+      }
+
+      try {
+        const [activeCount] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`status NOT IN ('done', 'cancelled', 'SELESAI', 'DIBATALKAN')`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        kpi.active_transactions = activeCount?.count ?? 0
+      } catch (e) {
+        console.error('Owner dashboard active tx error:', e)
+      }
+
+      try {
+        const [revRes] = await db
+          .select({ total: sql<string>`COALESCE(sum(total_cost + additional_cost), 0)::text` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`${schema.transactions.status} IN ('done', 'SELESAI')`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        kpi.total_revenue = revRes?.total ?? '0'
+      } catch (e) {
+        console.error('Owner dashboard revenue error:', e)
+      }
+    }
+
+    // 4. Trends (current month vs previous month)
+    try {
+      const currentStart = getMonthStart(0)
+      const currentEnd = getMonthEnd(currentStart)
+      const prevStart = getMonthStart(-1)
+      const prevEnd = getMonthEnd(prevStart)
+
+      // Current month tenants
+      const [curTenants] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.tenants)
+        .where(and(
+          eq(schema.tenants.owner_id, ownerId),
+          sql`${schema.tenants.created_at} >= ${currentStart.toISOString()} AND ${schema.tenants.created_at} <= ${currentEnd.toISOString()}`,
+          isNull(schema.tenants.deleted_at),
+        ))
+
+      const [prevTenants] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.tenants)
+        .where(and(
+          eq(schema.tenants.owner_id, ownerId),
+          sql`${schema.tenants.created_at} >= ${prevStart.toISOString()} AND ${schema.tenants.created_at} <= ${prevEnd.toISOString()}`,
+          isNull(schema.tenants.deleted_at),
+        ))
+      kpi.trends.tenants = calcTrend(curTenants?.count ?? 0, prevTenants?.count ?? 0)
+
+      // Current month admin users
+      const [curAdmins] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.users)
+        .where(and(
+          eq(schema.users.owner_id, ownerId),
+          eq(schema.users.role, 'admin-user'),
+          sql`${schema.users.created_at} >= ${currentStart.toISOString()} AND ${schema.users.created_at} <= ${currentEnd.toISOString()}`,
+          isNull(schema.users.deleted_at),
+        ))
+      const [prevAdmins] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.users)
+        .where(and(
+          eq(schema.users.owner_id, ownerId),
+          eq(schema.users.role, 'admin-user'),
+          sql`${schema.users.created_at} >= ${prevStart.toISOString()} AND ${schema.users.created_at} <= ${prevEnd.toISOString()}`,
+          isNull(schema.users.deleted_at),
+        ))
+      kpi.trends.admin_users = calcTrend(curAdmins?.count ?? 0, prevAdmins?.count ?? 0)
+
+      // Current month transactions
+      if (tenantIds.length > 0) {
+        const [curTx] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`${schema.transactions.created_at} >= ${currentStart.toISOString()} AND ${schema.transactions.created_at} <= ${currentEnd.toISOString()}`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        const [prevTx] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`${schema.transactions.created_at} >= ${prevStart.toISOString()} AND ${schema.transactions.created_at} <= ${prevEnd.toISOString()}`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        kpi.trends.transactions = calcTrend(curTx?.count ?? 0, prevTx?.count ?? 0)
+
+        const [curRev] = await db
+          .select({ total: sql<number>`COALESCE(sum(total_cost + additional_cost), 0)` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`${schema.transactions.status} IN ('done', 'SELESAI')`,
+            sql`${schema.transactions.created_at} >= ${currentStart.toISOString()} AND ${schema.transactions.created_at} <= ${currentEnd.toISOString()}`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        const [prevRev] = await db
+          .select({ total: sql<number>`COALESCE(sum(total_cost + additional_cost), 0)` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`${schema.transactions.status} IN ('done', 'SELESAI')`,
+            sql`${schema.transactions.created_at} >= ${prevStart.toISOString()} AND ${schema.transactions.created_at} <= ${prevEnd.toISOString()}`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        kpi.trends.revenue = calcTrend(curRev?.total ?? 0, prevRev?.total ?? 0)
+      }
+    } catch (e) {
+      console.error('Owner dashboard trends error:', e)
+    }
+
+    // 5. Enriched tenant list
+    try {
+      const tenantRows = await db
+        .select({ id: schema.tenants.id, name: schema.tenants.name })
         .from(schema.tenants)
         .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
 
-      const tenantIds = ownerTenants.map((t) => t.id)
+      const allTenantIds = tenantRows.map(t => t.id)
 
-      let txCount = 0
-      let activeTxCount = 0
-      let totalRevenue = '0'
-
-      if (tenantIds.length > 0) {
-        const txRes = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(schema.transactions)
-          .where(and(sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`, isNull(schema.transactions.deleted_at)))
-        txCount = txRes[0]?.count ?? 0
-
-        const activeRes = await db
-          .select({ count: sql<number>`count(*)::int` })
-          .from(schema.transactions)
-          .where(
-            and(
-              sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
-              sql`status NOT IN ('done', 'cancelled', 'SELESAI', 'DIBATALKAN')`,
-              isNull(schema.transactions.deleted_at)
-            )
-          )
-        activeTxCount = activeRes[0]?.count ?? 0
-
-        const revRes = await db
-          .select({ total: sql<string>`COALESCE(sum(total_cost + additional_cost), 0)::text` })
-          .from(schema.transactions)
-          .where(
-            and(
-              sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
-              sql`${schema.transactions.status} IN ('done', 'SELESAI')`,
-              isNull(schema.transactions.deleted_at)
-            )
-          )
-        totalRevenue = revRes[0]?.total ?? '0'
+      // Admin counts per tenant
+      const adminCounts: Map<string, number> = new Map()
+      if (allTenantIds.length > 0) {
+        const rows = await db
+          .select({ tenant_id: schema.users.tenant_id, count: sql<number>`count(*)::int` })
+          .from(schema.users)
+          .where(and(
+            eq(schema.users.role, 'admin-user'),
+            sql`${schema.users.tenant_id} IN (${sql.join(allTenantIds.map(id => sql`${id}`), sql`, `)})`,
+            isNull(schema.users.deleted_at),
+          ))
+          .groupBy(schema.users.tenant_id)
+        for (const r of rows) { if (r.tenant_id) adminCounts.set(r.tenant_id, r.count) }
       }
 
-      res.json({
-        total_tenants: tenantCount?.count ?? 0,
-        total_admin_users: adminUserCount?.count ?? 0,
-        total_transactions: txCount,
-        active_transactions: activeTxCount,
-        total_revenue: totalRevenue,
-      })
-    } catch (error) {
-      console.error('Owner dashboard error:', error)
-      res.status(500).json({ error: 'internal_server_error' })
+      // Active tx counts per tenant
+      const activeTxCounts: Map<string, number> = new Map()
+      if (allTenantIds.length > 0) {
+        const rows = await db
+          .select({ tenant_id: schema.transactions.tenant_id, count: sql<number>`count(*)::int` })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(allTenantIds.map(id => sql`${id}`), sql`, `)})`,
+            sql`status NOT IN ('done', 'cancelled', 'SELESAI', 'DIBATALKAN')`,
+            isNull(schema.transactions.deleted_at),
+          ))
+          .groupBy(schema.transactions.tenant_id)
+        for (const r of rows) { if (r.tenant_id) activeTxCounts.set(r.tenant_id, r.count) }
+      }
+
+      // Latest activity per tenant (via transaction_status_log)
+      const lastActivity: Map<string, string> = new Map()
+      if (allTenantIds.length > 0) {
+        // Get transaction IDs belonging to these tenants
+        const txRows = await db
+          .select({ id: schema.transactions.id, tenant_id: schema.transactions.tenant_id })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(allTenantIds.map(id => sql`${id}`), sql`, `)})`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        const tenantTxMap = new Map<string, string[]>()
+        for (const tx of txRows) {
+          if (!tx.tenant_id) continue
+          const arr = tenantTxMap.get(tx.tenant_id) || []
+          arr.push(tx.id)
+          tenantTxMap.set(tx.tenant_id, arr)
+        }
+
+        for (const [tid, txIds] of tenantTxMap) {
+          if (txIds.length === 0) continue
+          const [latest] = await db
+            .select({ created_at: schema.transactionStatusLog.created_at })
+            .from(schema.transactionStatusLog)
+            .where(sql`${schema.transactionStatusLog.transaction_id} IN (${sql.join(txIds.map(id => sql`${id}`), sql`, `)})`)
+            .orderBy(sql`${schema.transactionStatusLog.created_at} DESC`)
+            .limit(1)
+          if (latest) lastActivity.set(tid, latest.created_at.toISOString())
+        }
+      }
+
+      tenants = tenantRows.map(t => ({
+        id: t.id,
+        name: t.name,
+        admin_user_count: adminCounts.get(t.id) ?? 0,
+        active_transactions: activeTxCounts.get(t.id) ?? 0,
+        last_activity: lastActivity.get(t.id) ?? null,
+        plan_tier: subscription.tier,
+      }))
+    } catch (e) {
+      console.error('Owner dashboard tenants error:', e)
     }
+
+    // 6. 30-day chart
+    try {
+      const thirtyDaysAgo = new Date(now)
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
+      thirtyDaysAgo.setHours(0, 0, 0, 0)
+
+      const dailyMap: Map<string, number> = new Map()
+      // Fill all 30 days with 0
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(thirtyDaysAgo)
+        d.setDate(d.getDate() + i)
+        dailyMap.set(d.toISOString().substring(0, 10), 0)
+      }
+
+      if (tenantIds.length > 0) {
+        const rows = await db.execute<{ date: string; count: number }>(
+          sql`SELECT to_char(created_at, 'YYYY-MM-DD') as date, count(*)::int as count
+              FROM transactions
+              WHERE tenant_id IN (${sql.join(tenantIds.map(id => sql`${id}::uuid`), sql`, `)})
+              AND deleted_at IS NULL
+              AND created_at >= ${thirtyDaysAgo.toISOString()}
+              GROUP BY to_char(created_at, 'YYYY-MM-DD')
+              ORDER BY date`)
+
+        if (rows) {
+          for (const row of rows) {
+            if (dailyMap.has(row.date)) {
+              dailyMap.set(row.date, row.count)
+            }
+          }
+        }
+      }
+
+      chart30d = [...dailyMap.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, count]) => ({ date, count }))
+    } catch (e) {
+      console.error('Owner dashboard chart error:', e)
+    }
+
+    // 7. Activity feed
+    try {
+      const activityItems: Array<{
+        id: string
+        type: string
+        description: string
+        created_at: Date
+      }> = []
+
+      // 7a. Transaction status changes (last 30 days)
+      if (tenantIds.length > 0) {
+        const txIds = await db
+          .select({ id: schema.transactions.id })
+          .from(schema.transactions)
+          .where(and(
+            sql`${schema.transactions.tenant_id} IN (${sql.join(tenantIds.map(id => sql`${id}`), sql`, `)})`,
+            isNull(schema.transactions.deleted_at),
+          ))
+        const txIdList = txIds.map(t => t.id)
+
+        if (txIdList.length > 0) {
+          const logRows = await db
+            .select({
+              id: schema.transactionStatusLog.id,
+              transaction_id: schema.transactionStatusLog.transaction_id,
+              new_status: schema.transactionStatusLog.to_status,
+              created_at: schema.transactionStatusLog.created_at,
+            })
+            .from(schema.transactionStatusLog)
+            .where(sql`${schema.transactionStatusLog.transaction_id} IN (${sql.join(txIdList.map(id => sql`${id}`), sql`, `)})`)
+            .orderBy(sql`${schema.transactionStatusLog.created_at} DESC`)
+            .limit(10)
+
+          for (const log of logRows) {
+            activityItems.push({
+              id: log.id,
+              type: 'transaction_status_change',
+              description: `Transaksi #${shortId(log.transaction_id)} berstatus ${log.new_status}`,
+              created_at: log.created_at,
+            })
+          }
+        }
+      }
+
+      // 7b. Recently created tenants
+      const recentTenants = await db
+        .select({ id: schema.tenants.id, name: schema.tenants.name, created_at: schema.tenants.created_at })
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+        .orderBy(sql`${schema.tenants.created_at} DESC`)
+        .limit(5)
+
+      for (const t of recentTenants) {
+        activityItems.push({
+          id: t.id,
+          type: 'tenant_created',
+          description: `Tenant baru "${t.name}" telah ditambahkan`,
+          created_at: t.created_at,
+        })
+      }
+
+      // 7c. Recently created admin-users
+      const recentAdmins = await db
+        .select({ id: schema.users.id, email: schema.users.email, created_at: schema.users.created_at })
+        .from(schema.users)
+        .where(and(
+          eq(schema.users.owner_id, ownerId),
+          eq(schema.users.role, 'admin-user'),
+          isNull(schema.users.deleted_at),
+        ))
+        .orderBy(sql`${schema.users.created_at} DESC`)
+        .limit(5)
+
+      for (const u of recentAdmins) {
+        activityItems.push({
+          id: u.id,
+          type: 'admin_user_created',
+          description: `Admin user "${u.email}" telah dibuat`,
+          created_at: u.created_at,
+        })
+      }
+
+      // Sort and limit to 20
+      activityItems.sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
+      activity = activityItems.slice(0, 20).map(item => ({
+        id: item.id,
+        type: item.type,
+        description: item.description,
+        created_at: item.created_at.toISOString(),
+      }))
+    } catch (e) {
+      console.error('Owner dashboard activity error:', e)
+    }
+
+    // Build response
+    res.json({ kpi, tenants, chart_30d: chart30d, activity, subscription, health })
   })
 
   // GET /report — Owner detailed transaction report

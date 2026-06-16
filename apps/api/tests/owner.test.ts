@@ -122,10 +122,17 @@ describe('Owner Routes', () => {
       .set('Authorization', `Bearer ${ownerToken}`)
 
     expect(response.status).toBe(200)
-    expect(response.body).toHaveProperty('total_tenants')
-    expect(response.body).toHaveProperty('total_transactions')
-    expect(response.body).toHaveProperty('active_transactions')
-    expect(response.body).toHaveProperty('total_revenue')
+    expect(response.body).toHaveProperty('kpi')
+    expect(response.body.kpi).toHaveProperty('total_tenants')
+    expect(response.body.kpi).toHaveProperty('total_transactions')
+    expect(response.body.kpi).toHaveProperty('active_transactions')
+    expect(response.body.kpi).toHaveProperty('total_revenue')
+    expect(response.body.kpi).toHaveProperty('trends')
+    expect(response.body).toHaveProperty('tenants')
+    expect(response.body).toHaveProperty('chart_30d')
+    expect(response.body).toHaveProperty('activity')
+    expect(response.body).toHaveProperty('subscription')
+    expect(response.body).toHaveProperty('health')
   })
 
   it('returns owner report data', async () => {
