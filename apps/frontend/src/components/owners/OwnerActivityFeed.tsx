@@ -84,7 +84,7 @@ export default function OwnerActivityFeed({ activities = [] }: OwnerActivityFeed
                     bgcolor: cfg.bg,
                     color: cfg.color,
                     flexShrink: 0,
-                    mt: 0.25,
+                    marginTop: 2,
                   }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{cfg.icon}</span>
@@ -97,7 +97,7 @@ export default function OwnerActivityFeed({ activities = [] }: OwnerActivityFeed
                     {formatRelative(item.created_at)}
                   </Typography>
                 </Box>
-                <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#c8cad4', flexShrink: 0, mt: 0.5 }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#c8cad4', flexShrink: 0, marginTop: 2 }}>
                   chevron_right
                 </span>
               </Box>
