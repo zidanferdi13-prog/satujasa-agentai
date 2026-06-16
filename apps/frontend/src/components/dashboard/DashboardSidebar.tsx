@@ -49,7 +49,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
         bgcolor: 'rgba(255,255,255,0.96)',
         borderRight: '1px solid #e5e9f3',
         boxShadow: '4px 0 24px rgba(30, 41, 59, 0.04)',
-        p: 2.5,
+        p: '20px 20px 12px',
       }}
     >
       <Link
@@ -120,8 +120,8 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
             borderRadius: '16px',
             border: '1px solid rgba(79, 70, 229, 0.08)',
             background: 'linear-gradient(135deg, #f8faff 0%, #eef2ff 100%)',
-            p: 2,
-            mb: 1,
+            p: '12px 16px',
+            mb: 0.5,
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
