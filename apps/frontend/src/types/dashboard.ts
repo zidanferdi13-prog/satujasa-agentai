@@ -43,3 +43,52 @@ export interface DashboardResponse {
   platform_stats?: PlatformStats;
   system_health?: SystemHealthData;
 }
+
+// ── Owner Dashboard Response ──
+export interface OwnerDashboardResponse {
+  kpi: {
+    total_tenants: number;
+    total_admin_users: number;
+    total_transactions: number;
+    active_transactions: number;
+    total_revenue: string;
+    trends: {
+      tenants: string;
+      admin_users: string;
+      transactions: string;
+      revenue: string;
+    };
+  };
+  tenants: Array<{
+    id: string;
+    name: string;
+    admin_user_count: number;
+    active_transactions: number;
+    last_activity: string | null;
+    plan_tier: string;
+  }>;
+  chart_30d: Array<{ date: string; count: number }>;
+  activity: Array<{
+    id: string;
+    type: string;
+    description: string;
+    created_at: string;
+  }>;
+  subscription: {
+    tier: string;
+    display_name: string;
+    max_tenants: number;
+    max_admin_users: number;
+    current_tenants: number;
+    current_admin_users: number;
+    activated_at: string | null;
+    expires_at: string | null;
+  };
+  health: {
+    server: string;
+    database: string;
+    backup: string;
+    api: string;
+    security: string;
+  };
+}
