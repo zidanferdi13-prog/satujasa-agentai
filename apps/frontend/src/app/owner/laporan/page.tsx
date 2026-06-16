@@ -85,7 +85,7 @@ export default function LaporanPage() {
   // Fetch report data
   const { data, isLoading, isError, refetch } = useQuery<OwnerReport>({
     queryKey: ['owner-report', period, startDate, endDate, tenantId, statusFilter],
-    queryFn: () => apiClient.get('/owner/reports', { params }).then((r) => r.data?.data ?? r.data),
+    queryFn: () => apiClient.get('/owner/report', { params }).then((r) => r.data?.data ?? r.data),
   });
 
   const summary = data?.summary;
