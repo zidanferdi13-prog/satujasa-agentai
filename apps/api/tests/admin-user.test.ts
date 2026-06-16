@@ -99,16 +99,29 @@ describe('Admin User Routes', () => {
     adminUserToken = response.body.accessToken
   })
 
-  // Test 2: Dashboard → 200
+  // Test 2: Dashboard → 200 + enriched sections
   it('returns admin-user dashboard', async () => {
     const response = await request(app)
       .get('/api/v1/admin-user/dashboard')
       .set('Authorization', `Bearer ${adminUserToken}`)
     expect(response.status).toBe(200)
-    expect(response.body).toHaveProperty('total_transactions')
-    expect(response.body).toHaveProperty('active_transactions')
-    expect(response.body).toHaveProperty('done_transactions')
-    expect(response.body).toHaveProperty('total_revenue')
+    expect(response.body).toHaveProperty('data')
+    const { data } = response.body
+    expect(data).toHaveProperty('kpi')
+    expect(data.kpi).toHaveProperty('transactions_today')
+    expect(data.kpi).toHaveProperty('pending')
+    expect(data.kpi).toHaveProperty('done')
+    expect(data.kpi).toHaveProperty('sla')
+    expect(data).toHaveProperty('chart_30d')
+    expect(Array.isArray(data.chart_30d)).toBe(true)
+    expect(data).toHaveProperty('activity')
+    expect(Array.isArray(data.activity)).toBe(true)
+    expect(data).toHaveProperty('recent_transactions')
+    expect(Array.isArray(data.recent_transactions)).toBe(true)
+    expect(data).toHaveProperty('team_performance')
+    expect(data.team_performance).toHaveProperty('done_count')
+    expect(data).toHaveProperty('requests_summary')
+    expect(data.requests_summary).toHaveProperty('total')
   })
 
   // Test 3: Get services → 200
