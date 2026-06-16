@@ -982,5 +982,67 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
+  // ─── Requests (Permintaan) ────────────────────────────────────────────────
+  router.get('/requests', async (req, res) => {
+    try {
+      const tenantId = getUserTenantId(req)
+      if (!tenantId) {
+        res.status(403).json({ error: 'no_tenant_assigned' })
+        return
+      }
+
+      const search = typeof req.query.search === 'string' ? req.query.search.trim() : ''
+      const statusFilter = typeof req.query.status === 'string' ? req.query.status.trim().toLowerCase() : ''
+
+      // Fetch transactions for this tenant — these represent "requests"
+      const rows = await db
+        .select({
+          id: schema.transactions.id,
+          customer_name: schema.customers.name,
+          plate_number: schema.customers.plate_number,
+          service_name: schema.services.name,
+          status: schema.transactions.status,
+          created_at: schema.transactions.created_at,
+        })
+        .from(schema.transactions)
+        .innerJoin(schema.customers, eq(schema.customers.id, schema.transactions.customer_id))
+        .innerJoin(schema.services, eq(schema.services.id, schema.transactions.service_id))
+        .where(and(eq(schema.transactions.tenant_id, tenantId), isNull(schema.transactions.deleted_at)))
+        .orderBy(sql`${schema.transactions.created_at} DESC`)
+
+      // Map transaction status to FE status (pending|approved|rejected)
+      const pendingStatuses = new Set(['received', 'document_check', 'payment_pending', 'DRAFT'])
+      const rejectedStatuses = new Set(['rejected', 'cancelled', 'DIBATALKAN'])
+
+      function toFeStatus(s: string): string {
+        if (pendingStatuses.has(s)) return 'pending'
+        if (rejectedStatuses.has(s)) return 'rejected'
+        return 'approved'
+      }
+
+      let items = rows.map(r => ({
+        id: r.id,
+        title: `${r.service_name} — ${r.customer_name}`,
+        description: `Plat ${r.plate_number}`,
+        status: toFeStatus(r.status ?? ''),
+        created_at: r.created_at.toISOString(),
+      }))
+
+      if (statusFilter) {
+        items = items.filter(i => i.status === statusFilter)
+      }
+
+      if (search) {
+        const q = search.toLowerCase()
+        items = items.filter(i => i.title.toLowerCase().includes(q) || i.description.toLowerCase().includes(q))
+      }
+
+      res.json({ data: items, meta: { total: items.length } })
+    } catch (e) {
+      console.error('Admin requests list error:', e)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   return router
 }

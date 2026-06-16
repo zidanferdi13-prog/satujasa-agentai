@@ -477,7 +477,41 @@ describe('Admin User Routes', () => {
     )
   })
 
-  // Test 8: Block access to other tenant → 403
+  // Test 8b: GET /admin-user/requests → 200 + list
+  it('returns admin-user requests list', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin-user/requests')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('data')
+    expect(response.body).toHaveProperty('meta')
+    expect(Array.isArray(response.body.data)).toBe(true)
+    expect(typeof response.body.meta.total).toBe('number')
+
+    if (response.body.data.length > 0) {
+      const item = response.body.data[0]
+      expect(item).toHaveProperty('id')
+      expect(item).toHaveProperty('title')
+      expect(item).toHaveProperty('description')
+      expect(item).toHaveProperty('status')
+      expect(item).toHaveProperty('created_at')
+    }
+  })
+
+  // Test 8c: GET /admin-user/requests?status=pending → filter
+  it('filters admin-user requests by status', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin-user/requests?status=pending')
+      .set('Authorization', `Bearer ${adminUserToken}`)
+
+    expect(response.status).toBe(200)
+    response.body.data.forEach((item: { status: string }) => {
+      expect(item.status).toBe('pending')
+    })
+  })
+
+  // Test 9: Block access to other tenant → 403
   it('blocks admin-user access to other tenant services', async () => {
     const otherTenantId = '01ARZ3NDEKTSV4RRFFQ69G5FAV'
     const response = await request(app)
