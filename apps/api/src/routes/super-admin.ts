@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { eq, and, isNull, sql } from 'drizzle-orm'
+import { eq, and, isNull, sql, ilike } from 'drizzle-orm'
 
 function param(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0]! : (value ?? '')
@@ -603,6 +603,62 @@ function relativeTime(date: Date): string {
       res.json({ services: allServices })
     } catch (error) {
       console.error('Get settings error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // ─── Users ───────────────────────────────────────────────────────────────
+  router.get('/users', async (req, res) => {
+    try {
+      const search = typeof req.query.search === 'string' ? req.query.search.trim() : ''
+      const roleFilter = typeof req.query.role === 'string' ? req.query.role.trim().toLowerCase() : ''
+
+      // Map FE role values to DB role enum
+      const roleMap: Record<string, string> = {
+        superadmin: 'super-admin',
+        owner: 'owner',
+        admin_user: 'admin-user',
+      }
+      const dbRole = roleMap[roleFilter] ?? null
+
+      const conditions: ReturnType<typeof and>[] = [isNull(schema.users.deleted_at)]
+
+      if (dbRole) {
+        conditions.push(eq(schema.users.role, dbRole as 'super-admin' | 'owner' | 'admin-user'))
+      }
+
+      if (search) {
+        conditions.push(ilike(schema.users.email, `%${search}%`))
+      }
+
+      // Self-join: get owner_name from owner record
+      const ownerAlias = sql<string>`COALESCE(owner.email, '')`
+
+      const rows = await db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          role: schema.users.role,
+          owner_name: ownerAlias,
+          created_at: schema.users.created_at,
+        })
+        .from(schema.users)
+        .leftJoin(sql`users AS owner`, eq(schema.users.owner_id, sql.raw('owner.id')))
+        .where(and(...conditions))
+        .orderBy(sql`${schema.users.created_at} DESC`)
+
+      const items = rows.map(r => ({
+        id: r.id,
+        email: r.email,
+        role: r.role,
+        owner_name: (r.owner_name as string) || null,
+        is_active: true,
+        created_at: r.created_at.toISOString(),
+      }))
+
+      res.json({ data: items, meta: { total: items.length } })
+    } catch (e) {
+      console.error('Super admin users list error:', e)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
