@@ -1,81 +1,50 @@
-'use client'
-import React from 'react';
-import { Box, Typography, Card, CardContent, Grid } from '@mui/material';
+'use client';
+
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Card from '@mui/material/Card';
 import { OwnersKpi } from '@/types/owner';
 
 interface OwnersKpiGridProps {
   data: OwnersKpi;
 }
 
-const OwnersKpiGrid: React.FC<OwnersKpiGridProps> = ({ data }) => {
+export default function OwnersKpiGrid({ data }: OwnersKpiGridProps) {
   const kpis = [
-    { label: 'Total Owners', value: data.totalOwners, icon: '👥', color: 'var(--dash-primary)' },
-    { label: 'Active Owners', value: data.activeOwners, icon: '✅', color: 'var(--dash-green)' },
-    { label: 'Free Tier', value: data.freeTier, icon: '🎁', color: 'var(--dash-orange)' },
-    { label: 'Paid Tier', value: data.paidTier, icon: '👑', color: 'var(--dash-violet)' },
+    { label: 'Total Owners', val: data.total, icon: '👥', color: 'var(--dash-primary)', delta: data.total_delta },
+    { label: 'Active Owners', val: data.active, icon: '✅', color: 'var(--dash-green)', delta: data.active_delta },
+    { label: 'Free Tier', val: data.free, icon: '🎁', color: 'var(--dash-orange)', delta: data.free_delta },
+    { label: 'Paid Tier', val: data.paid, icon: '👑', color: 'var(--dash-violet)', delta: data.paid_delta },
   ];
 
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', mt: 4 }}>
-      {kpis.map((kpi, index) => (
-        <Card
-          key={index}
-          sx={{
-            borderRadius: '22px',
-            boxShadow: 'var(--dash-shadow-soft)',
-            border: '1px solid var(--dash-line)',
-            overflow: 'hidden',
-          }}
-        >
-          <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3, position: 'relative' }}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: '50%',
-                background: `${kpi.color}15`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mr: 2,
-                fontSize: '24px',
-              }}
-            >
-              {kpi.icon}
-            </Box>
-            <Box>
-              <Typography variant="caption" color="text.secondary">
-                {kpi.label}
-              </Typography>
-              <Typography variant="h5" fontWeight="bold">
-                {kpi.value}
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                position: 'absolute',
-                right: 16,
-                top: '50%',
-                transform: 'translateY(-50%)',
-                width: 60,
-                height: 24,
-              }}
-            >
-              <svg viewBox="0 0 100 40" preserveAspectRatio="none">
-                <path
-                  d="M0,35 Q20,10 40,25 T80,5 T100,20"
-                  fill="none"
-                  stroke={kpi.color}
-                  strokeWidth="4"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </Box>
-          </CardContent>
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, mb: 3 }}>
+      {kpis.map((kpi, i) => (
+        <Card key={i} sx={{ 
+          minHeight: 112, 
+          borderRadius: '22px', 
+          p: 2.5, 
+          boxShadow: 'var(--dash-shadow-soft)', 
+          border: '1px solid var(--dash-line)',
+          display: 'grid',
+          gridTemplateColumns: '48px 1fr 60px',
+          gap: 2,
+          alignItems: 'center'
+        }}>
+          <Box sx={{ width: 48, height: 48, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: `${kpi.color}1a`, color: kpi.color, fontSize: 20 }}>
+            {kpi.icon}
+          </Box>
+          <Box>
+            <Typography sx={{ fontSize: 13, color: 'var(--dash-muted)', fontWeight: 500 }}>{kpi.label}</Typography>
+            <Typography sx={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1 }}>{kpi.val}</Typography>
+          </Box>
+          <Box sx={{ textAlign: 'right' }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: kpi.delta.startsWith('+') ? 'var(--dash-green)' : 'var(--dash-orange)' }}>
+              {kpi.delta}
+            </Typography>
+          </Box>
         </Card>
       ))}
     </Box>
   );
-};
-
-export default OwnersKpiGrid;
+}
