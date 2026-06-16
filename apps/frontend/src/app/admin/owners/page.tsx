@@ -10,7 +10,7 @@ import OwnersHero from '@/components/owners/OwnersHero';
 import OwnersKpiGrid from '@/components/owners/OwnersKpiGrid';
 import OwnersDataTable from '@/components/owners/OwnersDataTable';
 import OwnersInsights from '@/components/owners/OwnersInsights';
-import { OwnersListResponse, OwnersKpi } from '@/types/owner';
+import type { OwnersListResponse, OwnersKpi } from '@/types/owner';
 
 function OwnersPageSkeleton() {
   return (
@@ -89,8 +89,8 @@ export default function OwnersListPage() {
       <OwnersKpiGrid data={kpiData} />
 
       {/* Main Content Area */}
-      <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
-        <OwnersDataTable 
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', xl: 'row' }, gap: 3, alignItems: 'flex-start' }}>
+        <OwnersDataTable
           data={ownersData}
           onSearch={setSearch}
           onTierChange={setTierFilter}

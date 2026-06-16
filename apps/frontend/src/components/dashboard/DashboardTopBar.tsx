@@ -40,9 +40,9 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
         alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid #e5e9f3',
-        bgcolor: 'rgba(255,255,255,0.95)',
+        // bgcolor: 'rgba(255,255,255,0.95)',
         backdropFilter: 'blur(12px)',
-        px: { xs: 2, md: 4 },
+        px: { xs: 2, md: 5 },
       }}
     >
       {/* Left — mobile hamburger + page title */}
@@ -73,18 +73,18 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
         </Box>
 
         <Box sx={{ minWidth: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#808080' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3 }}>
+            <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#808080' }}>
               Workspace
             </Typography>
-            <Typography sx={{ fontSize: 12, color: '#808080' }}>/</Typography>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#4f46e5' }}>
+            <Typography sx={{ fontSize: 11, color: '#808080' }}>/</Typography>
+            <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#4f46e5' }}>
               {roleLabels[role]}
             </Typography>
           </Box>
           <Typography
             sx={{
-              fontSize: { xs: 20, md: 24 },
+              fontSize: { xs: 18, md: 22 },
               fontWeight: 800,
               color: '#1d2433',
               lineHeight: 1.2,
@@ -94,6 +94,20 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
             }}
           >
             {title}
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: 12,
+              color: '#8a91a3',
+              fontWeight: 400,
+              lineHeight: 1.4,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: { xs: 'none', md: 'block' },
+            }}
+          >
+            Monitor performa platform dan kelola sistem dari satu pusat kendali.
           </Typography>
         </Box>
       </Box>
@@ -169,33 +183,60 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
           <Box sx={{ position: 'absolute', top: 8, right: 8, width: 9, height: 9, borderRadius: '9999px', bgcolor: '#ef4444', border: '2px solid', borderColor: '#ffffff' }} />
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, borderRadius: '14px', border: '1px solid #e5e9f3', px: 2, py: 1, transition: 'all 0.15s', '&:hover': { bgcolor: '#f8f9fc', borderColor: '#d0d4e4' } }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            borderRadius: '14px',
+            border: '1px solid #e5e9f3',
+            px: 2,
+            py: 1,
+            bgcolor: 'rgba(255,255,255,0.94)',
+            transition: 'all 0.15s',
+            cursor: 'pointer',
+            '&:hover': { bgcolor: '#f8f9fc', borderColor: '#d0d4e4' },
+          }}
+        >
           <Box
             sx={{
-              width: 38,
-              height: 38,
-              borderRadius: '11px',
+              width: 40,
+              height: 40,
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              bgcolor: '#eef2ff',
-              color: '#4f46e5',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%)',
+              color: '#ffffff',
               fontSize: 14,
-              fontWeight: 700,
+              fontWeight: 800,
+              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
             }}
           >
             {getInitials(user)}
           </Box>
           <Box sx={{ display: { xs: 'none', sm: 'block' }, textAlign: 'right' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mb: 0.3 }}>
-              <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mb: 0.25 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#1d2433', lineHeight: 1.2 }}>
                 {displayName}
               </Typography>
-              <Box sx={{ borderRadius: '9999px', px: 1.25, py: 0.3, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', bgcolor: badge.bg, color: badge.text }}>
+              <Box
+                sx={{
+                  borderRadius: '9999px',
+                  px: 1.5,
+                  py: 0.3,
+                  fontSize: 10,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  bgcolor: badge.bg,
+                  color: badge.text,
+                  border: `1px solid ${badge.text}20`,
+                }}
+              >
                 {roleLabels[role]}
               </Box>
             </Box>
-            <Typography sx={{ fontSize: 12, color: '#8a91a3', fontWeight: 500 }}>
+            <Typography sx={{ fontSize: 12, color: '#8a91a3', fontWeight: 500, lineHeight: 1.3 }}>
               {email}
             </Typography>
           </Box>
