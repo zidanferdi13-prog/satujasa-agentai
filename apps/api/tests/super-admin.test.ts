@@ -96,6 +96,34 @@ describe('Super Admin Routes', () => {
     expect(updateRes.body.max_admin_users).toBe(10)
   })
 
+  // Test 3b: GET /admin/settings → 200 + data
+  it('returns app settings', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/settings')
+      .set('Authorization', `Bearer ${superAdminToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('data')
+    expect(response.body.data).toHaveProperty('app_name')
+    expect(response.body.data).toHaveProperty('support_email')
+    expect(response.body.data).toHaveProperty('support_phone')
+  })
+
+  // Test 3c: POST /admin/settings → success
+  it('updates app settings', async () => {
+    const response = await request(app)
+      .post('/api/v1/admin/settings')
+      .set('Authorization', `Bearer ${superAdminToken}`)
+      .send({
+        app_name: 'STNK Jasa Test',
+        support_email: 'test@satujasa.my.id',
+        support_phone: '08111111111',
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.success).toBe(true)
+  })
+
   // Test 4: Non super-admin hit super-admin route → 403
   it('rejects non-super-admin access to admin routes', async () => {
     // Register a regular owner

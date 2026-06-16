@@ -61,9 +61,9 @@ describe('Public Routes', () => {
     })
     const adminToken = adminRes.body.accessToken
     const servicesRes = await request(app)
-      .get('/api/v1/admin/settings')
+      .get('/api/v1/admin/services')
       .set('Authorization', `Bearer ${adminToken}`)
-    const serviceId = servicesRes.body.services[0].id
+    const serviceId = servicesRes.body.data[0].id
 
     await request(app)
       .post(`/api/v1/admin/owners/${ownerId}/subscription`)
