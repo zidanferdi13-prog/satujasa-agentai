@@ -1,89 +1,145 @@
 'use client';
 
-import React from 'react';
-import { Owner, OwnersListResponse } from '@/types/owner';
+import { useState } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import StatusPill from '@/components/shared/StatusPill';
+import { Owner } from '@/types/owner';
 
-interface Props {
-  data: OwnersListResponse;
+interface OwnersDataTableProps {
+  data: Owner[];
+  onSearch: (v: string) => void;
+  onTierChange: (v: string) => void;
 }
 
-const TIER_COLORS = {
-  FREE: 'bg-blue-100 text-blue-800',
-  PRO: 'bg-violet-100 text-violet-800',
-  PLUS: 'bg-green-100 text-green-800',
-  EXTREME: 'bg-orange-100 text-orange-800',
-};
+export default function OwnersDataTable({ data, onSearch, onTierChange }: OwnersDataTableProps) {
+  const [search, setSearch] = useState('');
 
-const STATUS_COLORS = {
-  active: 'bg-green-100 text-green-800',
-  trial: 'bg-amber-100 text-amber-800',
-  pending: 'bg-orange-100 text-orange-800',
-};
+  const getTierVariant = (tier: string | null): 'info' | 'violet' | 'success' | 'warning' => {
+    const t = (tier ?? 'FREE').toUpperCase();
+    if (t === 'PRO') return 'violet' as any;
+    if (t === 'PLUS') return 'success';
+    if (t === 'EXTREME') return 'warning';
+    return 'info';
+  };
 
-export const OwnersDataTable: React.FC<Props> = ({ data }) => {
+  const getStatusVariant = (status: string | null): 'success' | 'warning' | 'error' | 'info' => {
+    const s = (status ?? 'pending').toLowerCase();
+    if (s === 'active') return 'success';
+    if (s === 'trial') return 'warning';
+    return 'warning'; // pending
+  };
+
   return (
-    <div className="p-6">
-      <div className="flex flex-col gap-4 mb-6">
-        <div className="flex justify-between items-center">
-          <input type="text" placeholder="Search owners..." className="px-4 py-2 border rounded-md" />
-          <div className="flex gap-2">
-            {Object.keys(TIER_COLORS).map((tier) => (
-              <span key={tier} className={`px-3 py-1 rounded-full text-xs font-semibold ${TIER_COLORS[tier as keyof typeof TIER_COLORS]}`}>
-                {tier}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      {/* Toolbar */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+        <TextField
+          size="small"
+          placeholder="Cari email atau perusahaan..."
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            onSearch(e.target.value);
+          }}
+          sx={{ flex: 1, minWidth: 200, bgcolor: 'white', '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+        />
+        <Select
+          size="small"
+          defaultValue="ALL"
+          onChange={(e) => onTierChange(e.target.value)}
+          sx={{ minWidth: 150, bgcolor: 'white', borderRadius: '12px' }}
+        >
+          <MenuItem value="ALL">Semua Tier</MenuItem>
+          <MenuItem value="FREE">Free</MenuItem>
+          <MenuItem value="PRO">Pro</MenuItem>
+          <MenuItem value="PLUS">Plus</MenuItem>
+          <MenuItem value="EXTREME">Extreme</MenuItem>
+        </Select>
+      </Box>
 
-      {data.owners.length === 0 ? (
-        <div className="text-center py-20 text-gray-500">No owners found.</div>
-      ) : (
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b">
-              <th className="py-2">Owner</th>
-              <th className="py-2">Tier</th>
-              <th className="py-2">Tenants</th>
-              <th className="py-2">Admins</th>
-              <th className="py-2">Status</th>
-              <th className="py-2">Created</th>
-              <th className="py-2">MRR</th>
-              <th className="py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.owners.map((owner) => (
-              <tr key={owner.id} className="hover:bg-[#fbfcff] border-b">
-                <td className="py-3 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 text-white flex items-center justify-center font-bold text-xs">
-                    {owner.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="font-medium">{owner.name}</div>
-                    <div className="text-xs text-gray-500">{owner.email}</div>
-                  </div>
-                </td>
-                <td className="py-3">
-                  <span className={`px-2 py-1 rounded text-xs ${TIER_COLORS.FREE}`}>FREE</span>
-                </td>
-                <td className="py-3">{owner.tenantCount}</td>
-                <td className="py-3">{owner.adminUserCount}</td>
-                <td className="py-3">
-                  <span className={`px-2 py-1 rounded text-xs ${STATUS_COLORS.active}`}>Active</span>
-                </td>
-                <td className="py-3">-</td>
-                <td className="py-3">-</td>
-                <td className="py-3">...</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <div className="mt-4 flex justify-between text-sm text-gray-500">
-        <div>Showing {data.owners.length} of {data.totalCount}</div>
-        <div>Pagination...</div>
-      </div>
-    </div>
+      {/* Table */}
+      <TableContainer component={Paper} sx={{ borderRadius: '22px', boxShadow: 'var(--dash-shadow-soft)', border: '1px solid var(--dash-line)', overflow: 'hidden' }}>
+        <Table sx={{ minWidth: 800 }}>
+          <TableHead sx={{ bgcolor: '#f8fafc' }}>
+            <TableRow>
+              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Owner</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Subscription</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Tenant</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Status</TableCell>
+              <TableCell sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>MRR</TableCell>
+              <TableCell></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 8 }}>
+                  <Typography sx={{ color: 'var(--dash-muted)' }}>Tidak ada owner ditemukan</Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((owner) => (
+                <TableRow key={owner.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Avatar sx={{ 
+                        width: 40, height: 40, fontSize: 14, fontWeight: 700,
+                        background: 'linear-gradient(135deg, #6161ff 0%, #8b5cf6 100%)'
+                      }}>
+                        {owner.email.slice(0, 2).toUpperCase()}
+                      </Avatar>
+                      <Box>
+                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>{owner.email}</Typography>
+                        <Typography sx={{ fontSize: 12, color: 'var(--dash-muted)' }}>{owner.company_name ?? '—'}</Typography>
+                      </Box>
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <StatusPill 
+                      status={(owner.subscription_tier ?? 'FREE').toUpperCase()} 
+                      variant={getTierVariant(owner.subscription_tier) as any} 
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'inline-flex', px: 1, py: 0.5, borderRadius: '6px', bgcolor: '#f1f5f9', fontSize: 12, fontWeight: 700 }}>
+                      {owner.total_tenants}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <StatusPill 
+                      status={(owner.subscription_status ?? 'pending').toUpperCase()} 
+                      variant={getStatusVariant(owner.subscription_status)} 
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography sx={{ fontSize: 14, fontWeight: 700 }}>
+                      Rp {Number(owner.mrr ?? 0).toLocaleString('id-ID')}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton size="small">
+                      <span className="material-symbols-outlined">more_vert</span>
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
-};
+}
