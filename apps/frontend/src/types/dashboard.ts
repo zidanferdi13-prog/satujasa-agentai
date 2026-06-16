@@ -92,3 +92,18 @@ export interface OwnerDashboardResponse {
     security: string;
   };
 }
+
+// ── Admin User Dashboard Response ──
+export interface AdminUserDashboardResponse {
+  kpi: {
+    transactions_today: { value: number; trend: number };
+    pending: { value: number; trend: number };
+    done: { value: number; trend: number };
+    sla: { value: number; trend: number };
+  };
+  chart_30d: Array<{ date: string; count: number }>;
+  activity: Array<{ id: string; tenant_name: string; action: string; time_ago: string }>;
+  recent_transactions: Array<{ id: string; trx_number: string; tenant_name: string; service_name: string; status: string; created_at: string }>;
+  team_performance: { done_count: number; processing_count: number; pending_count: number; done_pct: number; processing_pct: number; pending_pct: number };
+  requests_summary: { total: number; pending: number; approved: number; rejected: number };
+}
