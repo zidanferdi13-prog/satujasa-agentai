@@ -49,6 +49,7 @@ export default function FilterBar({
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
+        p: { xs: 2, md: 2.5 },
       }}
     >
       {/* Top row: search + dropdown filters */}
@@ -75,7 +76,7 @@ export default function FilterBar({
                     className="material-symbols-outlined"
                     sx={{
                       fontSize: 20,
-                      color: '#808080',
+                      color: '#8a91a3',
                       lineHeight: 1,
                     }}
                   >
@@ -91,8 +92,8 @@ export default function FilterBar({
                     edge="end"
                     sx={{
                       p: 0.25,
-                      color: '#808080',
-                      '&:hover': { color: '#333333' },
+                      color: '#8a91a3',
+                      '&:hover': { color: '#1d2433' },
                     }}
                   >
                     <Box
@@ -108,8 +109,25 @@ export default function FilterBar({
             },
           }}
           sx={{
-            minWidth: 240,
+            minWidth: 280,
             flex: { xs: '1 1 100%', sm: '0 1 auto' },
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '12px',
+              backgroundColor: '#f8f9fc',
+              border: '1px solid #e5e9f3',
+              '&:hover': {
+                backgroundColor: '#ffffff',
+                borderColor: '#d0d4e4',
+              },
+              '&.Mui-focused': {
+                backgroundColor: '#ffffff',
+                borderColor: '#4f46e5',
+                boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.1)',
+              },
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
+            },
           }}
         />
 
@@ -126,7 +144,7 @@ export default function FilterBar({
                 return (
                   <Typography
                     component="span"
-                    sx={{ color: '#94a3b8', fontSize: '0.875rem' }}
+                    sx={{ color: '#8a91a3', fontSize: '0.875rem', fontWeight: 500 }}
                   >
                     {filter.label}
                   </Typography>
@@ -138,6 +156,21 @@ export default function FilterBar({
             sx={{
               minWidth: 140,
               flex: { xs: '1 1 calc(50% - 6px)', sm: '0 1 auto' },
+              borderRadius: '12px',
+              backgroundColor: '#f8f9fc',
+              border: '1px solid #e5e9f3',
+              '&:hover': {
+                backgroundColor: '#ffffff',
+                borderColor: '#d0d4e4',
+              },
+              '&.Mui-focused': {
+                backgroundColor: '#ffffff',
+                borderColor: '#4f46e5',
+                boxShadow: '0 0 0 3px rgba(79, 70, 229, 0.1)',
+              },
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none',
+              },
             }}
           >
             {filter.options.map((option) => (
@@ -157,6 +190,7 @@ export default function FilterBar({
             flexWrap: 'wrap',
             gap: 1,
             alignItems: 'center',
+            mt: 0.5,
           }}
         >
           {activeChips.map((chip) => (
@@ -178,17 +212,18 @@ export default function FilterBar({
                 </Box>
               }
               sx={{
-                borderRadius: '6px',
-                px: '4px',
+                borderRadius: '10px',
+                px: '8px',
                 fontWeight: 600,
-                fontSize: '0.75rem',
-                height: 28,
-                backgroundColor: 'rgba(97, 97, 255, 0.08)',
-                color: '#6161ff',
+                fontSize: '0.8125rem',
+                height: 32,
+                backgroundColor: 'rgba(79, 70, 229, 0.08)',
+                color: '#4f46e5',
+                border: '1px solid rgba(79, 70, 229, 0.15)',
                 '& .MuiChip-deleteIcon': {
                   fontSize: 16,
                   mr: '2px',
-                  color: '#6161ff',
+                  color: '#4f46e5',
                   opacity: 0.6,
                   '&:hover': { opacity: 1 },
                 },
@@ -201,15 +236,15 @@ export default function FilterBar({
             component="button"
             onClick={onClearAll}
             sx={{
-              fontSize: '0.75rem',
+              fontSize: '0.8125rem',
               fontWeight: 600,
-              color: '#535768',
+              color: '#6b7280',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              textDecoration: 'underline',
+              textDecoration: 'none',
               textUnderlineOffset: 2,
-              '&:hover': { color: '#ef4444' },
+              '&:hover': { color: '#ef4444', textDecoration: 'underline' },
               px: 0.5,
               lineHeight: 1,
             }}

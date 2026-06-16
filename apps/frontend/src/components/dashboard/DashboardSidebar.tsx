@@ -159,6 +159,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
             fontWeight: 600,
             cursor: 'pointer',
             transition: 'all 0.15s',
+            marginBottom: '30px'
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = '#fee2e2';
