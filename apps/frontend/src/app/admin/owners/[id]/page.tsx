@@ -14,7 +14,6 @@ import InputLabel from '@mui/material/InputLabel';
 import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
-import Divider from '@mui/material/Divider';
 import MetricCard from '@/components/shared/MetricCard';
 import StatusPill from '@/components/shared/StatusPill';
 import apiClient from '@/lib/axios';
@@ -22,12 +21,23 @@ import apiClient from '@/lib/axios';
 interface OwnerDetail {
   id: string;
   email: string;
-  subscription?: {
-    tier: string;
-    max_tenants: number;
-    max_admin_users: number;
-  };
-  tenants?: Array<{ id: string; name: string }>;
+  phone: string;
+  company_name: string | null;
+  role: string;
+  subscription_tier: string | null;
+  total_tenants: number;
+  total_admin_users: number;
+  subscription_status: string | null;
+  mrr: string;
+  created_at: string;
+}
+
+interface Subscription {
+  id: string;
+  tier: string;
+  max_tenants: number;
+  max_admin_users: number;
+  activated_at: string | null;
 }
 
 interface UpdateSubscriptionPayload {
@@ -58,16 +68,33 @@ export default function OwnerDetailPage() {
       apiClient.get(`/admin/owners/${id}`).then((r) => r.data?.data ?? r.data),
   });
 
-  // Initialize form when owner data loads
+  // Fetch separate subscription data for max_tenants/max_admin_users
+  const { data: subscription } = useQuery<Subscription>({
+    queryKey: ['admin-owner-subscription', id],
+    queryFn: () =>
+      apiClient.get(`/admin/owners/${id}/subscription`).then((r) => r.data),
+    enabled: !!id,
+    retry: false,
+  });
+
+  // Initialize form when subscription data loads
   useEffect(() => {
-    if (owner) {
+    if (subscription) {
       setForm({
-        tier: owner.subscription?.tier ?? 'free',
-        max_tenants: owner.subscription?.max_tenants ?? 0,
-        max_admin_users: owner.subscription?.max_admin_users ?? 0,
+        tier: subscription.tier ?? 'free',
+        max_tenants: subscription.max_tenants ?? 0,
+        max_admin_users: subscription.max_admin_users ?? 0,
+      });
+    } else if (owner) {
+      // Fallback: use defaults based on tier
+      const tierConfig = TIERS.find((t) => t.value === (owner.subscription_tier ?? 'free'));
+      setForm({
+        tier: owner.subscription_tier ?? 'free',
+        max_tenants: tierConfig?.default_tenants ?? 1,
+        max_admin_users: tierConfig?.default_admin_users ?? 1,
       });
     }
-  }, [owner]);
+  }, [subscription, owner]);
 
   const { mutate: updateSubscription, isPending } = useMutation({
     mutationFn: (payload: UpdateSubscriptionPayload) =>
@@ -75,6 +102,7 @@ export default function OwnerDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-owner', id] });
       queryClient.invalidateQueries({ queryKey: ['admin-owners'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-owner-subscription', id] });
       setError('');
       alert('Subscription berhasil diupdate');
     },
@@ -115,6 +143,10 @@ export default function OwnerDetailPage() {
     return <Box sx={{ p: { xs: 3, md: 4 } }}><Typography sx={{ textAlign: 'center', py: 4 }}>Owner tidak ditemukan.</Typography></Box>;
   }
 
+  const tierStatusVariant: Record<string, 'success' | 'warning' | 'info' | 'error'> = {
+    free: 'info', pro: 'success', plus: 'warning', expert: 'success',
+  };
+
   return (
     <Box sx={{ p: { xs: 3, md: 4 }, maxWidth: 800 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
@@ -124,16 +156,19 @@ export default function OwnerDetailPage() {
         <Typography variant="h4" sx={{ fontWeight: 700, flex: 1 }}>
           {owner.email || 'Owner tanpa email'}
         </Typography>
-        <StatusPill status={owner.subscription?.tier ?? 'free'} variant={owner.subscription?.tier === 'free' ? 'info' : 'success'} />
+        <StatusPill
+          status={(owner.subscription_tier ?? 'FREE').toUpperCase()}
+          variant={tierStatusVariant[owner.subscription_tier ?? 'free'] ?? 'info'}
+        />
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       {/* MetricCards */}
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 2, mb: 4 }}>
-        <MetricCard label="Tenant" value={owner.tenants?.length ?? 0} />
-        <MetricCard label="Max Tenant" value={owner.subscription?.max_tenants ?? '-'} />
-        <MetricCard label="Max Admin User" value={owner.subscription?.max_admin_users ?? '-'} />
+        <MetricCard label="Tenant Terpakai" value={owner.total_tenants ?? 0} />
+        <MetricCard label="Max Tenant" value={subscription?.max_tenants ?? '-'} />
+        <MetricCard label="Max Admin User" value={subscription?.max_admin_users ?? '-'} />
       </Box>
 
       {/* Subscription Form */}
@@ -143,7 +178,8 @@ export default function OwnerDetailPage() {
             Manajemen Subscription
           </Typography>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <FormControl fullWidth required>
             <InputLabel>Subscription Tier</InputLabel>
             <Select
@@ -185,30 +221,10 @@ export default function OwnerDetailPage() {
               {isPending ? 'Menyimpan...' : 'Simpan Subscription'}
             </Button>
           </Box>
+          </Box>
         </form>
       </CardContent>
       </Card>
-
-      {/* Tenants List */}
-      {owner.tenants && owner.tenants.length > 0 && (
-        <>
-          <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Tenant ({owner.tenants.length})
-          </Typography>
-          <Box sx={{ display: 'grid', gap: 2 }}>
-            {owner.tenants.map((tenant) => (
-              <Card key={tenant.id} variant="outlined">
-                <CardContent sx={{ py: 2 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {tenant.name || 'Tenant tanpa nama'}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        </>
-      )}
     </Box>
   );
 }

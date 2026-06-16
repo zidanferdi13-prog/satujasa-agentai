@@ -35,7 +35,12 @@ export default function OwnersListPage() {
     queryKey: ['admin-owners', search, tierFilter],
     queryFn: () =>
       apiClient
-        .get('/admin/owners', { params: { search: search || undefined, tier: tierFilter !== 'ALL' ? tierFilter : undefined } })
+        .get('/admin/owners', { 
+          params: { 
+            search: search || undefined, 
+            tier: tierFilter !== 'ALL' ? tierFilter.toLowerCase() : undefined 
+          } 
+        })
         .then((r) => r.data?.data ? { data: r.data.data, meta: r.data.meta } : r.data),
   });
 

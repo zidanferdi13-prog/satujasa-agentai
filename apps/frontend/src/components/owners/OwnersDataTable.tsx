@@ -27,11 +27,11 @@ interface OwnersDataTableProps {
 export default function OwnersDataTable({ data, onSearch, onTierChange }: OwnersDataTableProps) {
   const [search, setSearch] = useState('');
 
-  const getTierVariant = (tier: string | null): 'info' | 'violet' | 'success' | 'warning' => {
+  const getTierVariant = (tier: string | null): 'info' | 'success' | 'warning' | 'error' => {
     const t = (tier ?? 'FREE').toUpperCase();
-    if (t === 'PRO') return 'violet' as any;
-    if (t === 'PLUS') return 'success';
-    if (t === 'EXTREME') return 'warning';
+    if (t === 'PRO') return 'success';
+    if (t === 'PLUS') return 'warning';
+    if (t === 'EXTREME' || t === 'EXPERT') return 'success';
     return 'info';
   };
 
@@ -66,7 +66,7 @@ export default function OwnersDataTable({ data, onSearch, onTierChange }: Owners
           <MenuItem value="FREE">Free</MenuItem>
           <MenuItem value="PRO">Pro</MenuItem>
           <MenuItem value="PLUS">Plus</MenuItem>
-          <MenuItem value="EXTREME">Extreme</MenuItem>
+          <MenuItem value="EXPERT">Expert</MenuItem>
         </Select>
       </Box>
 
