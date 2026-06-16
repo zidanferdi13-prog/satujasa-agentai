@@ -272,28 +272,169 @@ function relativeTime(date: Date): string {
     })
   })
 
-  // GET /admin/owners
-  router.get('/owners', async (_req, res) => {
+  // GET /admin/owners — enriched list with search & tier filter
+  router.get('/owners', async (req, res) => {
     try {
+      const search = typeof req.query.search === 'string' ? req.query.search.trim() : null
+      const tierFilter = typeof req.query.tier === 'string' ? req.query.tier.trim() : null
+
+      // Base conditions
+      const conditions: ReturnType<typeof and>[] = [
+        eq(schema.users.role, 'owner'),
+        isNull(schema.users.deleted_at),
+      ]
+
+      // Tier filter: pre-filter owner IDs from subscriptions
+      if (tierFilter && ['free', 'pro', 'plus', 'expert'].includes(tierFilter)) {
+        const tierSubs = await db
+          .select({ ownerId: schema.subscriptions.owner_id })
+          .from(schema.subscriptions)
+          .where(and(
+            eq(schema.subscriptions.tier, tierFilter as SubscriptionTier),
+            isNull(schema.subscriptions.deleted_at),
+          ))
+
+        const filteredIds = [...new Set(tierSubs.map(s => s.ownerId))]
+        if (filteredIds.length === 0) {
+          // No owners match — return empty early
+          const [cnt] = await db
+            .select({ count: sql<number>`count(*)::int` })
+            .from(schema.users)
+            .where(and(...conditions))
+          res.json({ data: [], meta: { total: cnt?.count ?? 0 } })
+          return
+        }
+
+        conditions.push(sql`${schema.users.id} IN (${sql.join(
+          filteredIds.map(id => sql`${id}`),
+          sql`, `,
+        )})`)
+      }
+
+      // Search filter: email or company_name ILIKE
+      if (search && search.length > 0) {
+        conditions.push(sql`(
+          ${schema.users.email}::text ILIKE ${'%' + search + '%'}
+          OR
+          ${schema.users.company_name}::text ILIKE ${'%' + search + '%'}
+        )`)
+      }
+
+      // Total count
+      const [cnt] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.users)
+        .where(and(...conditions))
+      const total = cnt?.count ?? 0
+
+      // Owners
       const owners = await db
         .select({
           id: schema.users.id,
           email: schema.users.email,
           phone: schema.users.phone,
+          company_name: schema.users.company_name,
           role: schema.users.role,
           created_at: schema.users.created_at,
         })
         .from(schema.users)
-        .where(and(eq(schema.users.role, 'owner'), isNull(schema.users.deleted_at)))
+        .where(and(...conditions))
 
-      res.json({ data: owners })
+      const ownerIds = owners.map(o => o.id)
+
+      // Subscriptions for these owners (latest non-deleted per owner)
+      const subs = ownerIds.length > 0
+        ? await db
+            .select({
+              owner_id: schema.subscriptions.owner_id,
+              tier: schema.subscriptions.tier,
+              activated_at: schema.subscriptions.activated_at,
+            })
+            .from(schema.subscriptions)
+            .where(and(
+              sql`${schema.subscriptions.owner_id} IN (${sql.join(ownerIds.map(id => sql`${id}`), sql`, `)})`,
+              isNull(schema.subscriptions.deleted_at),
+            ))
+        : []
+
+      // Tenant counts grouped by owner_id
+      const tenantCounts = ownerIds.length > 0
+        ? await db
+            .select({
+              owner_id: schema.tenants.owner_id,
+              count: sql<number>`count(*)::int`,
+            })
+            .from(schema.tenants)
+            .where(and(
+              sql`${schema.tenants.owner_id} IN (${sql.join(ownerIds.map(id => sql`${id}`), sql`, `)})`,
+              isNull(schema.tenants.deleted_at),
+            ))
+            .groupBy(schema.tenants.owner_id)
+        : []
+
+      // Admin-user counts grouped by owner_id
+      const adminCounts = ownerIds.length > 0
+        ? await db
+            .select({
+              owner_id: schema.users.owner_id,
+              count: sql<number>`count(*)::int`,
+            })
+            .from(schema.users)
+            .where(and(
+              eq(schema.users.role, 'admin-user'),
+              isNull(schema.users.deleted_at),
+              sql`${schema.users.owner_id} IN (${sql.join(ownerIds.map(id => sql`${id}`), sql`, `)})`,
+            ))
+            .groupBy(schema.users.owner_id)
+        : []
+
+      // Build lookup maps
+      const subMap = new Map<string, { tier: string; activatedAt: Date | null }>()
+      for (const s of subs) subMap.set(s.owner_id, { tier: s.tier, activatedAt: s.activated_at })
+
+      const tenantCountMap = new Map<string, number>()
+      for (const t of tenantCounts) tenantCountMap.set(t.owner_id, t.count)
+
+      const adminCountMap = new Map<string, number>()
+      for (const a of adminCounts) { if (a.owner_id) adminCountMap.set(a.owner_id, a.count) }
+
+      // MRR mapping
+      const mrrMap: Record<string, string> = {
+        free: '0',
+        pro: '299000',
+        plus: '499000',
+        expert: '899000',
+      }
+
+      // Enrich owners
+      const enriched = owners.map(o => {
+        const sub = subMap.get(o.id)
+        const tier = sub?.tier ?? null
+        const subscriptionStatus = sub?.activatedAt ? 'active' : 'pending'
+        const mrr = tier ? (mrrMap[tier] ?? '') : ''
+        return {
+          id: o.id,
+          email: o.email,
+          phone: o.phone,
+          company_name: o.company_name ?? null,
+          role: o.role,
+          subscription_tier: tier,
+          total_tenants: tenantCountMap.get(o.id) ?? 0,
+          total_admin_users: adminCountMap.get(o.id) ?? 0,
+          subscription_status: subscriptionStatus,
+          mrr,
+          created_at: o.created_at,
+        }
+      })
+
+      res.json({ data: enriched, meta: { total } })
     } catch (error) {
       console.error('List owners error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
 
-  // GET /admin/owners/:id
+  // GET /admin/owners/:id — enriched single owner
   router.get('/owners/:id', async (req, res) => {
     try {
       const [owner] = await db
@@ -313,13 +454,42 @@ function relativeTime(date: Date): string {
         .where(and(eq(schema.subscriptions.owner_id, owner.id), isNull(schema.subscriptions.deleted_at)))
         .limit(1)
 
+      const [tenantCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.tenants)
+        .where(and(eq(schema.tenants.owner_id, owner.id), isNull(schema.tenants.deleted_at)))
+
+      const [adminCount] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.users)
+        .where(and(
+          eq(schema.users.role, 'admin-user'),
+          eq(schema.users.owner_id, owner.id),
+          isNull(schema.users.deleted_at),
+        ))
+
+      const tier = sub?.tier ?? null
+      const subscriptionStatus = sub?.activated_at ? 'active' : 'pending'
+      const mrrMap: Record<string, string> = {
+        free: '0',
+        pro: '299000',
+        plus: '499000',
+        expert: '899000',
+      }
+      const mrr = tier ? (mrrMap[tier] ?? '') : ''
+
       res.json({
         id: owner.id,
         email: owner.email,
         phone: owner.phone,
+        company_name: owner.company_name ?? null,
         role: owner.role,
+        subscription_tier: tier,
+        total_tenants: tenantCount?.count ?? 0,
+        total_admin_users: adminCount?.count ?? 0,
+        subscription_status: subscriptionStatus,
+        mrr,
         created_at: owner.created_at,
-        subscription: sub || null,
       })
     } catch (error) {
       console.error('Get owner error:', error)
