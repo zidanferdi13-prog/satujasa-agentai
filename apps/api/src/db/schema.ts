@@ -25,6 +25,7 @@ export const statusEnum = pgEnum('transaction_status', [
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
+  company_name: varchar('company_name', { length: 255 }),
   phone: varchar('phone', { length: 50 }).notNull().default(''),
   password_hash: varchar('password_hash', { length: 255 }).notNull(),
   role: roleEnum('role').notNull().default('owner'),
