@@ -96,6 +96,40 @@ describe('Super Admin Routes', () => {
     expect(updateRes.body.max_admin_users).toBe(10)
   })
 
+  // Test 3b: GET /admin/users → 200 + list
+  it('returns admin users list', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/users')
+      .set('Authorization', `Bearer ${superAdminToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('data')
+    expect(response.body).toHaveProperty('meta')
+    expect(Array.isArray(response.body.data)).toBe(true)
+    expect(response.body.data.length).toBeGreaterThan(0)
+
+    const user = response.body.data[0]
+    expect(user).toHaveProperty('id')
+    expect(user).toHaveProperty('email')
+    expect(user).toHaveProperty('role')
+    expect(user).toHaveProperty('is_active')
+    expect(user).toHaveProperty('created_at')
+    expect(user.is_active).toBe(true)
+  })
+
+  // Test 3c: GET /admin/users?role= → filter
+  it('filters admin users by role', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/users?role=owner')
+      .set('Authorization', `Bearer ${superAdminToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data.length).toBeGreaterThan(0)
+    response.body.data.forEach((user: { role: string }) => {
+      expect(user.role).toBe('owner')
+    })
+  })
+
   // Test 4: Non super-admin hit super-admin route → 403
   it('rejects non-super-admin access to admin routes', async () => {
     // Register a regular owner
