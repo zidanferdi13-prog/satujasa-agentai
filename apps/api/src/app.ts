@@ -17,14 +17,10 @@ export function createApp(config: AppConfig) {
 
   app.disable('x-powered-by')
   app.use(helmet())
-  const corsOrigins = config.WEB_ORIGIN.split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
   app.use(cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (server-to-server, curl, etc.)
-      if (!origin || corsOrigins.includes(origin)) return callback(null, true)
-      callback(null, false)
+      // Allow everything — dev-friendly, all origins accepted
+      callback(null, origin || true)
     },
     credentials: true,
   }))
