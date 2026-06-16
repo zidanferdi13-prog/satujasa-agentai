@@ -5,6 +5,7 @@ function param(value: string | string[] | undefined): string {
   return Array.isArray(value) ? value[0]! : (value ?? '')
 }
 
+import { readSettingsFromFile, writeSettingsToFile } from '../lib/settings-file.js'
 import type { Database } from '../db/index.js'
 import { schema } from '../db/index.js'
 import type { AppConfig } from '../config.js'
@@ -592,15 +593,27 @@ function relativeTime(date: Date): string {
     }
   })
 
-  // GET /admin/settings
-  router.get('/settings', async (_req, res) => {
+  // ─── Services ────────────────────────────────────────────────────────────
+  router.get('/services', async (_req, res) => {
     try {
       const allServices = await db
         .select()
         .from(schema.services)
         .where(isNull(schema.services.deleted_at))
+        .orderBy(schema.services.name)
 
-      res.json({ services: allServices })
+      res.json({ data: allServices })
+    } catch (error) {
+      console.error('Get services error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // ─── Settings ────────────────────────────────────────────────────────────
+  router.get('/settings', async (_req, res) => {
+    try {
+      const settings = await readSettingsFromFile()
+      res.json({ data: settings })
     } catch (error) {
       console.error('Get settings error:', error)
       res.status(500).json({ error: 'internal_server_error' })
@@ -659,6 +672,16 @@ function relativeTime(date: Date): string {
       res.json({ data: items, meta: { total: items.length } })
     } catch (e) {
       console.error('Super admin users list error:', e)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  router.post('/settings', async (req, res) => {
+    try {
+      await writeSettingsToFile(req.body)
+      res.json({ success: true })
+    } catch (error) {
+      console.error('Update settings error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
