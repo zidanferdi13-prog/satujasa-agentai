@@ -49,7 +49,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
         bgcolor: 'rgba(255,255,255,0.96)',
         borderRight: '1px solid #e5e9f3',
         boxShadow: '4px 0 24px rgba(30, 41, 59, 0.04)',
-        p: '20px 20px 12px',
+        p: '20px 20px 8px',
       }}
     >
       <Link
@@ -114,48 +114,33 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
         })}
       </Box>
 
-      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
         <Box
           sx={{
-            borderRadius: '16px',
+            borderRadius: '12px',
             border: '1px solid rgba(79, 70, 229, 0.08)',
             background: 'linear-gradient(135deg, #f8faff 0%, #eef2ff 100%)',
-            p: '12px 16px',
-            mb: 0.5,
+            p: '10px 14px',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Box
               sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '10px',
+                width: 28,
+                height: 28,
+                borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 bgcolor: 'rgba(79, 70, 229, 0.1)',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#4f46e5' }}>shield</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#4f46e5' }}>shield</span>
             </Box>
-            <Typography sx={{ fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#1d2433' }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#1d2433' }}>
               Secure Panel
             </Typography>
           </Box>
-          <Typography sx={{ fontSize: 12, color: '#6b7280', lineHeight: 1.6, mb: 1 }}>
-            Akses menu mengikuti role aktif dan tetap berada dalam area kerja dashboard.
-          </Typography>
-          <Link
-            href="#"
-            style={{
-              fontSize: 12,
-              fontWeight: 600,
-              color: '#4f46e5',
-              textDecoration: 'none',
-            }}
-          >
-            Pelajari lebih lanjut →
-          </Link>
         </Box>
 
         <button
@@ -166,7 +151,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
             alignItems: 'center',
             gap: 10,
             borderRadius: '12px',
-            padding: '12px 18px',
+            padding: '10px 16px',
             border: '1px solid #fecaca',
             backgroundColor: '#fef2f2',
             color: '#dc2626',
