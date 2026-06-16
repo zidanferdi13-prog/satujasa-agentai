@@ -1044,5 +1044,47 @@ export function adminUserRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
+  // ─── Team (Tim) ──────────────────────────────────────────────────────────
+  router.get('/team', async (req, res) => {
+    try {
+      const tenantId = getUserTenantId(req)
+      if (!tenantId) {
+        res.status(403).json({ error: 'no_tenant_assigned' })
+        return
+      }
+
+      const search = typeof req.query.search === 'string' ? req.query.search.trim() : ''
+
+      const rows = await db
+        .select({
+          id: schema.users.id,
+          email: schema.users.email,
+          role: schema.users.role,
+          created_at: schema.users.created_at,
+        })
+        .from(schema.users)
+        .where(and(eq(schema.users.tenant_id, tenantId), isNull(schema.users.deleted_at)))
+        .orderBy(sql`${schema.users.created_at} ASC`)
+
+      let items = rows.map(r => ({
+        id: r.id,
+        email: r.email,
+        role: r.role,
+        is_active: true,
+        created_at: r.created_at.toISOString(),
+      }))
+
+      if (search) {
+        const q = search.toLowerCase()
+        items = items.filter(i => i.email.toLowerCase().includes(q))
+      }
+
+      res.json({ data: items, meta: { total: items.length } })
+    } catch (e) {
+      console.error('Admin team list error:', e)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   return router
 }
