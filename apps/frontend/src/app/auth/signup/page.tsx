@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -9,19 +10,54 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import AuthShell from '@/components/auth/AuthShell';
 import AuthTextField from '@/components/auth/AuthTextField';
+import apiClient from '@/lib/axios';
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  const [form, setForm] = useState({
+    company_name: '',
+    owner_name: '',
+    email: '',
+    phone: '',
+  });
+
+  function handleChange(field: string) {
+    return (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsPending(true);
     setError(null);
-    // Business logic placeholder — actual registration hook can be wired here
-    setTimeout(() => {
+
+    if (!form.email.trim() || !form.phone.trim() || !form.company_name.trim()) {
+      setError('Harap isi semua field yang wajib');
       setIsPending(false);
-    }, 2000);
+      return;
+    }
+
+    try {
+      await apiClient.post('/auth/register', {
+        email: form.email.trim(),
+        company_name: form.company_name.trim(),
+        phone: form.phone.trim(),
+        password: 'STNK1234!', // Default — ubah nanti via fitur reset password
+      });
+      router.push('/auth/signin?registered=true');
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error ??
+        err?.response?.data?.message ??
+        err?.message ??
+        'Gagal mendaftar. Coba lagi.';
+      setError(msg);
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
@@ -51,10 +87,40 @@ export default function SignUpPage() {
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <AuthTextField label="Nama bisnis" required fullWidth autoComplete="organization" />
-        <AuthTextField label="Nama pemilik" required fullWidth autoComplete="name" />
-        <AuthTextField label="Email" type="email" required fullWidth autoComplete="email" />
-        <AuthTextField label="Nomor WhatsApp" type="tel" required fullWidth autoComplete="tel" />
+        <AuthTextField
+          label="Nama bisnis"
+          required
+          fullWidth
+          autoComplete="organization"
+          value={form.company_name}
+          onChange={handleChange('company_name')}
+        />
+        <AuthTextField
+          label="Nama pemilik"
+          required
+          fullWidth
+          autoComplete="name"
+          value={form.owner_name}
+          onChange={handleChange('owner_name')}
+        />
+        <AuthTextField
+          label="Email"
+          type="email"
+          required
+          fullWidth
+          autoComplete="email"
+          value={form.email}
+          onChange={handleChange('email')}
+        />
+        <AuthTextField
+          label="Nomor WhatsApp"
+          type="tel"
+          required
+          fullWidth
+          autoComplete="tel"
+          value={form.phone}
+          onChange={handleChange('phone')}
+        />
         <Button
           type="submit"
           variant="contained"
