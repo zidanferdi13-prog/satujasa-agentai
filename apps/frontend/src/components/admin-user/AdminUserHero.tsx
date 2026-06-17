@@ -2,12 +2,15 @@
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface AdminUserHeroProps {
   userName?: string;
 }
 
-export default function AdminUserHero({ userName = 'Admin' }: AdminUserHeroProps) {
+export default function AdminUserHero({ userName: _userNameProp }: AdminUserHeroProps) {
+  const { data: user } = useCurrentUser();
+  const userName = user?.name ?? _userNameProp ?? 'Admin';
   return (
     <Box
       sx={{
@@ -81,7 +84,7 @@ export default function AdminUserHero({ userName = 'Admin' }: AdminUserHeroProps
                   color: '#FFFFFF',
                 }}
               >
-                Pantau transaksi dan aktivitas tenant Anda secara real-time
+                Selamat datang, {userName}. Pantau transaksi dan aktivitas tenant Anda secara real-time
               </Typography>
             </Box>
           </Box>

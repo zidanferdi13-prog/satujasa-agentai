@@ -66,7 +66,7 @@ export default function UserAdminPage() {
       )}
 
       {/* Hero */}
-      <AdminUserHero userName={undefined} />
+      <AdminUserHero />
 
       {/* KPI Grid */}
       <AdminUserKpiGrid kpis={data?.kpi} />
