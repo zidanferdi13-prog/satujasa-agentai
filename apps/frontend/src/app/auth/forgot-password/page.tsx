@@ -9,21 +9,39 @@ import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import AuthShell from '@/components/auth/AuthShell';
 import AuthTextField from '@/components/auth/AuthTextField';
+import apiClient from '@/lib/axios';
 
 export default function ForgotPasswordPage() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [email, setEmail] = useState('');
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsPending(true);
     setError(null);
-    // Business logic placeholder — actual reset flow can be wired here
-    setTimeout(() => {
+    setSuccess(false);
+
+    if (!email.trim()) {
+      setError('Masukkan email yang terdaftar');
       setIsPending(false);
+      return;
+    }
+
+    try {
+      await apiClient.post('/auth/forgot-password', { email: email.trim() });
       setSuccess(true);
-    }, 2000);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error ??
+        err?.response?.data?.message ??
+        err?.message ??
+        'Gagal mengirim permintaan. Coba lagi.';
+      setError(msg);
+    } finally {
+      setIsPending(false);
+    }
   }
 
   return (
@@ -59,7 +77,15 @@ export default function ForgotPasswordPage() {
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <AuthTextField label="Email terdaftar" type="email" required fullWidth autoComplete="email" />
+        <AuthTextField
+          label="Email terdaftar"
+          type="email"
+          required
+          fullWidth
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
         <Button
           type="submit"
           variant="contained"
