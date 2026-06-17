@@ -99,4 +99,74 @@ describe('Auth Routes', () => {
     expect(response.body.message).toBe('logged_out')
     expect(response.headers['set-cookie']).toBeDefined()
   })
+
+  // Test 7: Forgot password (email exists) → 200
+  it('forgot password returns success for existing email', async () => {
+    const response = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: testEmail })
+
+    expect(response.status).toBe(200)
+    expect(response.body.message).toBe('reset_email_sent')
+  })
+
+  // Test 8: Forgot password (email not found) → 200 + same message
+  it('returns same success message for unknown email (prevent enumeration)', async () => {
+    const response = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'nonexistent@test.local' })
+
+    expect(response.status).toBe(200)
+    expect(response.body.message).toBe('reset_email_sent')
+  })
+
+  // Test 9: Forgot password without email → 400
+  it('requires email field', async () => {
+    const response = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({})
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('email_required')
+  })
+
+  // Test 10: Reset password with valid JWT → 200
+  it('resets password with valid token', async () => {
+    const newPass = 'NewPass123!'
+
+    // Construct a valid reset JWT using the known test secret
+    const { default: jwt } = await import('jsonwebtoken')
+    const resetToken = jwt.sign(
+      { email: testEmail, purpose: 'password_reset' },
+      'test-jwt-secret',
+      { expiresIn: '1h' },
+    )
+
+    const response = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: resetToken, password: newPass })
+
+    expect(response.status).toBe(200)
+    expect(response.body.message).toBe('password_reset_success')
+  })
+
+  // Test 11: Reset password with invalid token → 401
+  it('rejects invalid token', async () => {
+    const response = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: 'invalid-token', password: 'NewPass123!' })
+
+    expect(response.status).toBe(401)
+    expect(response.body.error).toBe('invalid_or_expired_token')
+  })
+
+  // Test 12: Reset password missing fields → 400
+  it('requires token and password', async () => {
+    const response = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({})
+
+    expect(response.status).toBe(400)
+    expect(response.body.error).toBe('token_and_password_required')
+  })
 })
