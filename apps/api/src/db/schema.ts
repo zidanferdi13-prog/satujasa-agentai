@@ -55,6 +55,7 @@ export const subscriptions = pgTable('subscriptions', {
   max_admin_users: integer('max_admin_users').notNull().default(0),
   activated_by: uuid('activated_by').references(() => users.id),
   activated_at: timestamp('activated_at', { withTimezone: true }),
+  expires_at: timestamp('expires_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   deleted_at: timestamp('deleted_at', { withTimezone: true }),

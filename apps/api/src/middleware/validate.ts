@@ -48,6 +48,7 @@ export const updateSubscriptionSchema = z.object({
   tier: z.enum(['free', 'pro', 'plus', 'expert']),
   max_tenants: z.number().int().min(0).optional(),
   max_admin_users: z.number().int().min(0).optional(),
+  expires_at: z.string().datetime().nullable().optional(),
 })
 
 // ─── Tenant Service Schemas ──────────────────────────────────────────────────
