@@ -13,16 +13,6 @@ const AMBER = '#f59e0b';
 const DONUT_SIZE = 132;
 const HOLE_SIZE = 80;
 
-/* ── Mock defaults ── */
-const MOCK: AdminUserDashboardResponse['team_performance'] = {
-  done_count: 86,
-  done_pct: 86,
-  processing_count: 10,
-  processing_pct: 10,
-  pending_count: 4,
-  pending_pct: 4,
-};
-
 /* ── Props ── */
 interface AdminUserTeamPerformanceProps {
   performance?: AdminUserDashboardResponse['team_performance'];
@@ -101,7 +91,7 @@ function LegendItem({ color, label, count }: LegendItemProps) {
 export default function AdminUserTeamPerformance({
   performance,
 }: AdminUserTeamPerformanceProps) {
-  const perf = performance ?? MOCK;
+  const perf = performance ?? { done_count: 0, done_pct: 0, processing_count: 0, processing_pct: 0, pending_count: 0, pending_pct: 0 };
 
   const total = useMemo(
     () => perf.done_count + perf.processing_count + perf.pending_count,

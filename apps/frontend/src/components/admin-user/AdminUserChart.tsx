@@ -4,21 +4,6 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 
-/* ── Mock data if none provided ── */
-const MOCK_CHART_DATA: Array<{ date: string; count: number }> = [
-  { date: '2026-05-18', count: 6 },
-  { date: '2026-05-21', count: 9 },
-  { date: '2026-05-24', count: 5 },
-  { date: '2026-05-27', count: 11 },
-  { date: '2026-05-30', count: 7 },
-  { date: '2026-06-02', count: 14 },
-  { date: '2026-06-05', count: 8 },
-  { date: '2026-06-08', count: 12 },
-  { date: '2026-06-11', count: 6 },
-  { date: '2026-06-14', count: 10 },
-  { date: '2026-06-16', count: 9 },
-];
-
 /* ── Helper: compute derived stats ── */
 function computeStats(data: Array<{ date: string; count: number }>) {
   const counts = data.map((d) => d.count);
@@ -53,7 +38,31 @@ interface AdminUserChartProps {
 }
 
 export default function AdminUserChart({ chartData }: AdminUserChartProps) {
-  const data = chartData && chartData.length > 0 ? chartData : MOCK_CHART_DATA;
+  const data = chartData ?? [];
+
+  if (data.length === 0) {
+    return (
+      <Card
+        sx={{
+          p: '22px',
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 10px 24px rgba(30, 41, 59, 0.06)',
+          bgcolor: '#fff',
+          mb: 3,
+        }}
+      >
+        <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1e293b', mb: 2 }}>
+          Grafik Transaksi 30 Hari
+        </Typography>
+        <Box sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#8b8fa3' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 40, marginBottom: 8 }}>bar_chart</span>
+          <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Belum ada data transaksi</Typography>
+        </Box>
+      </Card>
+    );
+  }
+
   const stats = computeStats(data);
 
   /* ── SVG constants ── */
