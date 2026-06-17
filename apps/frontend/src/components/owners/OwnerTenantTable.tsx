@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
@@ -60,6 +61,15 @@ function isRecent(dateStr: string | null): boolean {
 }
 
 export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps) {
+  const [page, setPage] = useState(1);
+  const limit = 5;
+  const totalPages = Math.max(1, Math.ceil(tenants.length / limit));
+
+  // Clamp page so it never exceeds totalPages (stays safe without render-phase setState)
+  const safePage = useMemo(() => Math.min(page, totalPages), [page, totalPages]);
+  const startIndex = (safePage - 1) * limit;
+  const displayData = tenants.slice(startIndex, startIndex + limit);
+
   return (
     <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', overflow: 'hidden' }}>
       <Box sx={{ px: 3, py: 2.25, borderBottom: '1px solid #f0f1f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -100,7 +110,7 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
                 </TableCell>
               </TableRow>
             ) : (
-              tenants.map((tenant) => (
+              displayData.map((tenant) => (
                 <TableRow
                   key={tenant.id}
                   hover
@@ -161,11 +171,21 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
 
       {tenants.length > 0 && (
         <Box sx={{ px: 3, py: 1.75, borderTop: '1px solid #f0f1f5', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1.5 }}>
-          <Typography sx={{ fontSize: 13, color: '#8a91a3', mr: 1 }}>Halaman 1 dari 1</Typography>
-          <IconButton size="small" disabled sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 } }}>
+          <Typography sx={{ fontSize: 13, color: '#8a91a3', mr: 1 }}>Halaman {page} dari {totalPages}</Typography>
+          <IconButton
+            size="small"
+            disabled={page === 1}
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 }, '&:not(.Mui-disabled):hover': { bgcolor: '#eef2ff', color: '#4f46e5' } }}
+          >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
           </IconButton>
-          <IconButton size="small" disabled sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 } }}>
+          <IconButton
+            size="small"
+            disabled={page === totalPages}
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 }, '&:not(.Mui-disabled):hover': { bgcolor: '#eef2ff', color: '#4f46e5' } }}
+          >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
           </IconButton>
         </Box>
