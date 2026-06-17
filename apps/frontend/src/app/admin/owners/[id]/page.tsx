@@ -149,7 +149,7 @@ export default function OwnerDetailPage() {
       tier: form.tier,
       max_tenants: form.max_tenants,
       max_admin_users: form.max_admin_users,
-      expires_at: form.expires_at || null,
+      expires_at: form.expires_at ? `${form.expires_at}T00:00:00.000Z` : null,
     });
   }
 
