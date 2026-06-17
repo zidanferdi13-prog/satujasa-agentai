@@ -522,10 +522,11 @@ function relativeTime(date: Date): string {
   // POST /admin/owners/:id/subscription
   router.post('/owners/:id/subscription', validate(updateSubscriptionSchema), async (req, res) => {
     try {
-      const { tier, max_tenants, max_admin_users } = req.body as {
+      const { tier, max_tenants, max_admin_users, expires_at } = req.body as {
         tier: SubscriptionTier
         max_tenants?: number
         max_admin_users?: number
+        expires_at?: string | null
       }
 
       const defaults = TIER_DEFAULTS[tier]
@@ -547,6 +548,7 @@ function relativeTime(date: Date): string {
           max_admin_users: finalMaxAdminUsers,
           activated_by: req.user!.userId,
           activated_at: new Date(),
+          expires_at: expires_at ? new Date(expires_at) : null,
         })
         .returning()
 
@@ -560,10 +562,11 @@ function relativeTime(date: Date): string {
   // PATCH /admin/owners/:id/subscription
   router.patch('/owners/:id/subscription', validate(updateSubscriptionSchema), async (req, res) => {
     try {
-      const { tier, max_tenants, max_admin_users } = req.body as {
+      const { tier, max_tenants, max_admin_users, expires_at } = req.body as {
         tier: SubscriptionTier
         max_tenants?: number
         max_admin_users?: number
+        expires_at?: string | null
       }
 
       const defaults = TIER_DEFAULTS[tier]
@@ -576,6 +579,7 @@ function relativeTime(date: Date): string {
           max_admin_users: max_admin_users ?? defaults.max_admin_users,
           activated_by: req.user!.userId,
           activated_at: new Date(),
+          expires_at: expires_at !== undefined ? (expires_at ? new Date(expires_at) : null) : undefined,
           updated_at: new Date(),
         })
         .where(and(eq(schema.subscriptions.owner_id, param(req.params['id'])), isNull(schema.subscriptions.deleted_at)))

@@ -23,6 +23,8 @@ async function bootstrapTestDatabase() {
 
     await sql`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS status_updated_at timestamptz NOT NULL DEFAULT now()`
     await sql`UPDATE transactions SET status_updated_at = COALESCE(status_updated_at, updated_at, created_at, now()) WHERE status_updated_at IS NULL`
+    
+    await sql`ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS expires_at timestamptz`
   } finally {
     await sql.end({ timeout: 5 })
   }
