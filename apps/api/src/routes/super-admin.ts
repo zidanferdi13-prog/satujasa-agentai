@@ -47,6 +47,7 @@ function relativeTime(date: Date): string {
     let totalTransactions = 0
     let totalRevenue = '0'
     let totalAdminUsers = 0
+    let monthlyRevenue: Array<{ month: string; revenue: string }> = []
     const subscriptionDistribution: Record<string, number> = { free: 0, pro: 0, plus: 0, expert: 0 }
     let recentActivity: Array<{
       id: string
@@ -117,6 +118,41 @@ function relativeTime(date: Date): string {
       totalRevenue = revenue?.total ?? '0'
     } catch (e) {
       console.error('Dashboard revenue error:', e)
+    }
+
+    // 4b. Monthly revenue (last 12 months)
+    try {
+      const monthlyRows = await db.execute<{ month: string; revenue: string }>(
+        sql`
+          SELECT
+            to_char(date_trunc('month', ${schema.transactions.created_at}), 'YYYY-MM') as month,
+            COALESCE(sum(${schema.transactions.total_cost} + ${schema.transactions.additional_cost}), 0)::text as revenue
+          FROM ${schema.transactions}
+          WHERE ${schema.transactions.status} IN ('done', 'SELESAI')
+            AND ${schema.transactions.deleted_at} IS NULL
+            AND ${schema.transactions.created_at} >= date_trunc('month', now()) - interval '11 months'
+          GROUP BY date_trunc('month', ${schema.transactions.created_at})
+          ORDER BY date_trunc('month', ${schema.transactions.created_at})
+        `,
+      )
+
+      // Build a lookup map from query results
+      const revenueByMonth: Record<string, string> = {}
+      for (const row of monthlyRows) {
+        revenueByMonth[row.month] = row.revenue
+      }
+
+      // Generate last 12 months, filling gaps with 0
+      const now = new Date()
+      const months: Array<{ month: string; revenue: string }> = []
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        months.push({ month: key, revenue: revenueByMonth[key] ?? '0' })
+      }
+      monthlyRevenue = months
+    } catch (e) {
+      console.error('Dashboard monthly revenue error:', e)
     }
 
     // 5. Admin user count
@@ -265,6 +301,7 @@ function relativeTime(date: Date): string {
       total_tenants: totalTenants,
       total_transactions: totalTransactions,
       total_revenue: totalRevenue,
+      monthly_revenue: monthlyRevenue,
       total_admin_users: totalAdminUsers,
       subscription_distribution: subscriptionDistribution,
       recent_activity: recentActivity,
