@@ -11,14 +11,6 @@ const AMBER = '#f59e0b';
 const GREEN = '#22c55e';
 const RED = '#ef4444';
 
-/* ── Mock defaults ── */
-const MOCK: AdminUserDashboardResponse['requests_summary'] = {
-  total: 12,
-  pending: 5,
-  approved: 6,
-  rejected: 1,
-};
-
 /* ── Props ── */
 interface AdminUserRequestsSummaryProps {
   requests?: AdminUserDashboardResponse['requests_summary'];
@@ -104,7 +96,7 @@ function MiniCard({ icon, label, color, value }: MiniCardDef) {
 export default function AdminUserRequestsSummary({
   requests,
 }: AdminUserRequestsSummaryProps) {
-  const data = requests ?? MOCK;
+  const data = requests ?? { total: 0, pending: 0, approved: 0, rejected: 0 };
 
   const cards: MiniCardDef[] = [
     { icon: 'description', label: 'Total', color: PURPLE, value: data.total },

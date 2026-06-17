@@ -5,40 +5,6 @@ import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import type { AdminUserDashboardResponse } from '@/types/dashboard';
 
-/* ── Mock data ── */
-const MOCK_ACTIVITIES: AdminUserDashboardResponse['activity'] = [
-  {
-    id: 'act-1',
-    tenant_name: 'PT Maju Bersama',
-    action: 'Transaksi #TRX-0042 selesai diproses',
-    time_ago: '2 menit lalu',
-  },
-  {
-    id: 'act-2',
-    tenant_name: 'CV Karya Mandiri',
-    action: 'Membuat transaksi baru #TRX-0045',
-    time_ago: '15 menit lalu',
-  },
-  {
-    id: 'act-3',
-    tenant_name: 'UD Sumber Rezeki',
-    action: 'Persetujuan permintaan layanan #REQ-0018',
-    time_ago: '1 jam lalu',
-  },
-  {
-    id: 'act-4',
-    tenant_name: 'PT Nusantara Digital',
-    action: 'Transaksi #TRX-0041 disetujui',
-    time_ago: '2 jam lalu',
-  },
-  {
-    id: 'act-5',
-    tenant_name: 'CV Teknologi Prima',
-    action: 'Mengajukan permintaan baru #REQ-0019',
-    time_ago: '3 jam lalu',
-  },
-];
-
 /* ── Determine icon + color from action text ── */
 function getActivityIcon(action: string): { icon: string; color: string; bg: string } {
   const lower = action.toLowerCase();
@@ -65,7 +31,7 @@ interface AdminUserActivityFeedProps {
 }
 
 export default function AdminUserActivityFeed({ activities }: AdminUserActivityFeedProps) {
-  const items = activities && activities.length > 0 ? activities : MOCK_ACTIVITIES;
+  const items = activities ?? [];
 
   return (
     <Card

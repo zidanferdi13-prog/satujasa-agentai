@@ -13,50 +13,6 @@ import IconButton from '@mui/material/IconButton';
 import StatusPill from '@/components/shared/StatusPill';
 import type { AdminUserDashboardResponse } from '@/types/dashboard';
 
-/* ── Mock data ── */
-const MOCK_TRANSACTIONS: AdminUserDashboardResponse['recent_transactions'] = [
-  {
-    id: 'trx-1',
-    trx_number: '#TRX-0045',
-    tenant_name: 'PT Maju Bersama',
-    service_name: 'Pengurusan STNK 5 Tahun',
-    status: 'Diproses',
-    created_at: '2026-06-17T09:32:00Z',
-  },
-  {
-    id: 'trx-2',
-    trx_number: '#TRX-0044',
-    tenant_name: 'CV Karya Mandiri',
-    service_name: 'Balik Nama Kendaraan',
-    status: 'Pending',
-    created_at: '2026-06-17T08:15:00Z',
-  },
-  {
-    id: 'trx-3',
-    trx_number: '#TRX-0043',
-    tenant_name: 'UD Sumber Rezeki',
-    service_name: 'Perpanjangan STNK 1 Tahun',
-    status: 'Selesai',
-    created_at: '2026-06-16T16:45:00Z',
-  },
-  {
-    id: 'trx-4',
-    trx_number: '#TRX-0042',
-    tenant_name: 'PT Nusantara Digital',
-    service_name: 'Mutasi Kendaraan',
-    status: 'Selesai',
-    created_at: '2026-06-16T14:20:00Z',
-  },
-  {
-    id: 'trx-5',
-    trx_number: '#TRX-0041',
-    tenant_name: 'CV Teknologi Prima',
-    service_name: 'Pengurusan STNK Hilang',
-    status: 'Diproses',
-    created_at: '2026-06-16T11:00:00Z',
-  },
-];
-
 /* ── Map status to StatusPill variant ── */
 function getStatusVariant(status: string): 'success' | 'warning' | 'error' | 'info' {
   const s = status.toLowerCase();
@@ -87,7 +43,7 @@ interface AdminUserTransactionTableProps {
 }
 
 export default function AdminUserTransactionTable({ transactions }: AdminUserTransactionTableProps) {
-  const items = transactions && transactions.length > 0 ? transactions : MOCK_TRANSACTIONS;
+  const items = transactions ?? [];
   const rows = items.slice(0, 5);
 
   return (

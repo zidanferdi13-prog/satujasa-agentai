@@ -12,17 +12,6 @@ type RevenueChartProps = {
   data?: Array<{ month: string; revenue: number }>;
 };
 
-const DEFAULT_MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-  'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
-];
-
-const DEFAULT_REVENUE = [18.5, 22.3, 28.1, 24.7, 32.4, 35.8, 30.2, 38.6, 42.1, 39.5, 45.3, 48.9];
-
-function buildDefaultData(): Array<{ month: string; revenue: number }> {
-  return DEFAULT_MONTHS.map((m, i) => ({ month: m, revenue: DEFAULT_REVENUE[i] }));
-}
-
 type PeriodKey = '12' | '6' | '30';
 
 const PERIOD_LABELS: Record<PeriodKey, string> = {
@@ -53,7 +42,8 @@ export default function RevenueChart({ data }: RevenueChartProps) {
   const [period, setPeriod] = useState<PeriodKey>('12');
 
   const chartData = useMemo(() => {
-    const source = data ?? buildDefaultData();
+    const source = data ?? [];
+    if (source.length === 0) return [];
     const count = period === '30' ? 1 : period === '6' ? 6 : 12;
     return source.slice(-count);
   }, [data, period]);
@@ -84,6 +74,30 @@ export default function RevenueChart({ data }: RevenueChartProps) {
   const linePath = useMemo(() => buildLinePath(points), [points]);
 
   const tooltipData = tooltipIndex !== null ? chartData[tooltipIndex] : null;
+
+  if (chartData.length === 0) {
+    return (
+      <Card
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          height: '100%',
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+            Trend Revenue
+          </Typography>
+          <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#8a91a3' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 40, marginBottom: 8 }}>show_chart</span>
+            <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Belum ada data revenue</Typography>
+          </Box>
+        </Box>
+      </Card>
+    );
+  }
 
   return (
     <Card
