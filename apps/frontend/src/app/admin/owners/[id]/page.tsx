@@ -38,6 +38,7 @@ interface Subscription {
   max_tenants: number;
   max_admin_users: number;
   activated_at: string | null;
+  expires_at: string | null;
 }
 
 interface UpdateSubscriptionPayload {
@@ -45,6 +46,7 @@ interface UpdateSubscriptionPayload {
   tier: string;
   max_tenants: number;
   max_admin_users: number;
+  expires_at: string | null;
 }
 
 const TIERS = [
@@ -54,12 +56,22 @@ const TIERS = [
   { value: 'expert', label: 'Expert', default_tenants: 100, default_admin_users: 500 },
 ];
 
+function getSubStatus(expiresAt: string | null): { label: string; color: string } {
+  if (!expiresAt) return { label: 'Permanent', color: '#4f46e5' };
+  const exp = new Date(expiresAt);
+  const now = new Date();
+  const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysLeft < 0) return { label: 'Expired', color: '#ef4444' };
+  if (daysLeft <= 7) return { label: `Expiring in ${daysLeft} days`, color: '#f59e0b' };
+  return { label: `Active until ${exp.toLocaleDateString('id-ID')}`, color: '#22c55e' };
+}
+
 export default function OwnerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const [form, setForm] = useState({ tier: '', max_tenants: 0, max_admin_users: 0 });
+  const [form, setForm] = useState({ tier: '', max_tenants: 0, max_admin_users: 0, expires_at: '' });
   const [error, setError] = useState('');
 
   const { data: owner, isLoading } = useQuery<OwnerDetail>({
@@ -84,6 +96,9 @@ export default function OwnerDetailPage() {
         tier: subscription.tier ?? 'free',
         max_tenants: subscription.max_tenants ?? 0,
         max_admin_users: subscription.max_admin_users ?? 0,
+        expires_at: subscription.expires_at
+          ? new Date(subscription.expires_at).toISOString().split('T')[0]
+          : '',
       });
     } else if (owner) {
       // Fallback: use defaults based on tier
@@ -92,6 +107,7 @@ export default function OwnerDetailPage() {
         tier: owner.subscription_tier ?? 'free',
         max_tenants: tierConfig?.default_tenants ?? 1,
         max_admin_users: tierConfig?.default_admin_users ?? 1,
+        expires_at: '',
       });
     }
   }, [subscription, owner]);
@@ -115,6 +131,7 @@ export default function OwnerDetailPage() {
   function handleTierChange(newTier: string) {
     const tierConfig = TIERS.find((t) => t.value === newTier);
     setForm({
+      ...form,
       tier: newTier,
       max_tenants: tierConfig?.default_tenants ?? 1,
       max_admin_users: tierConfig?.default_admin_users ?? 1,
@@ -132,6 +149,7 @@ export default function OwnerDetailPage() {
       tier: form.tier,
       max_tenants: form.max_tenants,
       max_admin_users: form.max_admin_users,
+      expires_at: form.expires_at || null,
     });
   }
 
@@ -174,9 +192,34 @@ export default function OwnerDetailPage() {
       {/* Subscription Form */}
       <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
         <CardContent sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Manajemen Subscription
           </Typography>
+
+          {/* Subscription status badge */}
+          {(() => {
+            const status = getSubStatus(subscription?.expires_at ?? null);
+            return (
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2,
+                  py: 0.75,
+                  borderRadius: '50px',
+                  bgcolor: `${status.color}18`,
+                  border: `1.5px solid ${status.color}44`,
+                  mb: 3,
+                }}
+              >
+                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: status.color }} />
+                <Typography sx={{ fontSize: 13, fontWeight: 700, color: status.color }}>
+                  {status.label}
+                </Typography>
+              </Box>
+            );
+          })()}
 
           <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -211,6 +254,16 @@ export default function OwnerDetailPage() {
             value={form.max_admin_users}
             onChange={(e) => setForm({ ...form, max_admin_users: parseInt(e.target.value) || 0 })}
             slotProps={{ htmlInput: { min: 1 } }}
+          />
+
+          <TextField
+            label="Berlaku Sampai (Expiry Date)"
+            type="date"
+            value={form.expires_at}
+            onChange={(e) => setForm({ ...form, expires_at: e.target.value })}
+            slotProps={{ inputLabel: { shrink: true } }}
+            helperText="Kosongkan untuk Permanent (no expiry)"
+            fullWidth
           />
 
           <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
