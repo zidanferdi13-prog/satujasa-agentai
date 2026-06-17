@@ -163,7 +163,7 @@ export default function OwnersDataTable({ data, onSearch, onTierChange }: Owners
                   <TableCell>
                     <StatusPill
                       status={(owner.subscription_tier ?? 'FREE').toUpperCase()}
-                      variant={getTierVariant(owner.subscription_tier) as any}
+                      variant={getTierVariant(owner.subscription_tier)}
                     />
                   </TableCell>
                   <TableCell>
