@@ -4,13 +4,15 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import Chip from '@mui/material/Chip';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 
 interface OwnerHeroProps {
-  ownerName?: string;
   healthStatus?: string;
 }
 
-export default function OwnerHero({ ownerName = 'Owner', healthStatus = 'operational' }: OwnerHeroProps) {
+export default function OwnerHero({ healthStatus = 'operational' }: OwnerHeroProps) {
+  const { data: user } = useCurrentUser();
+  const ownerName = user?.name ?? 'Owner';
   const now = new Date();
   const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });

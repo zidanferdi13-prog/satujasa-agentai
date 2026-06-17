@@ -75,7 +75,7 @@ export default function OwnerPage() {
       )}
 
       {/* Hero */}
-      <OwnerHero ownerName="Owner" healthStatus={healthSummary} />
+      <OwnerHero healthStatus={healthSummary} />
 
       {/* KPI Grid */}
       <OwnerKpiGrid
