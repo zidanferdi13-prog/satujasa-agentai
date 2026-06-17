@@ -13,6 +13,9 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 import Alert from '@mui/material/Alert';
+import IconButton from '@mui/material/IconButton';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
 import FilterBar from '@/components/shared/FilterBar';
 import StatusPill from '@/components/shared/StatusPill';
 import apiClient from '@/lib/axios';
@@ -36,6 +39,56 @@ const roleVariant: Record<string, 'success' | 'warning' | 'info' | 'error'> = {
   owner: 'warning',
   admin_user: 'success',
 };
+
+function RowActions({ user }: { user: User }) {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleClose = () => setAnchorEl(null);
+
+  return (
+    <>
+      <IconButton
+        size="small"
+        onClick={(e) => setAnchorEl(e.currentTarget)}
+        sx={{
+          width: 34,
+          height: 34,
+          borderRadius: '10px',
+          color: '#8a91a3',
+          '&:hover': { bgcolor: '#eef2ff', color: '#4f46e5' },
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_vert</span>
+      </IconButton>
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        slotProps={{ paper: { sx: { borderRadius: '12px', minWidth: 160, mt: 0.5 } } }}
+      >
+        <MenuItem
+          onClick={() => { handleClose(); alert('Fitur Edit Role akan datang'); }}
+          dense
+          sx={{ fontSize: 13, gap: 1.5, py: 1.25 }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#4f46e5' }}>edit</span>
+          Edit Role
+        </MenuItem>
+        <MenuItem
+          onClick={() => { handleClose(); alert('Fitur Nonaktifkan akan datang'); }}
+          dense
+          sx={{ fontSize: 13, gap: 1.5, py: 1.25, color: '#ef4444' }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#ef4444' }}>person_off</span>
+          Nonaktifkan
+        </MenuItem>
+      </Menu>
+    </>
+  );
+}
 
 export default function AdminPenggunaPage() {
   const [search, setSearch] = useState('');
@@ -95,6 +148,7 @@ export default function AdminPenggunaPage() {
                   <TableCell>Role</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Dibuat</TableCell>
+                  <TableCell sx={{ width: 60 }}>Aksi</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -104,6 +158,7 @@ export default function AdminPenggunaPage() {
                     <TableCell><Skeleton width="60%" /></TableCell>
                     <TableCell><Skeleton width="50%" /></TableCell>
                     <TableCell><Skeleton width="80%" /></TableCell>
+                    <TableCell><Skeleton variant="circular" width={34} height={34} /></TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -119,6 +174,7 @@ export default function AdminPenggunaPage() {
                 <TableCell sx={{ fontWeight: 600 }}>Role</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Dibuat</TableCell>
+                <TableCell sx={{ fontWeight: 600, width: 60 }}>Aksi</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -138,11 +194,14 @@ export default function AdminPenggunaPage() {
                     />
                   </TableCell>
                   <TableCell>{new Date(user.created_at).toLocaleDateString('id-ID')}</TableCell>
+                  <TableCell>
+                    <RowActions user={user} />
+                  </TableCell>
                 </TableRow>
               ))}
               {(!data?.data || data.data.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
                       Tidak ada pengguna ditemukan.
                     </Typography>
