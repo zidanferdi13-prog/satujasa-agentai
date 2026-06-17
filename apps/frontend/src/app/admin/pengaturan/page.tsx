@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
@@ -9,27 +9,73 @@ import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
+import apiClient from '@/lib/axios';
+
+interface SettingsPayload {
+  app_name: string;
+  support_email: string;
+  support_phone: string;
+}
 
 export default function AdminPengaturanPage() {
-  const router = useRouter();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<SettingsPayload>({
     app_name: '',
     support_email: '',
     support_phone: '',
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+
+  const [validationError, setValidationError] = useState('');
+
+  // Fetch existing settings
+  const { data: settingsData, isLoading: isSettingsLoading } = useQuery<{ data: SettingsPayload }>({
+    queryKey: ['admin-settings'],
+    queryFn: () => apiClient.get('/admin/settings'),
+    retry: 1,
+  });
+
+  // Populate form when data arrives
+  useEffect(() => {
+    const d = settingsData?.data;
+    if (d) {
+      setForm({
+        app_name: d.app_name ?? '',
+        support_email: d.support_email ?? '',
+        support_phone: d.support_phone ?? '',
+      });
+    }
+  }, [settingsData]);
+
+  // Save settings mutation
+  const saveMutation = useMutation({
+    mutationFn: (payload: SettingsPayload) =>
+      apiClient.post('/admin/settings', payload),
+    onSuccess: () => {
+      setValidationError('');
+    },
+    onError: (err: any) => {
+      setValidationError(err?.response?.data?.error ?? 'Gagal menyimpan pengaturan');
+    },
+  });
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setValidationError('');
     if (!form.app_name.trim()) {
-      setError('Nama aplikasi wajib diisi');
+      setValidationError('Nama aplikasi wajib diisi');
       return;
     }
-    // TODO: connect to API endpoint when available
-    setSuccess('Pengaturan berhasil disimpan');
+    saveMutation.mutate(form);
+  }
+
+  if (isSettingsLoading) {
+    return (
+      <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 640 }}>
+        <Skeleton variant="text" width={200} height={48} sx={{ mb: 1 }} />
+        <Skeleton variant="text" width={320} height={24} sx={{ mb: 4 }} />
+        <Skeleton variant="rounded" height={360} sx={{ borderRadius: 2 }} />
+      </Box>
+    );
   }
 
   return (
@@ -41,8 +87,11 @@ export default function AdminPengaturanPage() {
         Kelola pengaturan umum aplikasi.
       </Typography>
 
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 3 }}>{success}</Alert>}
+      {validationError && <Alert severity="error" sx={{ mb: 3 }}>{validationError}</Alert>}
+      {saveMutation.isError && !validationError && (
+        <Alert severity="error" sx={{ mb: 3 }}>Gagal menyimpan pengaturan.</Alert>
+      )}
+      {saveMutation.isSuccess && <Alert severity="success" sx={{ mb: 3 }}>Pengaturan berhasil disimpan</Alert>}
 
       <Card variant="outlined" sx={{ borderRadius: 2 }}>
         <CardContent sx={{ p: 3 }}>
@@ -72,11 +121,8 @@ export default function AdminPengaturanPage() {
               onChange={(e) => setForm({ ...form, support_phone: e.target.value })}
             />
 
-            <Button variant="outlined" onClick={() => router.back()} fullWidth sx={{ mb: 1 }}>
-              Batal
-            </Button>
-            <Button type="submit" variant="contained" fullWidth>
-              Simpan Pengaturan
+            <Button disabled={saveMutation.isPending} variant="contained" type="submit" fullWidth>
+              {saveMutation.isPending ? 'Menyimpan...' : 'Simpan Pengaturan'}
             </Button>
           </form>
         </CardContent>
