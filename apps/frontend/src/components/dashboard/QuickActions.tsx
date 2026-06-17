@@ -29,10 +29,10 @@ const ACTIONS: QuickActionItem[] = [
     bgColor: '#f3e8ff',
   },
   {
-    icon: 'bar_chart',
-    title: 'Lihat Report',
-    subtitle: 'Analisis & laporan',
-    href: '/admin/laporan',
+    icon: 'group',
+    title: 'Kelola Owner',
+    subtitle: 'Manajemen pemilik',
+    href: '/admin/owners',
     bgColor: '#ecfdf3',
   },
   {
