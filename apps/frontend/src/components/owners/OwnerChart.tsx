@@ -14,19 +14,7 @@ interface OwnerChartProps {
 }
 
 export default function OwnerChart({ data = [] }: OwnerChartProps) {
-  const chartData = data.length > 0 ? data : [
-    { date: '2026-05-17', count: 12 },
-    { date: '2026-05-20', count: 18 },
-    { date: '2026-05-23', count: 15 },
-    { date: '2026-05-26', count: 22 },
-    { date: '2026-05-29', count: 28 },
-    { date: '2026-06-01', count: 25 },
-    { date: '2026-06-04', count: 32 },
-    { date: '2026-06-07', count: 38 },
-    { date: '2026-06-10', count: 35 },
-    { date: '2026-06-13', count: 42 },
-    { date: '2026-06-16', count: 48 },
-  ];
+  const chartData = data;
 
   const maxCount = Math.max(...chartData.map((d) => d.count), 1);
   const totalTransactions = chartData.reduce((s, d) => s + d.count, 0);

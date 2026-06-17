@@ -38,12 +38,7 @@ function formatRelative(dateStr: string): string {
 }
 
 export default function OwnerActivityFeed({ activities = [] }: OwnerActivityFeedProps) {
-  const displayItems = activities.length > 0 ? activities : [
-    { id: '1', type: 'tenant_created', description: 'Tenant baru "PT Maju Jaya" ditambahkan', created_at: new Date(Date.now() - 120000).toISOString() },
-    { id: '2', type: 'admin_added', description: 'Admin user "Budi Santoso" ditambahkan ke tenant "CV Sejahtera"', created_at: new Date(Date.now() - 3600000).toISOString() },
-    { id: '3', type: 'transaction', description: 'Transaksi baru #STNK-2026-0042 dibuat', created_at: new Date(Date.now() - 7200000).toISOString() },
-    { id: '4', type: 'subscription', description: 'Subscription di-upgrade ke paket Business', created_at: new Date(Date.now() - 86400000).toISOString() },
-  ];
+  const displayItems = activities;
 
   return (
     <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', overflow: 'hidden' }}>

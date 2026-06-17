@@ -51,15 +51,27 @@ function HealthItem({ label, status }: { label: string; status: string }) {
 }
 
 export default function OwnerHealth({ health }: OwnerHealthProps) {
-  const h = health ?? {
-    server: 'operational',
-    database: 'operational',
-    backup: 'operational',
-    api: 'operational',
-    security: 'operational',
-  };
+  if (!health) {
+    return (
+      <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', p: 3 }}>
+        <Box sx={{ mb: 2.5 }}>
+          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>
+            System Health
+          </Typography>
+          <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>
+            Status layanan platform Anda
+          </Typography>
+        </Box>
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography sx={{ fontSize: 14, color: '#8a91a3' }}>Data kesehatan sistem tidak tersedia.</Typography>
+        </Box>
+      </Card>
+    );
+  }
 
-  const allOk = Object.values(h).every((v) => v?.toLowerCase() === 'operational' || v?.toLowerCase() === 'healthy' || v?.toLowerCase() === 'ok');
+  const h = health!;
+
+  const allOk = Object.values(h).every((v) => (v as string)?.toLowerCase() === 'operational' || (v as string)?.toLowerCase() === 'healthy' || (v as string)?.toLowerCase() === 'ok');
 
   const items = [
     { label: 'Server', status: h.server },
