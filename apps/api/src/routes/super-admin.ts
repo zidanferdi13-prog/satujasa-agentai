@@ -13,6 +13,7 @@ import { authMiddleware, requireRole } from '../middleware/auth.js'
 import { validate, updateSubscriptionSchema } from '../middleware/validate.js'
 import { TIER_DEFAULTS } from '@stnk/contracts'
 import type { SubscriptionTier } from '@stnk/contracts'
+import { checkExpiredSubscriptions } from '../jobs/subscription-expiry.js'
 
 export function superAdminRoutes(db: Database, config: AppConfig): Router {
   const router = Router()
@@ -860,6 +861,22 @@ function relativeTime(date: Date): string {
       res.json({ success: true })
     } catch (error) {
       console.error('Update settings error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // POST /admin/subscriptions/check-expiry — manual trigger for cron
+  router.post('/subscriptions/check-expiry', async (_req, res) => {
+    try {
+      const downgradedCount = await checkExpiredSubscriptions(db)
+      res.json({
+        message: downgradedCount > 0
+          ? `Downgraded ${downgradedCount} expired subscription(s)`
+          : 'No expired subscriptions found',
+        downgraded_count: downgradedCount,
+      })
+    } catch (error) {
+      console.error('Check expiry error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })
