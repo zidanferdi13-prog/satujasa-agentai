@@ -135,7 +135,7 @@ export default function SignUpPage() {
           sx={{ py: 1.75, borderRadius: '12px' }}
         >
           {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />}
-          {isPending ? 'Memproses…' : 'Ajukan Pendaftaran'}
+          {isPending ? 'Memproses…' : 'Daftar Sekarang'}
         </Button>
       </form>
 

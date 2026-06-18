@@ -24,8 +24,8 @@ const plans = [
   {
     name: 'Pro',
     desc: 'Untuk biro jasa 1 cabang',
-    price: 'Hubungi Kami',
-    period: '',
+    price: 'Rp 49.999',
+    period: '/bulan',
     features: [
       { text: '1 Tenant', available: true },
       { text: '1 Admin User', available: true },
@@ -38,8 +38,8 @@ const plans = [
   {
     name: 'Plus',
     desc: 'Untuk biro jasa multi cabang',
-    price: 'Hubungi Kami',
-    period: '',
+    price: 'Rp 99.999',
+    period: '/bulan',
     features: [
       { text: '3 Tenant', available: true },
       { text: '3 Admin User (1/tenant)', available: true },
