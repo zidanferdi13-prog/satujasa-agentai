@@ -126,12 +126,12 @@ export default function TransaksiBaru() {
 
   useEffect(() => {
     if (requirements?.fees) {
-      setFeeRows(
-        requirements.fees.map((fee) => ({
-          ...fee,
-          amount: normalizeFeeAmount(fee.amount ?? fee.defaultAmount),
-        })),
-      );
+      const nextRows = requirements.fees.map((fee) => ({
+        ...fee,
+        amount: normalizeFeeAmount(fee.amount ?? fee.defaultAmount),
+      }));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable fee rows from fetched requirement template
+      setFeeRows(nextRows);
     }
   }, [requirements]);
 

@@ -94,6 +94,7 @@ export default function OwnerDetailPage() {
   // Initialize form when subscription data loads
   useEffect(() => {
     if (subscription) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable form state from fetched subscription data
       setForm({
         tier: subscription.tier ?? 'free',
         max_tenants: subscription.max_tenants ?? 0,
@@ -105,6 +106,7 @@ export default function OwnerDetailPage() {
     } else if (owner) {
       // Fallback: use defaults based on tier
       const tierConfig = TIERS.find((t) => t.value === (owner.subscription_tier ?? 'free'));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable form state from fetched owner defaults
       setForm({
         tier: owner.subscription_tier ?? 'free',
         max_tenants: tierConfig?.default_tenants ?? 1,
