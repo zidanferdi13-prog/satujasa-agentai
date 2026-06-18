@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import splash from '../../../assets/splash.png';
+import Typography from '@mui/material/Typography';
 
 export default function HeroSection() {
   return (
@@ -16,7 +16,6 @@ export default function HeroSection() {
         pb: { xs: 12, md: 16 },
       }}
     >
-      {/* Gradient rainbow bar at top */}
       <Box
         sx={{
           position: 'absolute',
@@ -39,7 +38,6 @@ export default function HeroSection() {
           px: { xs: 2, sm: 3, md: 5 },
         }}
       >
-        {/* Left — text content */}
         <Box sx={{ maxWidth: 640 }}>
           <Box
             sx={{
@@ -82,12 +80,11 @@ export default function HeroSection() {
               fontSize: { xs: 16, md: 18 },
               lineHeight: 1.7,
               color: '#535768',
-              maxWidth: 520,
+              maxWidth: 560,
               mb: 5,
             }}
           >
-            SatuJasa membantu biro jasa mencatat transaksi, memantau proses dokumen,
-            memberi kabar pelanggan, dan membaca performa cabang dari satu ruang kerja.
+            SatuJasa membantu biro jasa mencatat transaksi, memantau proses dokumen, memberi kabar pelanggan, dan membaca performa cabang dari satu ruang kerja owner.
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
@@ -110,7 +107,6 @@ export default function HeroSection() {
           </Box>
         </Box>
 
-        {/* Right — splash mockup */}
         <Box sx={{ position: 'relative' }}>
           <Box
             sx={{
@@ -123,12 +119,47 @@ export default function HeroSection() {
               overflow: 'hidden',
             }}
           >
-            <Box
-              component="img"
-              src={splash.src}
-              alt="Tampilan aplikasi SatuJasa"
-              sx={{ display: 'block', width: 1, maxHeight: 540, objectFit: 'contain', objectPosition: 'top' }}
-            />
+            <Box sx={{ borderRadius: 4, bgcolor: '#f5f6f8', p: 3, minHeight: 520 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+                <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#333333' }}>Owner Dashboard</Typography>
+                <Typography sx={{ fontSize: 12, color: '#6161ff', fontWeight: 700 }}>Real UI reference • /owner</Typography>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2, mb: 2 }}>
+                {['Total Transaksi', 'Tenant Aktif', 'Revenue Bulan Ini'].map((label, index) => (
+                  <Box key={label} sx={{ borderRadius: 3, bgcolor: '#ffffff', border: '1px solid #e6e8ef', p: 2 }}>
+                    <Typography sx={{ fontSize: 12, color: '#7b8192', mb: 1 }}>{label}</Typography>
+                    <Typography sx={{ fontSize: 22, fontWeight: 800, color: '#333333' }}>
+                      {index === 0 ? '128' : index === 1 ? '3' : 'Rp 24,8jt'}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' }, gap: 2 }}>
+                <Box sx={{ borderRadius: 4, bgcolor: '#ffffff', border: '1px solid #e6e8ef', p: 2.5, minHeight: 260 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#333333', mb: 2 }}>Revenue Overview</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'end', gap: 1.25, height: 180 }}>
+                    {[36, 54, 42, 70, 62, 88, 74].map((value) => (
+                      <Box key={value} sx={{ flex: 1, borderRadius: '9999px 9999px 0 0', bgcolor: '#6161ff', opacity: 0.92, height: `${value}%` }} />
+                    ))}
+                  </Box>
+                </Box>
+                <Box sx={{ display: 'grid', gap: 2 }}>
+                  <Box sx={{ borderRadius: 4, bgcolor: '#ffffff', border: '1px solid #e6e8ef', p: 2.5 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#333333', mb: 1 }}>Subscription</Typography>
+                    <Typography sx={{ fontSize: 24, fontWeight: 800, color: '#6161ff' }}>Plus</Typography>
+                    <Typography sx={{ fontSize: 12, color: '#7b8192', mt: 0.5 }}>3 tenant • 3 admin user</Typography>
+                  </Box>
+                  <Box sx={{ borderRadius: 4, bgcolor: '#ffffff', border: '1px solid #e6e8ef', p: 2.5 }}>
+                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#333333', mb: 1 }}>Status Sistem</Typography>
+                    <Typography sx={{ fontSize: 14, color: '#535768', lineHeight: 1.7 }}>
+                      Monitoring transaksi, performa cabang, dan notifikasi pelanggan dalam satu tampilan ringkas.
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
           </Box>
         </Box>
       </Box>
