@@ -20,6 +20,11 @@ export const statusEnum = pgEnum('transaction_status', [
   'SELESAI',
   'DIBATALKAN',
 ])
+export const subscriptionNotificationTypeEnum = pgEnum('subscription_notification_type', [
+  'expiry_7_day',
+  'expiry_3_day',
+  'expired',
+])
 
 // ─── Users ───────────────────────────────────────────────────────────────────
 export const users = pgTable('users', {
@@ -216,4 +221,13 @@ export const transactionStatusLog = pgTable('transaction_status_log', {
   changed_by: uuid('changed_by').notNull().references(() => users.id),
   notes: text('notes'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+// ─── Subscription Notifications ──────────────────────────────────────────────
+export const subscriptionNotifications = pgTable('subscription_notifications', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  subscription_id: uuid('subscription_id').notNull().references(() => subscriptions.id),
+  owner_id: uuid('owner_id').notNull().references(() => users.id),
+  notification_type: subscriptionNotificationTypeEnum('notification_type').notNull(),
+  sent_at: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
 })
