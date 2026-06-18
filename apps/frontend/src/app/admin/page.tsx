@@ -140,8 +140,7 @@ export default function AdminDashboardPage() {
           mb: '24px',
         }}
       >
-        {/* TODO: When BE GET /admin/dashboard returns monthly_revenue, pass it here. For now the component uses static mock data. */}
-        <RevenueChart />
+        <RevenueChart data={safe.monthly_revenue} />
         <ActivityFeed data={safe.recent_activity} />
       </Box>
 
