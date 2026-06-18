@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STNK SatuJasa - Admin User Dashboard Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --muted: #8a94a7;
+      --text: #172033;
+      --soft-text: #596579;
+      --line: #e8ecf4;
+      --primary: #6046f4;
+      --primary-2: #7c3aed;
+      --primary-3: #4f46e5;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --teal: #14b8a6;
+      --shadow: 0 18px 45px rgba(15, 23, 42, .08);
+      --shadow-sm: 0 10px 24px rgba(15, 23, 42, .07);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 85%, rgba(20, 184, 166, .08), transparent 34%),
+        radial-gradient(circle at 78% 8%, rgba(96, 70, 244, .12), transparent 28%),
+        var(--bg);
+    }
+
+    .app { display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 292px;
+      padding: 32px 22px;
+      background: rgba(255, 255, 255, .82);
+      border-right: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; margin-bottom: 48px; }
+    .brand-logo {
+      width: 48px; height: 48px; border-radius: 16px;
+      background: linear-gradient(145deg, #ffffff, #eef2ff);
+      border: 1px solid #dfe5ff;
+      box-shadow: 0 8px 18px rgba(79, 70, 229, .15);
+      display: grid; place-items: center;
+      font-weight: 900; color: var(--primary);
+      position: relative;
+    }
+    .brand-logo:before {
+      content: "S";
+      width: 28px; height: 28px;
+      border: 3px solid #3157d8;
+      border-radius: 9px 9px 12px 12px;
+      display: grid; place-items: center;
+      font-size: 16px;
+    }
+    .brand-title { font-size: 18px; font-weight: 900; letter-spacing: -.04em; line-height: 1; }
+    .brand-sub { font-size: 11px; color: #7b8497; font-weight: 800; letter-spacing: .14em; margin-top: 8px; }
+
+    .nav-title { color: #8b93a5; font-size: 12px; font-weight: 900; letter-spacing: .22em; margin: 0 0 16px 18px; }
+    .nav { display: grid; gap: 10px; }
+    .nav a {
+      text-decoration: none;
+      display: flex; align-items: center; gap: 14px;
+      height: 58px; padding: 0 18px;
+      border-radius: 15px;
+      color: #5a6476; font-weight: 800;
+      transition: .2s ease;
+    }
+    .nav a:hover { background: #f1f4ff; color: var(--primary); transform: translateX(2px); }
+    .nav a.active {
+      color: #fff;
+      background: linear-gradient(135deg, #3147ea, #7b3ff2);
+      box-shadow: 0 14px 26px rgba(96, 70, 244, .28);
+    }
+    .nav-icon { width: 22px; height: 22px; display: inline-grid; place-items: center; }
+    .nav-icon svg { width: 22px; height: 22px; stroke-width: 2.3; }
+
+    .sidebar-bottom { margin-top: auto; display: grid; gap: 12px; }
+    .secure, .logout {
+      height: 56px; border-radius: 15px; border: 1px solid var(--line);
+      display: flex; align-items: center; gap: 12px; padding: 0 18px;
+      font-size: 13px; font-weight: 900; letter-spacing: .13em;
+    }
+    .secure { background: #f1f4ff; color: #172033; }
+    .logout { background: #fff2f2; color: #e03737; border-color: #ffd2d2; cursor: pointer; }
+
+    .main { flex: 1; min-width: 0; }
+    .topbar {
+      height: 92px;
+      padding: 18px 38px;
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      background: rgba(255, 255, 255, .55);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .crumb { font-size: 12px; font-weight: 900; letter-spacing: .16em; color: #7e8798; text-transform: uppercase; }
+    .crumb span { color: var(--primary); }
+    h1 { margin: 4px 0 4px; font-size: 28px; line-height: 1; letter-spacing: -.055em; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 14px; font-weight: 500; }
+    .top-actions { display: flex; align-items: center; gap: 14px; }
+    .search {
+      width: 390px; height: 52px; display: flex; align-items: center; gap: 12px;
+      border: 1px solid var(--line); border-radius: 17px; padding: 0 18px;
+      background: rgba(255, 255, 255, .82); color: var(--muted);
+      box-shadow: 0 10px 22px rgba(15, 23, 42, .04);
+    }
+    .search input { border: 0; outline: 0; background: transparent; width: 100%; font: inherit; color: var(--text); }
+    .icon-btn {
+      width: 52px; height: 52px; border: 1px solid var(--line); border-radius: 17px; background: #fff; display: grid; place-items: center; position: relative;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, .04);
+    }
+    .badge-dot { position: absolute; right: 12px; top: 9px; background: #f43f5e; color: #fff; font-size: 10px; font-weight: 900; min-width: 18px; height: 18px; border-radius: 999px; display: grid; place-items: center; border: 2px solid #fff; }
+    .user-chip { height: 58px; padding: 7px 14px; display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 10px 22px rgba(15, 23, 42, .05); }
+    .avatar { width: 42px; height: 42px; border-radius: 14px; color: #fff; background: linear-gradient(135deg, #3157ea, #8b3ff2); display: grid; place-items: center; font-weight: 900; box-shadow: 0 8px 20px rgba(96,70,244,.25); }
+    .user-mail { font-size: 14px; font-weight: 900; letter-spacing: -.02em; }
+    .role { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 999px; background: #fff4cc; color: #9a6200; font-size: 10px; font-weight: 900; margin-left: 8px; }
+
+    .content { padding: 26px 38px 40px; }
+    .hero {
+      min-height: 150px;
+      border-radius: 27px;
+      background:
+        radial-gradient(circle at 88% 42%, rgba(255,255,255,.24), transparent 12%),
+        radial-gradient(circle at 70% -30%, rgba(255,255,255,.22), transparent 28%),
+        linear-gradient(135deg, #4238e8 0%, #6d46f7 47%, #9a7bf4 100%);
+      box-shadow: 0 22px 50px rgba(79,70,229,.22);
+      overflow: hidden;
+      color: #fff;
+      padding: 30px 34px;
+      display: flex; align-items: center; justify-content: space-between; gap: 20px;
+      position: relative;
+    }
+    .hero:before {
+      content: ""; position: absolute; inset: -80px -50px auto auto; width: 340px; height: 340px; border-radius: 50%; border: 48px solid rgba(255,255,255,.08);
+    }
+    .hero:after {
+      content: ""; position: absolute; right: 70px; bottom: -30px; width: 130px; height: 130px; border-radius: 50%; background: rgba(255,255,255,.09);
+    }
+    .hero-left { display: flex; align-items: center; gap: 28px; position: relative; z-index: 2; }
+    .hero-icon { width: 88px; height: 88px; border-radius: 25px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.25); display: grid; place-items: center; }
+    .hero h2 { margin: 0 0 12px; font-size: 32px; letter-spacing: -.055em; }
+    .hero p { margin: 0; color: rgba(255,255,255,.86); font-weight: 600; line-height: 1.55; }
+    .hero-status { position: relative; z-index: 2; width: 280px; }
+    .status-pill { display: inline-flex; align-items: center; gap: 9px; background: rgba(255,255,255,.16); padding: 12px 18px; border-radius: 16px; font-weight: 900; box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+    .green-dot { width: 10px; height: 10px; border-radius: 99px; background: #4ade80; box-shadow: 0 0 0 5px rgba(74,222,128,.15); }
+    .hero-status small { display: block; margin-top: 15px; color: rgba(255,255,255,.84); font-weight: 600; line-height: 1.5; }
+
+    .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
+    .card { background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-sm); }
+    .kpi { padding: 22px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; min-height: 128px; overflow: hidden; position: relative; }
+    .kpi-icon { width: 60px; height: 60px; border-radius: 18px; display: grid; place-items: center; color: #fff; box-shadow: 0 14px 26px rgba(0,0,0,.12); }
+    .purple { background: linear-gradient(135deg, #6046f4, #8b5cf6); }
+    .orange { background: linear-gradient(135deg, #f59e0b, #fb923c); }
+    .green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .blue { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+    .kpi-label { color: #717b8f; font-size: 12px; font-weight: 900; letter-spacing: .16em; }
+    .kpi-value { font-size: 30px; font-weight: 900; letter-spacing: -.06em; margin: 5px 0; }
+    .trend { font-size: 12px; color: var(--soft-text); font-weight: 700; }
+    .trend b { color: #16a34a; }
+    .spark { width: 94px; height: 44px; }
+
+    .grid { margin-top: 18px; display: grid; grid-template-columns: 1.55fr .82fr 1.05fr; gap: 18px; align-items: start; }
+    .panel { padding: 22px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .title { display: flex; align-items: center; gap: 11px; font-size: 17px; font-weight: 900; letter-spacing: -.03em; }
+    .mini-btn { border: 1px solid var(--line); background: #fff; color: #475569; border-radius: 13px; padding: 10px 14px; font-weight: 800; font-size: 12px; }
+    .chart-box { height: 238px; border-radius: 16px; background: linear-gradient(180deg, rgba(96,70,244,.04), rgba(96,70,244,.01)); border: 1px solid #eef1f6; padding: 10px 2px 0; }
+    .chart-stats { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-top: 14px; }
+    .chart-stat { padding: 14px 16px; border-right: 1px solid var(--line); }
+    .chart-stat:last-child { border-right: 0; }
+    .chart-stat small { display: block; color: #6b7280; font-weight: 900; font-size: 11px; }
+    .chart-stat strong { font-size: 20px; color: var(--primary); }
+
+    .actions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .action { min-height: 114px; border: 1px solid var(--line); border-radius: 17px; display: grid; place-items: center; text-align: center; background: linear-gradient(180deg, #fff, #fbfcff); padding: 16px 10px; }
+    .action svg { margin-bottom: 10px; }
+    .action strong { display: block; font-size: 14px; }
+    .action span { color: #7b8497; font-size: 12px; font-weight: 600; }
+
+    .activity-list { display: grid; gap: 2px; }
+    .activity { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 11px 0; border-bottom: 1px solid #f0f2f7; }
+    .activity:last-child { border-bottom: 0; }
+    .round { width: 38px; height: 38px; border-radius: 13px; display: grid; place-items: center; }
+    .activity strong { display: block; font-size: 13px; margin-bottom: 4px; }
+    .activity span { color: #7b8497; font-size: 12px; font-weight: 600; }
+    .time { color: #7b8497; font-size: 12px; font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 9px; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+    .lower { display: grid; grid-template-columns: 2.28fr 1fr; gap: 18px; margin-top: 18px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; font-size: 11px; color: #7b8497; letter-spacing: .12em; font-weight: 900; padding: 14px 18px; background: #f8fafc; }
+    td { padding: 15px 18px; border-top: 1px solid #edf0f6; font-size: 13px; font-weight: 700; color: #3d4658; }
+    .tenant-cell { display: flex; align-items: center; gap: 10px; }
+    .tenant-icon { width: 26px; height: 26px; border-radius: 9px; background: #eeeaff; display: grid; place-items: center; color: var(--primary); }
+    .status { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 11px; font-weight: 900; font-size: 12px; }
+    .status.pending { color: #b45309; background: #fff3dc; }
+    .status.process { color: #2563eb; background: #eaf1ff; }
+    .status.done { color: #14934b; background: #e9f9ef; }
+    .more { font-size: 22px; line-height: 0; color: #475569; }
+
+    .side-stack { display: grid; gap: 18px; }
+    .donut-wrap { display: grid; grid-template-columns: 145px 1fr; gap: 18px; align-items: center; }
+    .donut { width: 132px; height: 132px; border-radius: 50%; background: conic-gradient(#6046f4 0 86%, #3b82f6 86% 96%, #f59e0b 96% 100%); display: grid; place-items: center; position: relative; }
+    .donut:after { content: ""; width: 84px; height: 84px; border-radius: 50%; background: #fff; position: absolute; }
+    .donut-center { position: relative; z-index: 2; text-align: center; }
+    .donut-center strong { font-size: 24px; }
+    .donut-center span { display: block; color: #778196; font-size: 11px; font-weight: 800; }
+    .legend { display: grid; gap: 13px; }
+    .legend-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #687386; font-size: 13px; font-weight: 700; }
+    .legend-row b { color: #172033; }
+
+    .request-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .req { padding: 14px 10px; border-radius: 15px; text-align: center; border: 1px solid var(--line); background: #fff; }
+    .req small { display: block; color: #6b7280; font-weight: 900; }
+    .req strong { display: block; font-size: 25px; margin: 5px 0; letter-spacing: -.05em; }
+    .req span { font-size: 11px; font-weight: 900; }
+    .req.orange { background: #fff8ec; color: #d97706; border-color: #ffdfac; }
+    .req.greenish { background: #effdf5; color: #16a34a; border-color: #c6f6d5; }
+    .req.redish { background: #fff2f2; color: #dc2626; border-color: #ffd0d0; }
+
+    @media (max-width: 1280px) {
+      .sidebar { width: 246px; }
+      .search { width: 300px; }
+      .kpis { grid-template-columns: repeat(2, 1fr); }
+      .grid { grid-template-columns: 1fr 1fr; }
+      .grid .panel:nth-child(3) { grid-column: 1 / -1; }
+      .lower { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .app { display: block; }
+      .sidebar { width: 100%; height: auto; position: relative; }
+      .topbar { height: auto; flex-direction: column; align-items: flex-start; }
+      .top-actions { width: 100%; flex-wrap: wrap; }
+      .search { width: 100%; }
+      .kpis, .grid { grid-template-columns: 1fr; }
+      .hero, .hero-left { align-items: flex-start; flex-direction: column; }
+      .hero-status { width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <div>
+          <div class="brand-title">STNK SatuJasa</div>
+          <div class="brand-sub">OPERATIONAL COMMAND</div>
+        </div>
+      </div>
+
+      <div class="nav-title">NAVIGASI</div>
+      <nav class="nav">
+        <a class="active" href="#">
+          <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+          Dashboard
+        </a>
+        <a href="#"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/><path d="M9 13h7M9 17h7"/></svg></span>Transaksi</a>
+        <a href="#"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Tim</a>
+        <a href="#"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></span>Permintaan</a>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="secure"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>SECURE PANEL</div>
+        <div class="logout"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>Keluar</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <div class="crumb">Workspace&nbsp;&nbsp;/&nbsp;&nbsp;<span>User Admin</span></div>
+          <h1>Dashboard</h1>
+          <p class="subtitle">Monitor performa platform dan kelola aktivitas operasional secara real-time.</p>
+        </div>
+        <div class="top-actions">
+          <label class="search">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input placeholder="Cari menu, data, atau perintah..." />
+          </label>
+          <button class="icon-btn" aria-label="notifikasi">
+            <span class="badge-dot">3</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </button>
+          <div class="user-chip">
+            <div class="avatar">A</div>
+            <div>
+              <div class="user-mail">admin-cabang@satujasa.id <span class="role">USER ADMIN</span></div>
+              <div style="font-size:12px;color:#8993a5;font-weight:700;margin-top:4px;">Cabang Jakarta Pusat</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="hero">
+          <div class="hero-left">
+            <div class="hero-icon">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+            </div>
+            <div>
+              <h2>Admin User Dashboard 👋</h2>
+              <p>Pantau aktivitas transaksi dan kelola workflow operasional<br>secara efisien dan terintegrasi.</p>
+            </div>
+          </div>
+          <div class="hero-status">
+            <div class="status-pill"><span class="green-dot"></span> Operasional Stabil</div>
+            <small>Sistem berjalan normal dan semua layanan aktif.</small>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="card kpi">
+            <div class="kpi-icon purple"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+            <div><div class="kpi-label">TRANSAKSI HARI INI</div><div class="kpi-value">148</div><div class="trend"><b>↑ 18.6%</b> dari kemarin</div></div>
+            <svg class="spark" viewBox="0 0 100 45"><path d="M4 34 C12 28 16 31 22 27 S34 38 42 21 53 12 60 18 68 30 76 22 86 18 96 7" fill="none" stroke="#6046f4" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-icon orange"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <div><div class="kpi-label">PENDING</div><div class="kpi-value">23</div><div class="trend"><b style="color:#16a34a">↓ 8.0%</b> dari kemarin</div></div>
+            <svg class="spark" viewBox="0 0 100 45"><path d="M4 25 C14 34 22 33 28 23 S42 10 50 14 58 29 68 27 80 23 96 5" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-icon green"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg></div>
+            <div><div class="kpi-label">SELESAI</div><div class="kpi-value">125</div><div class="trend"><b>↑ 24.5%</b> dari kemarin</div></div>
+            <svg class="spark" viewBox="0 0 100 45"><path d="M5 34 C13 28 19 25 25 30 S36 20 43 18 51 26 58 21 66 12 73 18 84 14 96 4" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+          <div class="card kpi">
+            <div class="kpi-icon blue"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M21 12a9 9 0 1 1-18 0"/><path d="m12 12 4-4"/><path d="M8 12h.01M16 12h.01M12 8h.01"/></svg></div>
+            <div><div class="kpi-label">SLA TEPAT WAKTU</div><div class="kpi-value">96.8%</div><div class="trend"><b>↑ 2.7%</b> dari minggu lalu</div></div>
+            <svg class="spark" viewBox="0 0 100 45"><path d="M4 32 C12 28 18 13 28 18 S39 23 48 13 56 22 65 18 74 14 82 12 90 7 97 9" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card panel">
+            <div class="panel-head">
+              <div class="title"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.4"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="4" width="3" height="14"/></svg>Grafik Transaksi 30 Hari</div>
+              <button class="mini-btn">30 Hari Terakhir⌄</button>
+            </div>
+            <div class="chart-box">
+              <svg viewBox="0 0 760 260" width="100%" height="100%" preserveAspectRatio="none">
+                <defs><linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6046f4" stop-opacity=".25"/><stop offset="1" stop-color="#6046f4" stop-opacity="0"/></linearGradient></defs>
+                <g stroke="#e8ecf4" stroke-width="1"><path d="M52 28H735"/><path d="M52 82H735"/><path d="M52 136H735"/><path d="M52 190H735"/><path d="M52 234H735"/></g>
+                <g fill="#8a94a7" font-size="13" font-family="Inter"><text x="12" y="234">0</text><text x="12" y="190">40</text><text x="12" y="136">80</text><text x="8" y="82">120</text><text x="8" y="28">160</text><text x="80" y="256">22 Apr</text><text x="190" y="256">27 Apr</text><text x="310" y="256">2 Mei</text><text x="420" y="256">7 Mei</text><text x="530" y="256">12 Mei</text><text x="640" y="256">17 Mei</text></g>
+                <path d="M52 205 L85 162 L116 150 L148 118 L180 126 L212 105 L244 132 L276 165 L308 178 L340 142 L372 148 L404 118 L436 92 L468 92 L500 124 L532 112 L564 142 L596 165 L628 128 L660 146 L692 98 L724 62 L735 42 L735 234 L52 234 Z" fill="url(#area)"/>
+                <path d="M52 205 L85 162 L116 150 L148 118 L180 126 L212 105 L244 132 L276 165 L308 178 L340 142 L372 148 L404 118 L436 92 L468 92 L500 124 L532 112 L564 142 L596 165 L628 128 L660 146 L692 98 L724 62 L735 42" fill="none" stroke="#6046f4" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                <g fill="#fff" stroke="#6046f4" stroke-width="3"><circle cx="85" cy="162" r="5"/><circle cx="148" cy="118" r="5"/><circle cx="212" cy="105" r="5"/><circle cx="340" cy="142" r="5"/><circle cx="468" cy="92" r="5"/><circle cx="596" cy="165" r="5"/><circle cx="692" cy="98" r="5"/><circle cx="735" cy="42" r="6"/></g>
+              </svg>
+            </div>
+            <div class="chart-stats">
+              <div class="chart-stat"><small>Total Transaksi</small><strong>2.843</strong> <span class="trend"><b>↑ 16.4%</b></span></div>
+              <div class="chart-stat"><small>Rata-rata/Hari</small><strong>94.8</strong> <span class="trend"><b>↑ 12.2%</b></span></div>
+              <div class="chart-stat"><small>Tertinggi</small><strong>148</strong> <span class="trend">22 Mei</span></div>
+              <div class="chart-stat"><small>Terendah</small><strong>41</strong> <span class="trend">3 Mei</span></div>
+            </div>
+          </div>
+
+          <div class="card panel">
+            <div class="panel-head"><div class="title"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.4"><path d="m13 2-10 12h9l-1 8 10-12h-9z"/></svg>Quick Actions</div></div>
+            <div class="actions-grid">
+              <div class="action"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.3"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg><strong>Buat Transaksi</strong><span>Buat transaksi baru</span></div>
+              <div class="action"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.3"><circle cx="12" cy="12" r="10"/><path d="m8 12 2.5 2.5L16 9"/></svg><strong>Approve Permintaan</strong><span>Setujui permintaan</span></div>
+              <div class="action"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.3"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><strong>Tambah Tim</strong><span>Kelola anggota tim</span></div>
+              <div class="action"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><strong>Export Laporan</strong><span>Unduh laporan data</span></div>
+            </div>
+          </div>
+
+          <div class="card panel">
+            <div class="panel-head"><div class="title"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.4"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>Aktivitas Tenant</div><button class="mini-btn">Lihat Semua</button></div>
+            <div class="activity-list">
+              <div class="activity"><div class="round" style="background:#eeeaff;color:#6046f4">▣</div><div><strong>Cabang Jakarta Pusat</strong><span>Membuat 12 transaksi baru</span></div><div class="time">2 menit lalu <i class="dot" style="background:#22c55e"></i></div></div>
+              <div class="activity"><div class="round" style="background:#fff5e6;color:#f59e0b">⌂</div><div><strong>Cabang Surabaya</strong><span>Permintaan persetujuan dokumen</span></div><div class="time">15 menit lalu <i class="dot" style="background:#f59e0b"></i></div></div>
+              <div class="activity"><div class="round" style="background:#eafaf0;color:#22c55e">✓</div><div><strong>Cabang Bandung</strong><span>12 transaksi berhasil diselesaikan</span></div><div class="time">1 jam lalu <i class="dot" style="background:#22c55e"></i></div></div>
+              <div class="activity"><div class="round" style="background:#eaf1ff;color:#3b82f6">✎</div><div><strong>Cabang Medan</strong><span>Update data tenant</span></div><div class="time">2 jam lalu <i class="dot" style="background:#3b82f6"></i></div></div>
+              <div class="activity"><div class="round" style="background:#f1eaff;color:#7c3aed">◎</div><div><strong>Cabang Makassar</strong><span>Login ke sistem</span></div><div class="time">3 jam lalu <i class="dot" style="background:#7c3aed"></i></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lower">
+          <div class="card panel" style="padding:0; overflow:hidden;">
+            <div class="panel-head" style="padding:20px 22px; margin:0;"><div class="title"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.4"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Transaksi Terbaru</div><button class="mini-btn">Lihat Semua</button></div>
+            <table>
+              <thead><tr><th>ID TRANSAKSI</th><th>TENANT</th><th>JENIS LAYANAN</th><th>STATUS</th><th>WAKTU</th><th>AKSI</th></tr></thead>
+              <tbody>
+                <tr><td>TRX-2025-0522-00148</td><td><div class="tenant-cell"><span class="tenant-icon">⌂</span>Cabang Jakarta Pusat</div></td><td>Perpanjangan STNK</td><td><span class="status pending"><i class="dot" style="background:#f59e0b"></i>Pending</span></td><td>22 Mei 2025, 10:24</td><td class="more">...</td></tr>
+                <tr><td>TRX-2025-0522-00147</td><td><div class="tenant-cell"><span class="tenant-icon">⌂</span>Cabang Surabaya</div></td><td>Mutasi Masuk</td><td><span class="status process"><i class="dot" style="background:#3b82f6"></i>Diproses</span></td><td>22 Mei 2025, 10:15</td><td class="more">...</td></tr>
+                <tr><td>TRX-2025-0522-00146</td><td><div class="tenant-cell"><span class="tenant-icon">⌂</span>Cabang Bandung</div></td><td>Balik Nama</td><td><span class="status done"><i class="dot" style="background:#22c55e"></i>Selesai</span></td><td>22 Mei 2025, 09:58</td><td class="more">...</td></tr>
+                <tr><td>TRX-2025-0522-00145</td><td><div class="tenant-cell"><span class="tenant-icon">⌂</span>Cabang Medan</div></td><td>Perpanjangan STNK</td><td><span class="status process"><i class="dot" style="background:#3b82f6"></i>Diproses</span></td><td>22 Mei 2025, 09:41</td><td class="more">...</td></tr>
+                <tr><td>TRX-2025-0522-00144</td><td><div class="tenant-cell"><span class="tenant-icon">⌂</span>Cabang Makassar</div></td><td>Mutasi Keluar</td><td><span class="status done"><i class="dot" style="background:#22c55e"></i>Selesai</span></td><td>22 Mei 2025, 09:32</td><td class="more">...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="side-stack">
+            <div class="card panel">
+              <div class="panel-head"><div class="title"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.4"><path d="m13 2-10 12h9l-1 8 10-12h-9z"/></svg>Performa Tim</div><button class="mini-btn">Lihat Detail</button></div>
+              <div class="donut-wrap">
+                <div class="donut"><div class="donut-center"><strong>86%</strong><span>Produktivitas</span></div></div>
+                <div class="legend">
+                  <div class="legend-row"><span><i class="dot" style="background:#22c55e;display:inline-block;margin-right:8px"></i>Selesai</span><b>86% (214)</b></div>
+                  <div class="legend-row"><span><i class="dot" style="background:#3b82f6;display:inline-block;margin-right:8px"></i>Diproses</span><b>10% (25)</b></div>
+                  <div class="legend-row"><span><i class="dot" style="background:#f59e0b;display:inline-block;margin-right:8px"></i>Pending</span><b>4% (9)</b></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card panel">
+              <div class="panel-head"><div class="title"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6046f4" stroke-width="2.4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Permintaan Terbaru</div><button class="mini-btn">Lihat Semua</button></div>
+              <div class="request-grid">
+                <div class="req"><small>Total</small><strong>36</strong><span>Semua</span></div>
+                <div class="req orange"><small>Menunggu</small><strong>12</strong><span>Pending</span></div>
+                <div class="req greenish"><small>Disetujui</small><strong>18</strong><span>Disetujui</span></div>
+                <div class="req redish"><small>Ditolak</small><strong>6</strong><span>Ditolak</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

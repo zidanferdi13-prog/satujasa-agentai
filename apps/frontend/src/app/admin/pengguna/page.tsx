@@ -18,6 +18,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import FilterBar from '@/components/shared/FilterBar';
 import StatusPill from '@/components/shared/StatusPill';
+import { useToast } from '@/components/shared/ToastProvider';
 import apiClient from '@/lib/axios';
 
 interface User {
@@ -43,6 +44,7 @@ const roleVariant: Record<string, 'success' | 'warning' | 'info' | 'error'> = {
 function RowActions({ user }: { user: User }) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const toast = useToast();
 
   const handleClose = () => setAnchorEl(null);
 
@@ -70,7 +72,7 @@ function RowActions({ user }: { user: User }) {
         slotProps={{ paper: { sx: { borderRadius: '12px', minWidth: 160, mt: 0.5 } } }}
       >
         <MenuItem
-          onClick={() => { handleClose(); alert('Fitur Edit Role akan datang'); }}
+          onClick={() => { handleClose(); toast.showSuccess('Fitur Edit Role akan datang'); }}
           dense
           sx={{ fontSize: 13, gap: 1.5, py: 1.25 }}
         >
@@ -78,7 +80,7 @@ function RowActions({ user }: { user: User }) {
           Edit Role
         </MenuItem>
         <MenuItem
-          onClick={() => { handleClose(); alert('Fitur Nonaktifkan akan datang'); }}
+          onClick={() => { handleClose(); toast.showSuccess('Fitur Nonaktifkan akan datang'); }}
           dense
           sx={{ fontSize: 13, gap: 1.5, py: 1.25, color: '#ef4444' }}
         >
