@@ -465,7 +465,144 @@ function relativeTime(date: Date): string {
         }
       })
 
-      res.json({ data: enriched, meta: { total } })
+      // KPI computation (independent of search/filter — always global)
+      const kpi = {
+        total: 0,
+        active: 0,
+        free: 0,
+        paid: 0,
+        total_delta: '0%',
+        active_delta: '0%',
+        free_delta: '0%',
+        paid_delta: '0%',
+      }
+      try {
+        // Total owners
+        const [kpiTotal] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.users)
+          .where(and(eq(schema.users.role, 'owner'), isNull(schema.users.deleted_at)))
+        kpi.total = kpiTotal?.count ?? 0
+
+        // Active owners (have active subscription = non-expired with activated_at)
+        const [kpiActive] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            sql`${schema.subscriptions.activated_at} IS NOT NULL`,
+            isNull(schema.subscriptions.deleted_at),
+          ))
+        kpi.active = kpiActive?.count ?? 0
+
+        // Paid / free
+        const [kpiPaid] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            sql`${schema.subscriptions.tier} IN ('pro', 'plus', 'expert')`,
+            isNull(schema.subscriptions.deleted_at),
+          ))
+        kpi.paid = kpiPaid?.count ?? 0
+        kpi.free = kpi.total - kpi.paid
+
+        // Helper: format delta as string (+X%, -Y%, 0%)
+        function formatDelta(current: number, previous: number): string {
+          if (previous === 0) return current > 0 ? '+100%' : '0%'
+          const pct = Math.round(((current - previous) / previous) * 100)
+          if (pct === 0) return '0%'
+          return pct > 0 ? `+${pct}%` : `${pct}%`
+        }
+
+        // New owners this month
+        const [thisMonthTotal] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.users)
+          .where(and(
+            eq(schema.users.role, 'owner'),
+            isNull(schema.users.deleted_at),
+            sql`${schema.users.created_at} >= date_trunc('month', now())`,
+          ))
+
+        // New owners last month
+        const [lastMonthTotal] = await db
+          .select({ count: sql<number>`count(*)::int` })
+          .from(schema.users)
+          .where(and(
+            eq(schema.users.role, 'owner'),
+            isNull(schema.users.deleted_at),
+            sql`${schema.users.created_at} >= date_trunc('month', now() - interval '1 month')
+              AND ${schema.users.created_at} < date_trunc('month', now())`,
+          ))
+        kpi.total_delta = formatDelta(thisMonthTotal?.count ?? 0, lastMonthTotal?.count ?? 0)
+
+        // New active (subscriptions with activated_at this month vs last month)
+        const [thisMonthActive] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            sql`${schema.subscriptions.activated_at} IS NOT NULL`,
+            isNull(schema.subscriptions.deleted_at),
+            sql`${schema.subscriptions.activated_at} >= date_trunc('month', now())`,
+          ))
+
+        const [lastMonthActive] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            sql`${schema.subscriptions.activated_at} IS NOT NULL`,
+            isNull(schema.subscriptions.deleted_at),
+            sql`${schema.subscriptions.activated_at} >= date_trunc('month', now() - interval '1 month')
+              AND ${schema.subscriptions.activated_at} < date_trunc('month', now())`,
+          ))
+        kpi.active_delta = formatDelta(thisMonthActive?.count ?? 0, lastMonthActive?.count ?? 0)
+
+        // New free tier subscriptions this month vs last month (incl no subscription)
+        const [thisMonthFree] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            eq(schema.subscriptions.tier, 'free'),
+            isNull(schema.subscriptions.deleted_at),
+            sql`${schema.subscriptions.created_at} >= date_trunc('month', now())`,
+          ))
+
+        const [lastMonthFree] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            eq(schema.subscriptions.tier, 'free'),
+            isNull(schema.subscriptions.deleted_at),
+            sql`${schema.subscriptions.created_at} >= date_trunc('month', now() - interval '1 month')
+              AND ${schema.subscriptions.created_at} < date_trunc('month', now())`,
+          ))
+        kpi.free_delta = formatDelta(thisMonthFree?.count ?? 0, lastMonthFree?.count ?? 0)
+
+        // New paid tier subscriptions this month vs last month
+        const [thisMonthPaid] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            sql`${schema.subscriptions.tier} IN ('pro', 'plus', 'expert')`,
+            isNull(schema.subscriptions.deleted_at),
+            sql`${schema.subscriptions.created_at} >= date_trunc('month', now())`,
+          ))
+
+        const [lastMonthPaid] = await db
+          .select({ count: sql<number>`count(distinct ${schema.subscriptions.owner_id})::int` })
+          .from(schema.subscriptions)
+          .where(and(
+            sql`${schema.subscriptions.tier} IN ('pro', 'plus', 'expert')`,
+            isNull(schema.subscriptions.deleted_at),
+            sql`${schema.subscriptions.created_at} >= date_trunc('month', now() - interval '1 month')
+              AND ${schema.subscriptions.created_at} < date_trunc('month', now())`,
+          ))
+        kpi.paid_delta = formatDelta(thisMonthPaid?.count ?? 0, lastMonthPaid?.count ?? 0)
+      } catch (e) {
+        console.error('Owners KPI error:', e)
+        // kpi stays at defaults
+      }
+
+      res.json({ data: enriched, meta: { total }, kpi })
     } catch (error) {
       console.error('List owners error:', error)
       res.status(500).json({ error: 'internal_server_error' })
