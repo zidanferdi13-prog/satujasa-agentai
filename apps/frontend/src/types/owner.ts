@@ -17,6 +17,7 @@ export interface OwnersListResponse {
   meta: {
     total: number;
   };
+  kpi?: OwnersKpi;
 }
 
 export interface OwnersKpi {

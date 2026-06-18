@@ -41,7 +41,7 @@ export default function OwnersListPage() {
             tier: tierFilter !== 'ALL' ? tierFilter.toLowerCase() : undefined 
           } 
         })
-        .then((r) => r.data?.data ? { data: r.data.data, meta: r.data.meta } : r.data),
+        .then((r) => r.data?.data ? { data: r.data.data, meta: r.data.meta, kpi: r.data.kpi } : r.data),
   });
 
   if (isLoading) return <OwnersPageSkeleton />;
@@ -49,16 +49,16 @@ export default function OwnersListPage() {
   const ownersData = data?.data ?? [];
   const total = data?.meta?.total ?? 0;
   
-  // Mock KPI data derived from owners list or dashboard if available
-  const kpiData: OwnersKpi = {
+  // KPI data from API (BE-017), falls back to derived mock data
+  const kpiData: OwnersKpi = data?.kpi ?? {
     total: total,
     active: ownersData.filter(o => (o.subscription_status ?? '').toLowerCase() === 'active').length,
     free: ownersData.filter(o => (o.subscription_tier ?? '').toUpperCase() === 'FREE').length,
     paid: ownersData.filter(o => (o.subscription_tier ?? '').toUpperCase() !== 'FREE').length,
-    total_delta: '+12%',
-    active_delta: '+8%',
-    free_delta: '-5%',
-    paid_delta: '+15%',
+    total_delta: '0%',
+    active_delta: '0%',
+    free_delta: '0%',
+    paid_delta: '0%',
   };
 
   return (
