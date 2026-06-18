@@ -22,6 +22,7 @@ export default function SignUpPage() {
     owner_name: '',
     email: '',
     phone: '',
+    password: '',
   });
 
   function handleChange(field: string) {
@@ -34,8 +35,14 @@ export default function SignUpPage() {
     setIsPending(true);
     setError(null);
 
-    if (!form.email.trim() || !form.phone.trim() || !form.company_name.trim()) {
+    if (!form.email.trim() || !form.phone.trim() || !form.company_name.trim() || !form.password.trim()) {
       setError('Harap isi semua field yang wajib');
+      setIsPending(false);
+      return;
+    }
+
+    if (form.password.trim().length < 8) {
+      setError('Password minimal 8 karakter');
       setIsPending(false);
       return;
     }
@@ -45,7 +52,8 @@ export default function SignUpPage() {
         email: form.email.trim(),
         company_name: form.company_name.trim(),
         phone: form.phone.trim(),
-        password: 'STNK1234!', // Default — ubah nanti via fitur reset password
+        owner_name: form.owner_name.trim(),
+        password: form.password,
       });
       router.push('/auth/signin?registered=true');
     } catch (err: unknown) {
@@ -124,6 +132,16 @@ export default function SignUpPage() {
           autoComplete="tel"
           value={form.phone}
           onChange={handleChange('phone')}
+        />
+        <AuthTextField
+          label="Password"
+          type="password"
+          required
+          fullWidth
+          autoComplete="new-password"
+          helperText="Minimal 8 karakter"
+          value={form.password}
+          onChange={handleChange('password')}
         />
         <Button
           type="submit"
