@@ -99,7 +99,7 @@ export default function DownloadPage() {
             </Box>
           </Box>
 
-          <Card sx={{ bgcolor: '#333333', color: '#ffffff', borderRadius: 6, border: 'none' }}>
+          <Card sx={{ bgcolor: '#333333', color: '#ffffff', borderRadius: 2, border: 'none' }}>
             <CardContent sx={{ p: { xs: 3, md: 4 } }}>
               <Box sx={{ fontSize: 16, lineHeight: 2, color: 'rgba(255,255,255,0.78)', mb: 3 }}>
                 Gunakan dashboard web based saat bekerja dari komputer, lalu lanjutkan operasional mobile

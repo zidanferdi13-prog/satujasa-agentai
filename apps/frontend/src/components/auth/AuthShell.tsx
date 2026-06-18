@@ -101,7 +101,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
           <Box
             sx={{
               mt: 5,
-              borderRadius: 6,
+              borderRadius: 2,
               bgcolor: '#333333',
               color: '#ffffff',
               p: 3,
