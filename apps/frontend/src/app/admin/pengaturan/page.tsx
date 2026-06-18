@@ -38,11 +38,13 @@ export default function AdminPengaturanPage() {
   useEffect(() => {
     const d = settingsData?.data;
     if (d) {
-      setForm({
+      const next: SettingsPayload = {
         app_name: d.app_name ?? '',
         support_email: d.support_email ?? '',
         support_phone: d.support_phone ?? '',
-      });
+      };
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable settings form from fetched settings data
+      setForm(next);
     }
   }, [settingsData]);
 
@@ -53,8 +55,11 @@ export default function AdminPengaturanPage() {
     onSuccess: () => {
       setValidationError('');
     },
-    onError: (err: any) => {
-      setValidationError(err?.response?.data?.error ?? 'Gagal menyimpan pengaturan');
+    onError: (err: unknown) => {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Gagal menyimpan pengaturan';
+      setValidationError(msg);
     },
   });
 

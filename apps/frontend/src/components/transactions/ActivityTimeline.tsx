@@ -106,7 +106,7 @@ export default function ActivityTimeline({ transactionId }: ActivityTimelineProp
 
             {log.notes && (
               <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic', mt: 0.25 }}>
-                "{log.notes}"
+                &ldquo;{log.notes}&rdquo;
               </Typography>
             )}
           </Box>

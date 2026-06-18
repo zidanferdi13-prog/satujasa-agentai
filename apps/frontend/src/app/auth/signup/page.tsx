@@ -48,11 +48,15 @@ export default function SignUpPage() {
         password: 'STNK1234!', // Default — ubah nanti via fitur reset password
       });
       router.push('/auth/signin?registered=true');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const msg =
-        err?.response?.data?.error ??
-        err?.response?.data?.message ??
-        err?.message ??
+        apiError.response?.data?.error ??
+        apiError.response?.data?.message ??
+        apiError.message ??
         'Gagal mendaftar. Coba lagi.';
       setError(msg);
     } finally {

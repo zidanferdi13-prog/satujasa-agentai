@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -16,18 +16,11 @@ interface RoleGuardProps {
 
 export default function RoleGuard({ children, allowedRole }: RoleGuardProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
   const { data: user, isLoading, isError } = useCurrentUser();
+  const hasToken = getToken();
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    const token = getToken();
-    if (!token) {
+    if (!hasToken) {
       router.replace('/auth/signin');
       return;
     }
@@ -42,9 +35,9 @@ export default function RoleGuard({ children, allowedRole }: RoleGuardProps) {
         router.replace(getRoleRedirect(user.role));
       }
     }
-  }, [mounted, user, isLoading, isError, router, allowedRole]);
+  }, [hasToken, user, isLoading, isError, router, allowedRole]);
 
-  if (!mounted || isLoading) {
+  if (!hasToken || isLoading) {
     return (
       <Box className="flex items-center justify-center min-h-screen">
         <CircularProgress />

@@ -50,11 +50,15 @@ export default function LoginHelpPage() {
     try {
       await apiClient.post('/auth/forgot-password', { email: form.email.trim() });
       setSuccess(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const apiError = err as {
+        response?: { data?: { error?: string; message?: string } };
+        message?: string;
+      };
       const msg =
-        err?.response?.data?.error ??
-        err?.response?.data?.message ??
-        err?.message ??
+        apiError.response?.data?.error ??
+        apiError.response?.data?.message ??
+        apiError.message ??
         'Gagal mengirim permintaan. Coba lagi.';
       setError(msg);
     } finally {
