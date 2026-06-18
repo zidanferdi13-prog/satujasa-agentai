@@ -42,6 +42,7 @@ export interface DashboardResponse {
   recent_activity?: ActivityItem[];
   platform_stats?: PlatformStats;
   system_health?: SystemHealthData;
+  monthly_revenue?: Array<{ month: string; revenue: number }>;
 }
 
 // ── Owner Dashboard Response ──
