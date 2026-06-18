@@ -4,6 +4,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { ThemeProvider } from "@mui/material/styles";
 import "./globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
+import { ToastProvider } from "@/components/shared/ToastProvider";
 import theme from "@/lib/theme";
 
 const poppins = Poppins({
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body className={poppins.className}>
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
-            <QueryProvider>{children}</QueryProvider>
+            <QueryProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </QueryProvider>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>

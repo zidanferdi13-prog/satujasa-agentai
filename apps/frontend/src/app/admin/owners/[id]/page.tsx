@@ -16,6 +16,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import MetricCard from '@/components/shared/MetricCard';
 import StatusPill from '@/components/shared/StatusPill';
+import { useToast } from '@/components/shared/ToastProvider';
 import apiClient from '@/lib/axios';
 
 interface OwnerDetail {
@@ -70,6 +71,7 @@ export default function OwnerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useToast();
 
   const [form, setForm] = useState({ tier: '', max_tenants: 0, max_admin_users: 0, expires_at: '' });
   const [error, setError] = useState('');
@@ -120,7 +122,7 @@ export default function OwnerDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-owners'] });
       queryClient.invalidateQueries({ queryKey: ['admin-owner-subscription', id] });
       setError('');
-      alert('Subscription berhasil diupdate');
+      toast.showSuccess('Subscription berhasil diupdate');
     },
     onError: (err: unknown) => {
       const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
