@@ -5,6 +5,7 @@ export const roleMenus: Record<UserRole, RoleMenuItem[]> = {
   ADMIN: [
     { label: 'Dashboard', href: '/admin', icon: 'dashboard' },
     { label: 'Manage Owners', href: '/admin/owners', icon: 'admin_panel_settings' },
+    { label: 'Subscription Logs', href: '/admin/subscription-logs', icon: 'receipt_long' },
     { label: 'Pengguna', href: '/admin/pengguna', icon: 'group' },
     { label: 'Pengaturan', href: '/admin/pengaturan', icon: 'settings' },
   ],
