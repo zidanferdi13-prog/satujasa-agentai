@@ -40,7 +40,7 @@ function buildConicGradient(values: { key: string; value: number }[]): string {
 }
 
 export default function SubscriptionDonut({ data }: SubscriptionDonutProps) {
-  const dist = data ?? { free: 15, pro: 10, plus: 10, expert: 5 };
+  const dist = useMemo(() => data ?? { free: 15, pro: 10, plus: 10, expert: 5 }, [data]);
 
   const total = useMemo(
     () => dist.free + dist.pro + dist.plus + dist.expert,

@@ -22,6 +22,7 @@ const benefits = [
 export default function AuthShell({ eyebrow, title, description, children }: AuthShellProps) {
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100vh',
         bgcolor: '#f5f6f8',
@@ -58,7 +59,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
             <Box
               sx={{
                 display: 'inline-flex',
-                borderRadius: '9999px',
+                borderRadius: 6,
                 border: '1px solid #d0d4e4',
                 bgcolor: '#ffffff',
                 px: 3,
@@ -75,6 +76,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
           </Box>
 
           <Box
+            component="h1"
             sx={{
               fontSize: { xs: 42, xl: 50 },
               fontWeight: 800,
@@ -87,6 +89,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
             {title}
           </Box>
           <Box
+            component="p"
             sx={{
               mt: 3.5,
               fontSize: 18,
@@ -120,6 +123,7 @@ export default function AuthShell({ eyebrow, title, description, children }: Aut
                 >
                   <Box
                     component="span"
+                    aria-hidden="true"
                     className="material-symbols-outlined"
                     sx={{ mt: 0.25, fontSize: 20, color: '#9ec7ff' }}
                   >

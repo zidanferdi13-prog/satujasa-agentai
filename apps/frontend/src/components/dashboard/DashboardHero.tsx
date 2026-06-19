@@ -2,13 +2,8 @@
 
 import { useMemo } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import type { DashboardResponse } from '@/types/dashboard';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-
-type DashboardHeroProps = {
-  data: DashboardResponse | null;
-};
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -17,7 +12,7 @@ function getGreeting(): string {
   return 'Selamat malam';
 }
 
-export default function DashboardHero({ data }: DashboardHeroProps) {
+export default function DashboardHero() {
   const { data: user } = useCurrentUser();
   const greeting = useMemo(() => getGreeting(), []);
   const userName = user?.name ?? 'Super Admin';

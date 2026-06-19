@@ -12,7 +12,6 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
-import Card from '@mui/material/Card';
 import apiClient from '@/lib/axios';
 
 interface Tenant {

@@ -11,6 +11,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
+import { visuallyHidden } from '@mui/utils';
 import StatusPill from '@/components/shared/StatusPill';
 
 interface TenantRow {
@@ -24,14 +25,6 @@ interface TenantRow {
 
 interface OwnerTenantTableProps {
   tenants?: TenantRow[];
-}
-
-function getTierColor(tier: string): string {
-  const t = tier?.toUpperCase() ?? '';
-  if (t === 'ENTERPRISE') return '#6254f3';
-  if (t === 'BUSINESS') return '#2388ff';
-  if (t === 'STANDARD') return '#f6a326';
-  return '#a0a4b8';
 }
 
 function getTierVariant(tier: string): 'info' | 'warning' | 'success' | 'error' {
@@ -74,7 +67,7 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
     <Card sx={{ borderRadius: '22px', border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: 'rgba(255,255,255,0.94)', overflow: 'hidden' }}>
       <Box sx={{ px: 3, py: 2.25, borderBottom: '1px solid #f0f1f5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box>
-          <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>Tenant List</Typography>
+          <Typography id="tenant-list-heading" component="h2" sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>Tenant List</Typography>
           <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>Daftar tenant yang terdaftar pada akun Anda</Typography>
         </Box>
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
@@ -86,14 +79,16 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
       </Box>
 
       <TableContainer>
-        <Table>
+        <Table aria-labelledby="tenant-list-heading">
           <TableHead sx={{ bgcolor: '#f8f9fc' }}>
             <TableRow sx={{ borderBottom: '2px solid #e5e9f3' }}>
               <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Tenant</TableCell>
               <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Paket</TableCell>
               <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Status</TableCell>
               <TableCell sx={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#394154', py: 2 }}>Aktivitas Terakhir</TableCell>
-              <TableCell sx={{ py: 2 }}></TableCell>
+              <TableCell sx={{ py: 2 }} align="right">
+                <Box component="span" sx={visuallyHidden}>Aksi</Box>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -102,7 +97,7 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
                 <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
                     <Box sx={{ width: 72, height: 72, borderRadius: '22px', display: 'grid', placeItems: 'center', bgcolor: '#f0f1f5' }}>
-                      <span className="material-symbols-outlined" style={{ fontSize: 36, color: '#8a91a3' }}>domain</span>
+                      <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 36, color: '#8a91a3' }}>domain</span>
                     </Box>
                     <Typography sx={{ color: '#1d2433', fontSize: 16, fontWeight: 800 }}>Belum ada tenant</Typography>
                     <Typography sx={{ color: '#8a91a3', fontSize: 13 }}>Tambahkan tenant baru untuk memulai.</Typography>
@@ -128,10 +123,10 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433', lineHeight: 1.35 }}>{tenant.name}</Typography>
                         <Typography sx={{ fontSize: 12, color: '#8a91a3', lineHeight: 1.35, mt: 0.2 }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle' }}>group</span>
+                          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 14, verticalAlign: 'middle' }}>group</span>
                           {' '}{tenant.admin_user_count} admin
                           <Box component="span" sx={{ mx: 0.5 }}>•</Box>
-                          <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle' }}>receipt</span>
+                          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 14, verticalAlign: 'middle' }}>receipt</span>
                           {' '}{tenant.active_transactions} transaksi
                         </Typography>
                       </Box>
@@ -157,9 +152,17 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
                   <TableCell align="right">
                     <IconButton
                       size="small"
-                      sx={{ width: 34, height: 34, borderRadius: '10px', color: '#8a91a3', '&:hover': { bgcolor: '#eef2ff', color: '#4f46e5' } }}
+                      aria-label={`Buka aksi tenant ${tenant.name}`}
+                      sx={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: '10px',
+                        color: '#8a91a3',
+                        '&:hover': { bgcolor: '#eef2ff', color: '#4f46e5' },
+                        '&:focus-visible': { outline: '3px solid rgba(79, 70, 229, 0.35)', outlineOffset: 2 },
+                      }}
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: 20 }}>more_vert</span>
+                      <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>more_vert</span>
                     </IconButton>
                   </TableCell>
                 </TableRow>
@@ -174,19 +177,37 @@ export default function OwnerTenantTable({ tenants = [] }: OwnerTenantTableProps
           <Typography sx={{ fontSize: 13, color: '#8a91a3', mr: 1 }}>Halaman {page} dari {totalPages}</Typography>
           <IconButton
             size="small"
+            aria-label="Halaman tenant sebelumnya"
             disabled={page === 1}
             onClick={() => setPage(p => Math.max(1, p - 1))}
-            sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 }, '&:not(.Mui-disabled):hover': { bgcolor: '#eef2ff', color: '#4f46e5' } }}
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: '8px',
+              color: '#8a91a3',
+              '&.Mui-disabled': { opacity: 0.4 },
+              '&:not(.Mui-disabled):hover': { bgcolor: '#eef2ff', color: '#4f46e5' },
+              '&:not(.Mui-disabled):focus-visible': { outline: '3px solid rgba(79, 70, 229, 0.35)', outlineOffset: 2 },
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_left</span>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>chevron_left</span>
           </IconButton>
           <IconButton
             size="small"
+            aria-label="Halaman tenant berikutnya"
             disabled={page === totalPages}
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            sx={{ width: 32, height: 32, borderRadius: '8px', color: '#8a91a3', '&.Mui-disabled': { opacity: 0.4 }, '&:not(.Mui-disabled):hover': { bgcolor: '#eef2ff', color: '#4f46e5' } }}
+            sx={{
+              width: 32,
+              height: 32,
+              borderRadius: '8px',
+              color: '#8a91a3',
+              '&.Mui-disabled': { opacity: 0.4 },
+              '&:not(.Mui-disabled):hover': { bgcolor: '#eef2ff', color: '#4f46e5' },
+              '&:not(.Mui-disabled):focus-visible': { outline: '3px solid rgba(79, 70, 229, 0.35)', outlineOffset: 2 },
+            }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>chevron_right</span>
           </IconButton>
         </Box>
       )}

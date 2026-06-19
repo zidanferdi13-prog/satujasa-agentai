@@ -7,9 +7,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import icon from '../../../assets/icon.png';
-import { removeToken } from '@/lib/auth';
+import { clearAuthStorage } from '@/lib/auth';
 import type { UserRole } from '@/types/auth';
-import { roleLabels } from './menuConfig';
 import type { RoleMenuItem } from './types';
 
 type DashboardSidebarProps = {
@@ -33,7 +32,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
   const queryClient = useQueryClient();
 
   function handleSignOut() {
-    removeToken();
+    clearAuthStorage();
     queryClient.clear();
     onClose();
     router.replace('/auth/signin');
@@ -105,7 +104,7 @@ function SidebarContent({ role, items, currentPath, onClose }: DashboardSidebarP
               )}
               <span style={{ flex: 1 }}>{item.label}</span>
               {item.badge && (
-                <Box sx={{ ml: 'auto', borderRadius: '9999px', bgcolor: active ? 'rgba(255,255,255,0.25)' : '#6161ff', color: '#ffffff', px: 1.25, py: 0.3, fontSize: 11, fontWeight: 700 }}>
+                <Box sx={{ ml: 'auto', borderRadius: 6, bgcolor: active ? 'rgba(255,255,255,0.25)' : '#6161ff', color: '#ffffff', px: 1.25, py: 0.3, fontSize: 11, fontWeight: 700 }}>
                   {item.badge}
                 </Box>
               )}

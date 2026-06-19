@@ -41,7 +41,7 @@ const roleVariant: Record<string, 'success' | 'warning' | 'info' | 'error'> = {
   admin_user: 'success',
 };
 
-function RowActions({ user }: { user: User }) {
+function RowActions() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const toast = useToast();
@@ -197,7 +197,7 @@ export default function AdminPenggunaPage() {
                   </TableCell>
                   <TableCell>{new Date(user.created_at).toLocaleDateString('id-ID')}</TableCell>
                   <TableCell>
-                    <RowActions user={user} />
+                    <RowActions />
                   </TableCell>
                 </TableRow>
               ))}

@@ -57,7 +57,7 @@ const theme = createTheme({
     caption: { fontSize: '0.75rem', lineHeight: 1.4, color: '#808080' },
   },
   shape: {
-    borderRadius: 24,
+    borderRadius: 12,
   },
   shadows: [
     'none',
@@ -120,7 +120,7 @@ const theme = createTheme({
       ],
       styleOverrides: {
         root: {
-          borderRadius: '9999px',
+          borderRadius: '12px',
           padding: '8px 20px',
           textTransform: 'none' as const,
           fontWeight: 500,

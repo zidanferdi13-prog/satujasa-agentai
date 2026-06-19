@@ -7,18 +7,13 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import { visuallyHidden } from '@mui/utils';
 
 type RevenueChartProps = {
   data?: Array<{ month: string; revenue: number }>;
 };
 
 type PeriodKey = '12' | '6' | '30';
-
-const PERIOD_LABELS: Record<PeriodKey, string> = {
-  '12': '12 Bulan',
-  '6': '6 Bulan',
-  '30': '30 Hari',
-};
 
 function getYAxisLabels(maxVal: number): number[] {
   const roundedMax = Math.ceil(maxVal / 10) * 10;
@@ -87,11 +82,11 @@ export default function RevenueChart({ data }: RevenueChartProps) {
         }}
       >
         <Box sx={{ p: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+          <Typography component="h2" variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
             Trend Revenue
           </Typography>
           <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#8a91a3' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 40, marginBottom: 8 }}>show_chart</span>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 40, marginBottom: 8 }}>show_chart</span>
             <Typography sx={{ fontSize: 13, fontWeight: 500 }}>Belum ada data revenue</Typography>
           </Box>
         </Box>
@@ -113,7 +108,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
         {/* Header row */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
+            <Typography component="h2" variant="h6" sx={{ fontWeight: 700, fontSize: 18, color: 'var(--dash-text)', mb: 0.5 }}>
               Trend Revenue
             </Typography>
             <Typography variant="body2" sx={{ fontSize: 13, color: '#8a91a3' }}>
@@ -122,6 +117,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
           </Box>
           <FormControl size="small" sx={{ minWidth: 130 }}>
             <Select
+              inputProps={{ 'aria-label': 'Pilih periode grafik revenue' }}
               value={period}
               onChange={(e) => setPeriod(e.target.value as PeriodKey)}
               sx={{
@@ -140,8 +136,13 @@ export default function RevenueChart({ data }: RevenueChartProps) {
 
         {/* Chart area */}
         <Box sx={{ position: 'relative', pl: `${paddingLeft}px`, pb: `${paddingBottom}px`, height: `${chartHeight}px` }}>
+          <Box component="p" sx={visuallyHidden}>
+            {chartData.length > 0
+              ? `Grafik revenue untuk ${period === '30' ? '30 hari' : period === '6' ? '6 bulan' : '12 bulan'} terakhir. Total revenue ${chartData.reduce((s, d) => s + d.revenue, 0)}.`
+              : 'Belum ada data revenue untuk ditampilkan.'}
+          </Box>
           {/* Y-axis labels and grid lines */}
-          {yLabels.map((label, i) => {
+          {yLabels.map((label) => {
             const yPos = paddingTop + innerH - (label / (maxVal || 1)) * innerH;
             return (
               <Box key={label}>
@@ -178,6 +179,8 @@ export default function RevenueChart({ data }: RevenueChartProps) {
 
           {/* SVG chart */}
           <svg
+            aria-hidden="true"
+            focusable="false"
             viewBox={`0 0 ${innerW} ${chartHeight}`}
             preserveAspectRatio="none"
             style={{

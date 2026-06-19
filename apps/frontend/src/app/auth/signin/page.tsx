@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -11,14 +10,22 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import AuthShell from '@/components/auth/AuthShell';
 import AuthTextField from '@/components/auth/AuthTextField';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLogin } from '@/hooks/useLogin';
+import { getPostLoginRedirect, getToken } from '@/lib/auth';
+import { getRoleRedirect } from '@/lib/redirectByRole';
 
 export default function SignInPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { data: user, isLoading: isCheckingSession } = useCurrentUser();
   const { mutate: login, isPending, isError, error } = useLogin();
+
+  useEffect(() => {
+    if (!getToken() || isCheckingSession || !user) return;
+    router.replace(getPostLoginRedirect() || getRoleRedirect(user.role));
+  }, [isCheckingSession, router, user]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,7 +44,7 @@ export default function SignInPage() {
         >
           Sign in
         </Typography>
-        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.04em', mb: 0.5 }}>
+        <Typography component="h2" variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.04em', mb: 0.5 }}>
           Masuk dashboard
         </Typography>
         <Typography sx={{ color: '#535768', lineHeight: 1.75 }}>
@@ -46,7 +53,7 @@ export default function SignInPage() {
       </Box>
 
       {isError && (
-        <Alert severity="error" sx={{ mb: 2, borderRadius: 3 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
           {(error as Error)?.message ?? 'Login gagal. Periksa email dan password Anda.'}
         </Alert>
       )}
@@ -88,15 +95,15 @@ export default function SignInPage() {
           disabled={isPending}
           fullWidth
           size="large"
-          sx={{ py: 1.75, borderRadius: '12px' }}
+          sx={{ py: 1.75, borderRadius: 2 }}
         >
-          {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />}
+          {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} aria-hidden="true" />}
           {isPending ? 'Memproses…' : 'Masuk Dashboard'}
         </Button>
       </form>
 
       <Box
-        sx={{ mt: 3, borderRadius: 3, p: 2.5, textAlign: 'center', fontSize: 14, bgcolor: '#f5f6f8', color: '#535768' }}
+        sx={{ mt: 3, borderRadius: 2, p: 2.5, textAlign: 'center', fontSize: 14, bgcolor: '#f5f6f8', color: '#535768' }}
       >
         Belum punya akun?{' '}
         <Link href="/auth/signup" style={{ fontWeight: 800, color: '#6161ff', textDecoration: 'none' }}>

@@ -132,6 +132,21 @@
   --dash-radius-xl: 28px;
   --dash-radius-lg: 22px;
   --dash-radius-md: 16px;
+
+  /* ── Landing retouch tokens ── */
+  --landing-bg: #f5f6f8;
+  --landing-surface: #ffffff;
+  --landing-surface-soft: #f8faff;
+  --landing-ink: #1d2433;
+  --landing-muted: #535768;
+  --landing-line: #d0d4e4;
+  --landing-violet: #6161ff;
+  --landing-blue: #0d63d8;
+  --landing-folder: #fff3bf;
+  --landing-folder-ink: #8a5a00;
+  --landing-green: #10b981;
+  --landing-shadow: 0 24px 70px rgba(43, 50, 91, 0.12);
+  --landing-radius: 28px;
 }
 
 /* ── Glass card ── */
@@ -152,6 +167,32 @@
     linear-gradient(90deg, color-mix(in srgb, var(--color-primary) 9%, transparent) 1px, transparent 1px),
     linear-gradient(color-mix(in srgb, var(--color-secondary) 10%, transparent) 1px, transparent 1px);
   background-size: 44px 44px;
+}
+
+.landing-dossier-grid {
+  background-image:
+    linear-gradient(90deg, rgba(97, 97, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(rgba(13, 99, 216, 0.045) 1px, transparent 1px);
+  background-size: 38px 38px;
+}
+
+.landing-card {
+  border: 1px solid rgba(208, 212, 228, 0.72);
+  background: color-mix(in srgb, var(--landing-surface) 88%, transparent);
+  box-shadow: var(--landing-shadow);
+}
+
+.landing-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 6px;
+  border: 1px solid rgba(208, 212, 228, 0.72);
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--landing-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
 }
 
 /* ── Shimmer animation for skeletons ── */

@@ -59,6 +59,8 @@ export default function AdminUserTransactionTable({ transactions }: AdminUserTra
     >
       {/* ── Header ── */}
       <Typography
+        id="recent-transactions-heading"
+        component="h2"
         sx={{
           fontSize: 14,
           fontWeight: 700,
@@ -81,7 +83,7 @@ export default function AdminUserTransactionTable({ transactions }: AdminUserTra
             color: '#8b8fa3',
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 40, marginBottom: 8 }}>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 40, marginBottom: 8 }}>
             receipt_long
           </span>
           <Typography sx={{ fontSize: 13, fontWeight: 500 }}>
@@ -92,7 +94,7 @@ export default function AdminUserTransactionTable({ transactions }: AdminUserTra
         <>
           {/* ── Table ── */}
           <TableContainer sx={{ mb: 2 }}>
-            <Table size="small" sx={{ minWidth: 600 }}>
+            <Table size="small" aria-labelledby="recent-transactions-heading" sx={{ minWidth: 600 }}>
               <TableHead>
                 <TableRow>
                   <TableCell
@@ -263,12 +265,14 @@ export default function AdminUserTransactionTable({ transactions }: AdminUserTra
                       >
                         <IconButton
                           size="small"
+                          aria-label={`Buka aksi transaksi ${row.trx_number}`}
                           sx={{
                             color: '#94a3b8',
                             '&:hover': { color: '#6046f4', bgcolor: '#f3f0ff' },
+                            '&:focus-visible': { outline: '3px solid rgba(96, 70, 244, 0.35)', outlineOffset: 2 },
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20 }}>
                             more_vert
                           </span>
                         </IconButton>
@@ -286,7 +290,8 @@ export default function AdminUserTransactionTable({ transactions }: AdminUserTra
       {rows.length > 0 && (
         <Box
           component="a"
-          href="#"
+          href="/user-admin/transaksi"
+          aria-label="Lihat semua transaksi"
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -303,7 +308,7 @@ export default function AdminUserTransactionTable({ transactions }: AdminUserTra
           }}
         >
           Lihat Semua
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>
             arrow_forward
           </span>
         </Box>

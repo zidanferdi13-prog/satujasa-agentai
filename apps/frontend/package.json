@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "smoke:routes": "node scripts/smoke-routes.mjs",
-    "smoke": "npm run smoke:routes"
+    "smoke": "npm run smoke:routes",
+    "analyze": "ANALYZE=true next build",
+    "analyze:win": "set ANALYZE=true && next build"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -23,16 +25,24 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.9",
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4",
     "@tanstack/react-query-devtools": "^5.100.14",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }

@@ -69,7 +69,7 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
             },
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>menu</span>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>menu</span>
         </Box>
 
         <Box sx={{ minWidth: 0 }}>
@@ -138,11 +138,12 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
             },
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#8a91a3' }}>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20, color: '#8a91a3' }}>
             search
           </span>
           <input
             type="text"
+            aria-label="Cari menu, data, atau perintah"
             placeholder="Cari menu, data, atau perintah..."
             style={{
               border: 'none',
@@ -179,8 +180,8 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
             },
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 22 }}>notifications</span>
-          <Box sx={{ position: 'absolute', top: 8, right: 8, width: 9, height: 9, borderRadius: '9999px', bgcolor: '#ef4444', border: '2px solid', borderColor: '#ffffff' }} />
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 22 }}>notifications</span>
+          <Box aria-hidden="true" sx={{ position: 'absolute', top: 8, right: 8, width: 9, height: 9, borderRadius: '50%', bgcolor: '#ef4444', border: '2px solid', borderColor: '#ffffff' }} />
         </Box>
 
         <Box
@@ -194,8 +195,6 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
             py: 1,
             bgcolor: 'rgba(255,255,255,0.94)',
             transition: 'all 0.15s',
-            cursor: 'pointer',
-            '&:hover': { bgcolor: '#f8f9fc', borderColor: '#d0d4e4' },
           }}
         >
           <Box
@@ -222,7 +221,7 @@ export default function DashboardTopBar({ title, user, role, onMenuClick }: Dash
               </Typography>
               <Box
                 sx={{
-                  borderRadius: '9999px',
+                  borderRadius: 6,
                   px: 1.5,
                   py: 0.3,
                   fontSize: 10,

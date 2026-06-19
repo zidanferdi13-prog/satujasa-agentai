@@ -91,7 +91,10 @@ function LegendItem({ color, label, count }: LegendItemProps) {
 export default function AdminUserTeamPerformance({
   performance,
 }: AdminUserTeamPerformanceProps) {
-  const perf = performance ?? { done_count: 0, done_pct: 0, processing_count: 0, processing_pct: 0, pending_count: 0, pending_pct: 0 };
+  const perf = useMemo(
+    () => performance ?? { done_count: 0, done_pct: 0, processing_count: 0, processing_pct: 0, pending_count: 0, pending_pct: 0 },
+    [performance],
+  );
 
   const total = useMemo(
     () => perf.done_count + perf.processing_count + perf.pending_count,

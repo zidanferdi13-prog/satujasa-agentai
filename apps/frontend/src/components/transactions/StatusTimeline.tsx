@@ -3,7 +3,6 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { TransactionStatusLog } from '@/types/transaction';
-import { STATUS_LABELS } from '@/lib/stateMachine';
 import StatusBadge from './StatusBadge';
 
 interface StatusTimelineProps {

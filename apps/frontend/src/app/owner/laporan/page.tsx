@@ -65,7 +65,6 @@ export default function LaporanPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [tenantId, setTenantId] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
 
   // Fetch tenant options
   const { data: tenants } = useQuery<TenantOption[]>({
@@ -80,11 +79,10 @@ export default function LaporanPage() {
     params.end_date = endDate;
   }
   if (tenantId) params.tenant_id = tenantId;
-  if (statusFilter) params.status = statusFilter;
 
   // Fetch report data
   const { data, isLoading, isError, refetch } = useQuery<OwnerReport>({
-    queryKey: ['owner-report', period, startDate, endDate, tenantId, statusFilter],
+    queryKey: ['owner-report', period, startDate, endDate, tenantId],
     queryFn: () => apiClient.get('/owner/report', { params }).then((r) => r.data?.data ?? r.data),
   });
 

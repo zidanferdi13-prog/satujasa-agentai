@@ -78,7 +78,7 @@ export default function LoginHelpPage() {
         >
           Hubungi bantuan
         </Typography>
-        <Typography variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.04em', mb: 0.5 }}>
+        <Typography component="h2" variant="h4" sx={{ fontWeight: 800, letterSpacing: '-0.04em', mb: 0.5 }}>
           Kendala login
         </Typography>
         <Typography sx={{ color: '#535768', lineHeight: 1.75 }}>
@@ -147,7 +147,7 @@ export default function LoginHelpPage() {
           size="large"
           sx={{ py: 1.75 }}
         >
-          {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />}
+          {isPending && <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} aria-hidden="true" />}
           {isPending ? 'Mengirim…' : 'Kirim Kendala Login'}
         </Button>
       </form>

@@ -1,18 +1,32 @@
 'use client';
 
+import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+
+const productLinks = [
+  { label: 'Fitur', href: '/#features' },
+  { label: 'Solusi', href: '/#solutions' },
+  { label: 'Alur kerja', href: '/#workflow' },
+  { label: 'Harga', href: '/#pricing' },
+];
+
+const supportLinks = [
+  { label: 'FAQ', href: '/#faq' },
+  { label: 'Masuk', href: '/auth/signin' },
+  { label: 'Daftar', href: '/auth/signup' },
+];
 
 export default function Footer() {
   return (
     <Box
       component="footer"
-      sx={{ bgcolor: '#ffffff', borderTop: '1px solid', borderColor: 'rgba(208, 212, 228, 0.3)' }}
+      sx={{ bgcolor: '#ffffff', borderTop: '1px solid', borderColor: 'rgba(208, 212, 228, 0.5)' }}
     >
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(6, 1fr)' },
+          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1.4fr' },
           gap: 4,
           px: { xs: 2, md: 4 },
           py: { xs: 6, md: 8 },
@@ -20,124 +34,77 @@ export default function Footer() {
           mx: 'auto',
         }}
       >
-        {/* Brand */}
-        <Box sx={{ gridColumn: { xs: 'span 2', md: 'span 2' } }}>
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 700, color: '#6161ff', mb: 2 }}
-          >
-            STNK SatuJasa
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 900, color: '#1d2433', mb: 1 }}>
+            SatuJasa
           </Typography>
-          <Typography sx={{ color: '#535768', fontSize: 14, maxWidth: 280, mb: 4 }}>
-            Pionir solusi digital manajemen biro jasa surat kendaraan bermotor di Indonesia.
+          <Typography sx={{ color: '#535768', fontSize: 14, maxWidth: 320, mb: 3, lineHeight: 1.8 }}>
+            Ruang kendali biro jasa STNK untuk merapikan transaksi, status berkas, dan laporan cabang.
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Box component="span" className="material-symbols-outlined" sx={{ color: '#6161ff', cursor: 'pointer', '&:hover': { transform: 'scale(1.1)' }, transition: 'transform 0.2s' }}>
-              public
-            </Box>
-            <Box component="span" className="material-symbols-outlined" sx={{ color: '#6161ff', cursor: 'pointer', '&:hover': { transform: 'scale(1.1)' }, transition: 'transform 0.2s' }}>
-              smartphone
-            </Box>
-            <Box component="span" className="material-symbols-outlined" sx={{ color: '#6161ff', cursor: 'pointer', '&:hover': { transform: 'scale(1.1)' }, transition: 'transform 0.2s' }}>
-              alternate_email
-            </Box>
+          <Box sx={{ display: 'inline-flex', borderRadius: 5, bgcolor: '#fff3bf', color: '#8a5a00', px: 1.6, py: 0.8, fontSize: 11, fontWeight: 900, letterSpacing: '0.12em' }}>
+            B 1234 STJ
           </Box>
         </Box>
 
-        {/* Product */}
         <Box>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Product</Typography>
-          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {['Features', 'Pricing', 'Updates'].map((item) => (
-              <Box component="li" key={item}>
+          <Typography sx={{ fontWeight: 900, mb: 2, color: '#1d2433' }}>Produk</Typography>
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.4 }}>
+            {productLinks.map((item) => (
+              <Box component="li" key={item.href}>
                 <Typography
-                  component="a"
-                  href="#"
+                  component={Link}
+                  href={item.href}
                   sx={{ color: '#535768', fontSize: 14, textDecoration: 'none', '&:hover': { color: '#6161ff' } }}
                 >
-                  {item}
+                  {item.label}
                 </Typography>
               </Box>
             ))}
           </Box>
         </Box>
 
-        {/* Company */}
         <Box>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Company</Typography>
-          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {['About', 'Contact', 'Careers'].map((item) => (
-              <Box component="li" key={item}>
+          <Typography sx={{ fontWeight: 900, mb: 2, color: '#1d2433' }}>Akses</Typography>
+          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.4 }}>
+            {supportLinks.map((item) => (
+              <Box component="li" key={item.href}>
                 <Typography
-                  component="a"
-                  href="#"
+                  component={Link}
+                  href={item.href}
                   sx={{ color: '#535768', fontSize: 14, textDecoration: 'none', '&:hover': { color: '#6161ff' } }}
                 >
-                  {item}
+                  {item.label}
                 </Typography>
               </Box>
             ))}
           </Box>
         </Box>
 
-        {/* Subscribe */}
-        <Box sx={{ gridColumn: { xs: 'span 2', md: 'span 2' } }}>
-          <Typography sx={{ fontWeight: 700, mb: 2 }}>Subscribe</Typography>
-          <Typography sx={{ color: '#535768', fontSize: 14, mb: 2 }}>
-            Dapatkan tips manajemen bisnis langsung di email Anda.
+        <Box sx={{ borderRadius: 1, bgcolor: '#f5f6f8', p: 3 }}>
+          <Typography sx={{ fontWeight: 900, mb: 1, color: '#1d2433' }}>Status operasional</Typography>
+          <Typography sx={{ color: '#535768', fontSize: 14, lineHeight: 1.7, mb: 2 }}>
+            Order masuk → diproses → siap ambil → selesai. Semua tercatat di satu tempat.
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Box
-              component="input"
-              placeholder="Email Anda"
-              type="email"
-              sx={{
-                flexGrow: 1,
-                bgcolor: '#f5f6f8',
-                border: '1px solid',
-                borderColor: '#d0d4e4',
-                borderRadius: 2,
-                px: 2,
-                py: 1.5,
-                fontSize: 14,
-                outline: 'none',
-                '&:focus': { borderColor: '#6161ff', boxShadow: '0 0 0 2px rgba(97,97,255,0.15)' },
-              }}
-            />
-            <Box
-              component="button"
-              sx={{
-                bgcolor: '#6161ff',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: 2,
-                p: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                '&:hover': { bgcolor: '#4a4ae6' },
-              }}
-            >
-              <Box component="span" className="material-symbols-outlined" sx={{ fontSize: 20 }}>
-                send
+          <Box sx={{ display: 'flex', gap: 0.8 }}>
+            {['Draft', 'Proses', 'Selesai'].map((item, index) => (
+              <Box key={item} sx={{ borderRadius: 5, bgcolor: index === 2 ? '#10b981' : '#ffffff', color: index === 2 ? '#ffffff' : '#535768', px: 1.2, py: 0.6, fontSize: 11, fontWeight: 800 }}>
+                {item}
               </Box>
-            </Box>
+            ))}
           </Box>
         </Box>
       </Box>
 
       <Box
         sx={{
-          borderTop: '1px solid',
-          borderColor: 'rgba(208, 212, 228, 0.1)',
+          borderTop: '1px solid rgba(208, 212, 228, 0.45)',
           py: 3,
           textAlign: 'center',
           color: '#535768',
           fontSize: 13,
         }}
       >
-        &copy; 2024 STNK SatuJasa. All rights reserved.
+        &copy; 2026 SatuJasa. Ruang kendali biro jasa STNK.
       </Box>
     </Box>
   );

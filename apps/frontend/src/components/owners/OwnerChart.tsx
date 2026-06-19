@@ -3,6 +3,7 @@
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
+import { visuallyHidden } from '@mui/utils';
 
 interface ChartPoint {
   date: string;
@@ -16,6 +17,28 @@ interface OwnerChartProps {
 export default function OwnerChart({ data = [] }: OwnerChartProps) {
   const chartData = data;
 
+  if (!chartData || chartData.length === 0) {
+    return (
+      <Card sx={{ borderRadius: 3, border: '1px solid #e5e9f3', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', background: '#ffffff', p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
+          <Box>
+            <Typography component="h2" sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.25 }}>Trend Transaksi</Typography>
+            <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>Performa transaksi 30 hari terakhir</Typography>
+          </Box>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.5, borderRadius: 2, bgcolor: '#f0eeff', border: '1px solid rgba(98, 84, 243, 0.12)' }}>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 14, color: '#6254f3' }}>schedule</span>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6254f3' }}>30 hari terakhir</Typography>
+          </Box>
+        </Box>
+        <Box sx={{ py: 6, display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#8a91a3' }}>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 40, marginBottom: 8 }}>bar_chart</span>
+          <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433', mb: 0.5 }}>Belum ada data transaksi</Typography>
+          <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>Data grafik akan muncul setelah ada transaksi.</Typography>
+        </Box>
+      </Card>
+    );
+  }
+
   const maxCount = Math.max(...chartData.map((d) => d.count), 1);
   const totalTransactions = chartData.reduce((s, d) => s + d.count, 0);
   const avgDaily = Math.round(totalTransactions / (chartData.length || 1));
@@ -25,15 +48,18 @@ export default function OwnerChart({ data = [] }: OwnerChartProps) {
   const padding = 20;
   const chartW = width - padding * 2;
   const chartH = height - padding * 2;
+  const pointDivisor = Math.max(chartData.length - 1, 1);
 
   const points = chartData.map((d, i) => {
-    const x = padding + (i / (chartData.length - 1)) * chartW;
+    const x = padding + (i / pointDivisor) * chartW;
     const y = padding + chartH - (d.count / maxCount) * chartH;
     return { x, y, ...d };
   });
 
   const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
+  const areaPath = points.length > 0
+    ? `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`
+    : '';
 
   const gridLines = [0, 0.25, 0.5, 0.75, 1].map((pct) => ({
     y: padding + chartH * (1 - pct),
@@ -44,11 +70,11 @@ export default function OwnerChart({ data = [] }: OwnerChartProps) {
 
   // Date labels: show ~4 labels evenly spaced
   const dateStep = Math.max(1, Math.floor(chartData.length / 4));
-  const dateLabels = chartData.filter((_, i) => i % dateStep === 0 || i === chartData.length - 1).map((d, _, arr) => {
+  const dateLabels = chartData.filter((_, i) => i % dateStep === 0 || i === chartData.length - 1).map((d) => {
     const idx = chartData.indexOf(d);
     return {
       label: new Date(d.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      x: padding + (idx / (chartData.length - 1)) * chartW,
+      x: padding + (idx / pointDivisor) * chartW,
     };
   });
 
@@ -60,7 +86,7 @@ export default function OwnerChart({ data = [] }: OwnerChartProps) {
           <Typography sx={{ fontSize: 13, color: '#8a91a3' }}>Performa transaksi 30 hari terakhir</Typography>
         </Box>
         <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.5, py: 0.5, borderRadius: '10px', bgcolor: '#f0eeff', border: '1px solid rgba(98, 84, 243, 0.12)' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#6254f3' }}>schedule</span>
+          <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 14, color: '#6254f3' }}>schedule</span>
           <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#6254f3' }}>30 hari terakhir</Typography>
         </Box>
       </Box>
@@ -83,7 +109,10 @@ export default function OwnerChart({ data = [] }: OwnerChartProps) {
 
       {/* Chart */}
       <Box sx={{ position: 'relative', width: '100%', overflowX: 'auto' }}>
-        <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
+        <Box component="p" sx={visuallyHidden}>
+          Grafik trend transaksi 30 hari terakhir. Total {totalTransactions} transaksi, rata-rata {avgDaily} transaksi per hari, nilai tertinggi {maxCount} transaksi.
+        </Box>
+        <svg aria-hidden="true" focusable="false" viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', display: 'block' }}>
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#6254f3" stopOpacity="0.3" />
@@ -102,10 +131,10 @@ export default function OwnerChart({ data = [] }: OwnerChartProps) {
           ))}
 
           {/* Area */}
-          <path d={areaPath} fill="url(#chartGradient)" />
+          {areaPath && <path d={areaPath} fill="url(#chartGradient)" />}
 
           {/* Line */}
-          <path d={linePath} fill="none" stroke="#6254f3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          {linePath && <path d={linePath} fill="none" stroke="#6254f3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
 
           {/* Data points */}
           {points.map((p, i) => (

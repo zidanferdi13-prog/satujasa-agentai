@@ -1,22 +1,10 @@
-'use client';
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/axios';
-import { setToken, removeToken } from '@/lib/auth';
+import { clearPostLoginRedirect, getPostLoginRedirect, removeToken, setStoredUser, setToken } from '@/lib/auth';
 import { getRoleRedirect } from '@/lib/redirectByRole';
-import { toFrontendRole } from '@/types/auth';
-import type { LoginPayload, LoginResponse, User, BackendRole } from '@/types/auth';
-
-interface BackendUser {
-  id: string;
-  email: string;
-  name?: string;
-  phone?: string;
-  role: BackendRole;
-  tenant_id?: string | null;
-  owner_id?: string | null;
-}
+import { normalizeUser } from '@/types/auth';
+import type { LoginPayload, LoginResponse } from '@/types/auth';
 
 export function useLogin() {
   const router = useRouter();
@@ -29,20 +17,22 @@ export function useLogin() {
     },
     onSuccess: async (data) => {
       setToken(data.accessToken);
+
       try {
-        const response = await apiClient.get('/auth/me');
-        const backendUser = response.data as BackendUser;
-        const frontendUser: User = {
-          id: backendUser.id,
-          email: backendUser.email,
-          name: backendUser.name || backendUser.email,
-          role: toFrontendRole(backendUser.role),
-        };
+        const frontendUser = data.user
+          ? normalizeUser(data.user)
+          : normalizeUser((await apiClient.get('/auth/me')).data);
+
+        setStoredUser(frontendUser);
         queryClient.setQueryData(['me'], frontendUser);
-        router.push(getRoleRedirect(frontendUser.role));
-      } catch {
+
+        const redirect = getPostLoginRedirect();
+        clearPostLoginRedirect();
+        router.push(redirect || getRoleRedirect(frontendUser.role));
+      } catch (error) {
         removeToken();
         queryClient.clear();
+        throw error;
       }
     },
   });

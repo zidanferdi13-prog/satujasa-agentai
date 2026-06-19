@@ -14,7 +14,6 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Pagination from '@mui/material/Pagination';
 import Skeleton from '@mui/material/Skeleton';
-import Card from '@mui/material/Card';
 import FilterBar from '@/components/shared/FilterBar';
 import StatusPill from '@/components/shared/StatusPill';
 import EmptyState from '@/components/shared/EmptyState';

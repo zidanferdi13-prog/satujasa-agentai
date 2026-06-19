@@ -1,81 +1,89 @@
 'use client';
 
+import Link from 'next/link';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
+import { visuallyHidden } from '@mui/utils';
 
 const plans = [
   {
-    name: 'Free',
-    desc: 'Coba platform tanpa biaya',
+    name: 'Loket',
+    desc: 'Untuk biro jasa perorangan',
     price: 'Gratis',
     period: '',
     features: [
-      { text: 'Akses login & lihat menu', available: true },
-      { text: '0 Tenant', available: true },
-      { text: '0 Admin User', available: true },
-      { text: 'Transaksi & laporan', available: false },
+      { text: '1 Tenant / Loket', available: true },
+      { text: '1 Admin User', available: true },
+      { text: 'Link tracking pelanggan', available: true },
+      { text: 'Laporan harian', available: false },
     ],
     cta: 'Daftar Gratis',
+    href: '/auth/signup',
     highlight: false,
   },
   {
-    name: 'Pro',
-    desc: 'Untuk biro jasa 1 cabang',
-    price: 'Rp 49.999',
+    name: 'Cabang',
+    desc: 'Untuk bisnis yang berkembang',
+    price: 'Rp 49rb',
     period: '/bulan',
     features: [
-      { text: '1 Tenant', available: true },
-      { text: '1 Admin User', available: true },
-      { text: 'Input & kelola transaksi', available: true },
-      { text: 'Monitoring link pelanggan', available: true },
+      { text: '1 Tenant / Cabang', available: true },
+      { text: 'Unlimited Transaksi', available: true },
+      { text: 'Input & kelola berkas', available: true },
+      { text: 'Dashboard operasional', available: true },
     ],
-    cta: 'Pilih Pro',
+    cta: 'Pilih Cabang',
+    href: '/auth/signup?plan=cabang',
     highlight: false,
   },
   {
-    name: 'Plus',
-    desc: 'Untuk biro jasa multi cabang',
-    price: 'Rp 99.999',
+    name: 'Owner',
+    desc: 'Paling pas untuk multi cabang',
+    price: 'Rp 99rb',
     period: '/bulan',
     features: [
-      { text: '3 Tenant', available: true },
+      { text: '3 Tenant / Cabang', available: true },
       { text: '3 Admin User (1/tenant)', available: true },
-      { text: 'Semua fitur Pro', available: true },
-      { text: 'Laporan per cabang', available: true },
+      { text: 'Monitoring semua cabang', available: true },
+      { text: 'Laporan revenue detail', available: true },
     ],
-    cta: 'Pilih Plus',
+    cta: 'Mulai Sekarang',
+    href: '/auth/signup?plan=owner',
     highlight: true,
     badge: 'Populer',
   },
   {
     name: 'Expert',
-    desc: 'Kustomisasi penuh untuk skala besar',
+    desc: 'Kustomisasi untuk skala besar',
     price: 'Custom',
     period: '',
     features: [
       { text: 'Unlimited Tenant', available: true },
       { text: 'Unlimited Admin User', available: true },
-      { text: 'Limit diset super admin', available: true },
+      { text: 'Super admin access', available: true },
       { text: 'Priority support', available: true },
     ],
     cta: 'Hubungi Kami',
+    href: '/auth/signup?plan=expert',
     highlight: false,
   },
 ];
 
 export default function PricingSection() {
   return (
-    <Box component="section" sx={{ bgcolor: '#ffffff', py: { xs: 8, md: 12 } }} id="pricing">
+    <Box component="section" sx={{ bgcolor: '#f5f6f8', py: { xs: 8, md: 12 } }} id="pricing">
       <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 } }}>
-        <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography variant="h3" sx={{ fontWeight: 800, letterSpacing: '-0.04em' }}>
-            Pilih Paket Sesuai Kebutuhan Anda
+        <Box sx={{ textAlign: 'center', mb: 10 }}>
+          <Typography
+            sx={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#6161ff', mb: 1.5 }}
+          >
+            Pilihan paket
           </Typography>
-          <Typography sx={{ mt: 1, color: '#535768' }}>
-            Transparan, tanpa biaya tersembunyi
+          <Typography component="h2" variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', color: '#1d2433' }}>
+            Transparan, sesuai skala bisnis Anda.
           </Typography>
         </Box>
 
@@ -93,17 +101,11 @@ export default function PricingSection() {
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                overflow: plan.badge ? 'visible' : undefined,
-                ...(plan.highlight
-                  ? {
-                      bgcolor: '#6161ff',
-                      color: '#ffffff',
-                      border: '2px solid',
-                      borderColor: 'rgba(97, 97, 255, 0.4)',
-                      zIndex: 10,
-                      boxShadow: '0 8px 32px rgba(97, 97, 255, 0.25)',
-                    }
-                  : {}),
+                borderRadius: 2,
+                border: plan.highlight ? '2px solid #6161ff' : '1px solid rgba(208, 212, 228, 0.72)',
+                boxShadow: plan.highlight ? '0 24px 60px rgba(97, 97, 255, 0.18)' : '0 16px 45px rgba(43, 50, 91, 0.06)',
+                overflow: plan.badge ? 'visible' : 'hidden',
+                ...(plan.highlight ? { transform: { lg: 'scale(1.05)' }, zIndex: 10 } : {}),
               }}
             >
               <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
@@ -114,56 +116,34 @@ export default function PricingSection() {
                       top: -14,
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      bgcolor: '#535768',
+                      bgcolor: '#6161ff',
                       color: '#ffffff',
-                      px: 3,
-                      py: 0.5,
-                      borderRadius: '9999px',
+                      px: 2.5,
+                      py: 0.6,
+                      borderRadius: 5,
                       fontSize: 10,
-                      fontWeight: 700,
+                      fontWeight: 800,
                       textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
+                      letterSpacing: '0.12em',
                     }}
                   >
                     {plan.badge}
                   </Box>
                 )}
 
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 0.5,
-                    ...(plan.highlight ? { color: '#ffffff' } : {}),
-                  }}
-                >
+                <Typography component="h3" variant="h5" sx={{ fontWeight: 900, mb: 0.5, color: '#1d2433' }}>
                   {plan.name}
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: 14,
-                    mb: 3,
-                    ...(plan.highlight ? { color: 'rgba(255, 255, 255, 0.7)' } : { color: '#535768' }),
-                  }}
-                >
+                <Typography sx={{ fontSize: 14, mb: 3, color: '#535768', fontWeight: 500 }}>
                   {plan.desc}
                 </Typography>
 
-                <Box sx={{ mb: 4 }}>
-                  <Typography
-                    variant="h3"
-                    sx={{
-                      fontWeight: 700,
-                      ...(plan.highlight ? { color: '#ffffff' } : {}),
-                    }}
-                  >
+                <Box sx={{ mb: 4, display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                  <Typography variant="h3" sx={{ fontWeight: 900, color: '#1d2433' }}>
                     {plan.price}
                   </Typography>
                   {plan.period && (
-                    <Typography
-                      component="span"
-                      sx={plan.highlight ? { color: 'rgba(255, 255, 255, 0.7)' } : { color: '#535768' }}
-                    >
+                    <Typography sx={{ color: '#535768', fontSize: 14, fontWeight: 700 }}>
                       {plan.period}
                     </Typography>
                   )}
@@ -189,24 +169,25 @@ export default function PricingSection() {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1,
+                        gap: 1.2,
                         fontSize: 14,
-                        ...(!f.available ? { opacity: 0.5 } : {}),
+                        fontWeight: 500,
+                        color: f.available ? '#535768' : 'rgba(83, 87, 104, 0.4)',
                       }}
                     >
                       <Box
                         component="span"
+                        aria-hidden="true"
                         className="material-symbols-outlined"
                         sx={{
-                          fontSize: 20,
-                          ...(f.available
-                            ? plan.highlight
-                              ? { color: '#ffffff' }
-                              : { color: '#535768' }
-                            : {}),
+                          fontSize: 18,
+                          color: f.available ? '#10b981' : 'rgba(83, 87, 104, 0.4)',
                         }}
                       >
                         {f.available ? 'check_circle' : 'cancel'}
+                      </Box>
+                      <Box component="span" sx={visuallyHidden}>
+                        {f.available ? 'Termasuk: ' : 'Tidak termasuk: '}
                       </Box>
                       {f.text}
                     </Box>
@@ -214,26 +195,19 @@ export default function PricingSection() {
                 </Box>
 
                 <Button
+                  component={Link}
+                  href={plan.href}
                   variant={plan.highlight ? 'contained' : 'outlined'}
-                  color={plan.highlight ? 'primary' : 'primary'}
+                  color="primary"
                   fullWidth
                   size="large"
                   sx={{
                     py: 1.5,
-                    ...(plan.highlight
-                      ? {
-                          bgcolor: '#ffffff',
-                          color: '#6161ff',
-                          fontWeight: 700,
-                          '&:hover': { bgcolor: 'rgba(255,255,255,0.9)' },
-                        }
-                      : plan.name === 'Expert'
-                        ? {
-                            borderColor: '#d0d4e4',
-                            color: '#333333',
-                            '&:hover': { borderColor: '#6161ff', color: '#6161ff' },
-                          }
-                        : {}),
+                    borderRadius: 8,
+                    fontWeight: 800,
+                    textTransform: 'none',
+                    fontSize: 15,
+                    ...(plan.highlight ? { boxShadow: '0 8px 24px rgba(97, 97, 255, 0.3)' } : { bgcolor: '#ffffff' }),
                   }}
                 >
                   {plan.cta}

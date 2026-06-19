@@ -45,18 +45,6 @@ const STATUS_BG: Record<string, string> = {
   down: '#fef2f2',
 };
 
-function MaterialIcon({ name }: { name: string }) {
-  return (
-    <Box
-      component="span"
-      className="material-symbols-outlined"
-      sx={{ fontSize: 28, color: 'var(--dash-primary)', lineHeight: 1 }}
-    >
-      {name}
-    </Box>
-  );
-}
-
 export default function SystemHealth({ data }: SystemHealthProps) {
   const health = data ?? DEFAULT_DATA;
 
