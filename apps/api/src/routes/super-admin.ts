@@ -15,6 +15,8 @@ import { TIER_DEFAULTS } from '@stnk/contracts'
 import type { SubscriptionTier } from '@stnk/contracts'
 import { checkExpiredSubscriptions } from '../jobs/subscription-expiry.js'
 
+import { calculateExpiresAt } from '../utils/subscription-helper.js'
+
 export function superAdminRoutes(db: Database, config: AppConfig): Router {
   const router = Router()
 
@@ -697,16 +699,25 @@ function relativeTime(date: Date): string {
   // POST /admin/owners/:id/subscription
   router.post('/owners/:id/subscription', validate(updateSubscriptionSchema), async (req, res) => {
     try {
-      const { tier, max_tenants, max_admin_users, expires_at } = req.body as {
+      const { tier, max_tenants, max_admin_users, expires_at, duration_months } = req.body as {
         tier: SubscriptionTier
         max_tenants?: number
         max_admin_users?: number
         expires_at?: string | null
+        duration_months?: number
       }
 
       const defaults = TIER_DEFAULTS[tier]
       const finalMaxTenants = max_tenants ?? defaults.max_tenants
       const finalMaxAdminUsers = max_admin_users ?? defaults.max_admin_users
+
+      // Calculate expires_at based on duration_months (default 1 month)
+      const calculatedExpiresAt = tier === 'free'
+        ? null // Free tier doesn't expire
+        : calculateExpiresAt(duration_months ?? 1)
+
+      // Use provided expires_at if given, otherwise use calculated
+      const finalExpiresAt = expires_at !== undefined ? (expires_at ? new Date(expires_at) : null) : calculatedExpiresAt
 
       // Soft-delete old subscription
       await db
@@ -723,7 +734,7 @@ function relativeTime(date: Date): string {
           max_admin_users: finalMaxAdminUsers,
           activated_by: req.user!.userId,
           activated_at: new Date(),
-          expires_at: expires_at ? new Date(expires_at) : null,
+          expires_at: finalExpiresAt,
         })
         .returning()
 
@@ -737,14 +748,24 @@ function relativeTime(date: Date): string {
   // PATCH /admin/owners/:id/subscription
   router.patch('/owners/:id/subscription', validate(updateSubscriptionSchema), async (req, res) => {
     try {
-      const { tier, max_tenants, max_admin_users, expires_at } = req.body as {
+      const { tier, max_tenants, max_admin_users, expires_at, duration_months } = req.body as {
         tier: SubscriptionTier
         max_tenants?: number
         max_admin_users?: number
         expires_at?: string | null
+        duration_months?: number
       }
 
       const defaults = TIER_DEFAULTS[tier]
+
+      // Calculate expires_at based on duration_months if provided
+      let finalExpiresAt: Date | null | undefined
+      if (duration_months !== undefined) {
+        finalExpiresAt = tier === 'free' ? null : calculateExpiresAt(duration_months)
+      } else if (expires_at !== undefined) {
+        finalExpiresAt = expires_at ? new Date(expires_at) : null
+      }
+      // else: leave undefined to not update
 
       const [sub] = await db
         .update(schema.subscriptions)
@@ -754,7 +775,7 @@ function relativeTime(date: Date): string {
           max_admin_users: max_admin_users ?? defaults.max_admin_users,
           activated_by: req.user!.userId,
           activated_at: new Date(),
-          expires_at: expires_at !== undefined ? (expires_at ? new Date(expires_at) : null) : undefined,
+          ...(finalExpiresAt !== undefined && { expires_at: finalExpiresAt }),
           updated_at: new Date(),
         })
         .where(and(eq(schema.subscriptions.owner_id, param(req.params['id'])), isNull(schema.subscriptions.deleted_at)))
@@ -768,6 +789,164 @@ function relativeTime(date: Date): string {
       res.json(sub)
     } catch (error) {
       console.error('Update subscription error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
+  // GET /admin/subscription-logs
+  router.get('/subscription-logs', async (req, res) => {
+    try {
+      const page = Math.max(1, Number(req.query.page ?? 1) || 1)
+      const rawLimit = Number(req.query.limit ?? 20) || 20
+      const limit = Math.min(100, Math.max(1, rawLimit))
+      const offset = (page - 1) * limit
+      const tier = typeof req.query.tier === 'string' ? req.query.tier : undefined
+      const ownerId = typeof req.query.owner_id === 'string' ? req.query.owner_id : undefined
+      const dateFrom = typeof req.query.date_from === 'string' ? req.query.date_from : undefined
+      const dateTo = typeof req.query.date_to === 'string' ? req.query.date_to : undefined
+
+      const conditions = [isNull(schema.subscriptions.deleted_at)]
+
+      if (tier && ['free', 'pro', 'plus', 'expert'].includes(tier)) {
+        conditions.push(eq(schema.subscriptions.tier, tier as SubscriptionTier))
+      }
+
+      if (ownerId) {
+        conditions.push(eq(schema.subscriptions.owner_id, ownerId))
+      }
+
+      if (dateFrom) {
+        conditions.push(sql`${schema.subscriptions.activated_at} >= ${new Date(dateFrom).toISOString()}`)
+      }
+
+      if (dateTo) {
+        conditions.push(sql`${schema.subscriptions.activated_at} <= ${new Date(dateTo).toISOString()}`)
+      }
+
+      const priceCase = sql<string>`CASE
+        WHEN ${schema.subscriptions.tier} = 'pro' THEN '49.999'
+        WHEN ${schema.subscriptions.tier} = 'plus' THEN '99.999'
+        ELSE '0'
+      END`
+
+      const durationCase = sql<number>`CASE
+        WHEN ${schema.subscriptions.tier} = 'free' OR ${schema.subscriptions.expires_at} IS NULL OR ${schema.subscriptions.activated_at} IS NULL THEN 1
+        ELSE GREATEST(1, (
+          (EXTRACT(YEAR FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at})) * 12) +
+          EXTRACT(MONTH FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at}))
+        )::int)
+      END`
+
+      const [totalRow] = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(schema.subscriptions)
+        .where(and(...conditions))
+
+      const rows = await db
+        .select({
+          id: schema.subscriptions.id,
+          owner_id: schema.subscriptions.owner_id,
+          owner_email: schema.users.email,
+          tier: schema.subscriptions.tier,
+          max_tenants: schema.subscriptions.max_tenants,
+          max_admin_users: schema.subscriptions.max_admin_users,
+          price_per_month: priceCase,
+          duration_months: durationCase,
+          activated_at: schema.subscriptions.activated_at,
+          expires_at: schema.subscriptions.expires_at,
+        })
+        .from(schema.subscriptions)
+        .innerJoin(schema.users, eq(schema.subscriptions.owner_id, schema.users.id))
+        .where(and(...conditions, isNull(schema.users.deleted_at)))
+        .orderBy(sql`${schema.subscriptions.activated_at} DESC NULLS LAST`)
+        .limit(limit)
+        .offset(offset)
+
+      const logs = rows.map((row) => {
+        const pricePerMonth = Number(row.price_per_month)
+        const durationMonths = Number(row.duration_months)
+        const totalPrice = pricePerMonth * durationMonths
+        const status = row.tier === 'free'
+          ? 'active'
+          : (row.expires_at && row.expires_at > new Date() ? 'active' : 'expired')
+
+        return {
+          id: row.id,
+          owner_id: row.owner_id,
+          owner_email: row.owner_email,
+          tier: row.tier,
+          max_tenants: row.max_tenants,
+          max_admin_users: row.max_admin_users,
+          price_per_month: pricePerMonth,
+          duration_months: durationMonths,
+          total_price: totalPrice,
+          activated_at: row.activated_at?.toISOString() ?? null,
+          expires_at: row.expires_at?.toISOString() ?? null,
+          status,
+        }
+      })
+
+      const summaryRows = await db
+        .select({
+          tier: schema.subscriptions.tier,
+          count: sql<number>`count(*)::int`,
+          active_count: sql<number>`count(*) FILTER (WHERE ${schema.subscriptions.tier} = 'free' OR ${schema.subscriptions.expires_at} > now())::int`,
+          expired_count: sql<number>`count(*) FILTER (WHERE ${schema.subscriptions.tier} != 'free' AND ${schema.subscriptions.expires_at} <= now())::int`,
+          revenue: sql<string>`COALESCE(sum(
+            CASE
+              WHEN ${schema.subscriptions.tier} = 'pro' THEN 49.999 * CASE
+                WHEN ${schema.subscriptions.expires_at} IS NULL OR ${schema.subscriptions.activated_at} IS NULL THEN 1
+                ELSE GREATEST(1, (
+                  (EXTRACT(YEAR FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at})) * 12) +
+                  EXTRACT(MONTH FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at}))
+                )::int)
+              END
+              WHEN ${schema.subscriptions.tier} = 'plus' THEN 99.999 * CASE
+                WHEN ${schema.subscriptions.expires_at} IS NULL OR ${schema.subscriptions.activated_at} IS NULL THEN 1
+                ELSE GREATEST(1, (
+                  (EXTRACT(YEAR FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at})) * 12) +
+                  EXTRACT(MONTH FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at}))
+                )::int)
+              END
+              ELSE 0
+            END
+          ), 0)::text`,
+        })
+        .from(schema.subscriptions)
+        .innerJoin(schema.users, eq(schema.subscriptions.owner_id, schema.users.id))
+        .where(and(...conditions, isNull(schema.users.deleted_at)))
+        .groupBy(schema.subscriptions.tier)
+
+      const byTier = { free: 0, pro: 0, plus: 0, expert: 0 }
+      let totalRevenue = 0
+      let activeSubscriptions = 0
+      let expiredSubscriptions = 0
+
+      for (const row of summaryRows) {
+        byTier[row.tier] = row.count
+        totalRevenue += Number(row.revenue)
+        activeSubscriptions += row.active_count
+        expiredSubscriptions += row.expired_count
+      }
+
+      res.json({
+        logs,
+        pagination: {
+          page,
+          limit,
+          total: totalRow?.count ?? 0,
+          total_pages: Math.ceil((totalRow?.count ?? 0) / limit),
+        },
+        summary: {
+          total_subscriptions: totalRow?.count ?? 0,
+          by_tier: byTier,
+          total_revenue: totalRevenue,
+          active_subscriptions: activeSubscriptions,
+          expired_subscriptions: expiredSubscriptions,
+        },
+      })
+    } catch (error) {
+      console.error('Get subscription logs error:', error)
       res.status(500).json({ error: 'internal_server_error' })
     }
   })

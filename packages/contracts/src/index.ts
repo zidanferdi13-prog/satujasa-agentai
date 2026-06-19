@@ -149,6 +149,7 @@ export interface UpdateSubscriptionRequest {
   tier: SubscriptionTier
   max_tenants?: number
   max_admin_users?: number
+  duration_months?: number
 }
 
 // ─── Service Types ───────────────────────────────────────────────────────────

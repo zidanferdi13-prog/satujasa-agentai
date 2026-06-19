@@ -49,6 +49,7 @@ export const updateSubscriptionSchema = z.object({
   max_tenants: z.number().int().min(0).optional(),
   max_admin_users: z.number().int().min(0).optional(),
   expires_at: z.string().datetime().nullable().optional(),
+  duration_months: z.number().int().min(1).max(12).optional(),
 })
 
 // ─── Tenant Service Schemas ──────────────────────────────────────────────────
