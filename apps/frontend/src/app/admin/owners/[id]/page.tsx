@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
@@ -48,6 +48,7 @@ interface UpdateSubscriptionPayload {
   max_tenants: number;
   max_admin_users: number;
   expires_at: string | null;
+  duration_months?: number;
 }
 
 const TIERS = [
@@ -56,6 +57,15 @@ const TIERS = [
   { value: 'plus', label: 'Plus', default_tenants: 20, default_admin_users: 50 },
   { value: 'expert', label: 'Expert', default_tenants: 100, default_admin_users: 500 },
 ];
+
+const PRICE_MAP: Record<string, number> = {
+  free: 0,
+  pro: 49.999,
+  plus: 99.999,
+  expert: 0,
+};
+
+const DURATION_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 
 function getSubStatus(expiresAt: string | null): { label: string; color: string } {
   if (!expiresAt) return { label: 'Permanent', color: '#4f46e5' };
@@ -67,13 +77,33 @@ function getSubStatus(expiresAt: string | null): { label: string; color: string 
   return { label: `Active until ${exp.toLocaleDateString('id-ID')}`, color: '#22c55e' };
 }
 
+function isActive(expiresAt: string | null): boolean {
+  if (!expiresAt) return true; // permanent
+  return new Date(expiresAt) > new Date();
+}
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 export default function OwnerDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const queryClient = useQueryClient();
   const toast = useToast();
 
-  const [form, setForm] = useState({ tier: '', max_tenants: 0, max_admin_users: 0, expires_at: '' });
+  const [form, setForm] = useState({
+    tier: '',
+    max_tenants: 0,
+    max_admin_users: 0,
+    expires_at: '',
+    duration_months: 1,
+  });
   const [error, setError] = useState('');
 
   const { data: owner, isLoading } = useQuery<OwnerDetail>({
@@ -82,7 +112,6 @@ export default function OwnerDetailPage() {
       apiClient.get(`/admin/owners/${id}`).then((r) => r.data?.data ?? r.data),
   });
 
-  // Fetch separate subscription data for max_tenants/max_admin_users
   const { data: subscription } = useQuery<Subscription>({
     queryKey: ['admin-owner-subscription', id],
     queryFn: () =>
@@ -91,10 +120,9 @@ export default function OwnerDetailPage() {
     retry: false,
   });
 
-  // Initialize form when subscription data loads
   useEffect(() => {
     if (subscription) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable form state from fetched subscription data
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate form state from API subscription data
       setForm({
         tier: subscription.tier ?? 'free',
         max_tenants: subscription.max_tenants ?? 0,
@@ -102,18 +130,35 @@ export default function OwnerDetailPage() {
         expires_at: subscription.expires_at
           ? new Date(subscription.expires_at).toISOString().split('T')[0]
           : '',
+        duration_months: 1,
       });
     } else if (owner) {
-      // Fallback: use defaults based on tier
       const tierConfig = TIERS.find((t) => t.value === (owner.subscription_tier ?? 'free'));
       setForm({
         tier: owner.subscription_tier ?? 'free',
         max_tenants: tierConfig?.default_tenants ?? 1,
         max_admin_users: tierConfig?.default_admin_users ?? 1,
         expires_at: '',
+        duration_months: 1,
       });
     }
   }, [subscription, owner]);
+
+  const pricePerMonth = PRICE_MAP[form.tier] ?? 0;
+  const totalPrice = useMemo(
+    () => pricePerMonth * form.duration_months,
+    [pricePerMonth, form.duration_months],
+  );
+
+  const estimatedExpiresAt = useMemo(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + form.duration_months);
+    return d.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }, [form.duration_months]);
 
   const { mutate: updateSubscription, isPending } = useMutation({
     mutationFn: (payload: UpdateSubscriptionPayload) =>
@@ -153,6 +198,7 @@ export default function OwnerDetailPage() {
       max_tenants: form.max_tenants,
       max_admin_users: form.max_admin_users,
       expires_at: form.expires_at ? `${form.expires_at}T00:00:00.000Z` : null,
+      duration_months: form.duration_months,
     });
   }
 
@@ -168,8 +214,10 @@ export default function OwnerDetailPage() {
     free: 'info', pro: 'success', plus: 'warning', expert: 'success',
   };
 
+  const active = isActive(subscription?.expires_at ?? null);
+
   return (
-    <Box sx={{ p: { xs: 3, md: 4 }, maxWidth: 800 }}>
+    <Box sx={{ p: { xs: 3, md: 4 }, maxWidth: 1000 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
         <Button variant="text" onClick={() => router.back()} sx={{ minWidth: 0 }}>
           <span className="material-symbols-outlined">arrow_back</span>
@@ -192,6 +240,64 @@ export default function OwnerDetailPage() {
         <MetricCard label="Max Admin User" value={subscription?.max_admin_users ?? '-'} />
       </Box>
 
+      {/* Subscription Status Card */}
+      {subscription && (
+        <Card variant="outlined" sx={{ mb: 4, borderRadius: 2, bgcolor: '#f8fafc' }}>
+          <CardContent sx={{ p: 3 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+              Status Subscription
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, auto)' },
+                gap: 2,
+                alignItems: 'center',
+              }}
+            >
+              <Box>
+                <Typography sx={{ fontSize: 12, color: '#6b7084', fontWeight: 600, mb: 0.25 }}>Tier</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1d2433' }}>
+                  {(subscription.tier ?? '').toUpperCase()}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 12, color: '#6b7084', fontWeight: 600, mb: 0.25 }}>Aktif Sejak</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#1d2433' }}>
+                  {formatDate(subscription.activated_at)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 12, color: '#6b7084', fontWeight: 600, mb: 0.25 }}>Berlaku Hingga</Typography>
+                <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#1d2433' }}>
+                  {formatDate(subscription.expires_at)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ fontSize: 12, color: '#6b7084', fontWeight: 600, mb: 0.25 }}>Status</Typography>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    px: 1.5,
+                    py: 0.5,
+                    borderRadius: '50px',
+                    bgcolor: active ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                    color: active ? '#16a34a' : '#dc2626',
+                    fontWeight: 700,
+                    fontSize: 13,
+                  }}
+                >
+                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: active ? '#16a34a' : '#dc2626' }} />
+                  {active ? 'Active' : 'Expired'}
+                </Box>
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Subscription Form */}
       <Card variant="outlined" sx={{ mb: 4, borderRadius: 2 }}>
         <CardContent sx={{ p: 3 }}>
@@ -199,7 +305,6 @@ export default function OwnerDetailPage() {
             Manajemen Subscription
           </Typography>
 
-          {/* Subscription status badge */}
           {(() => {
             const status = getSubStatus(subscription?.expires_at ?? null);
             return (
@@ -240,6 +345,46 @@ export default function OwnerDetailPage() {
               ))}
             </Select>
           </FormControl>
+
+          {/* Duration dropdown 1-12 bulan */}
+          <FormControl fullWidth required>
+            <InputLabel>Durasi Berlangganan</InputLabel>
+            <Select
+              value={form.duration_months}
+              label="Durasi Berlangganan"
+              onChange={(e) =>
+                setForm({ ...form, duration_months: e.target.value as number })
+              }
+            >
+              {DURATION_OPTIONS.map((m) => (
+                <MenuItem key={m} value={m}>
+                  {m} Bulan
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Auto-calc: Total Price */}
+          <TextField
+            label="Total Price"
+            fullWidth
+            value={`Rp ${totalPrice.toLocaleString('id-ID')}`}
+            slotProps={{ input: { readOnly: true } }}
+            helperText={
+              form.tier === 'expert' || form.tier === 'free'
+                ? `${form.tier === 'expert' ? 'Harga Expert: custom' : 'Free: gratis'}`
+                : `Rp ${PRICE_MAP[form.tier]?.toLocaleString('id-ID')} /bulan × ${form.duration_months} bulan`
+            }
+          />
+
+          {/* Auto-calc: Expires At */}
+          <TextField
+            label="Valid Until (estimasi)"
+            fullWidth
+            value={estimatedExpiresAt}
+            slotProps={{ input: { readOnly: true } }}
+            helperText={`Berdasarkan durasi ${form.duration_months} bulan dari sekarang`}
+          />
 
           <TextField
             label="Max Tenant"
