@@ -93,15 +93,22 @@ Create/upgrade subscription.
 {
   "tier": "pro|plus|expert",
   "max_tenants": 1,
-  "max_admin_users": 1
+  "max_admin_users": 1,
+  "duration_months": 6
 }
 ```
 
 **Notes:**
+- `duration_months`: 1–12 (default: 1)
 - Untuk tier Pro: `max_tenants=1`, `max_admin_users=1` (fixed)
 - Untuk tier Plus: `max_tenants=3`, `max_admin_users=3` (fixed)
 - Untuk tier Expert: `max_tenants` dan `max_admin_users` di-set custom oleh Super Admin (bisa lebih dari 3)
 - Saat upgrade, owner langsung bisa akses fitur sesuai tier baru
+
+### GET /admin/subscription-logs
+Get subscription history and revenue summary.
+Query: `page`, `limit`, `tier`, `owner_id`, `date_from`, `date_to`.
+Response: list of subscription changes + summary revenue/tier distribution.
 
 ### PATCH /admin/owners/:id/subscription
 Modify existing subscription limits.

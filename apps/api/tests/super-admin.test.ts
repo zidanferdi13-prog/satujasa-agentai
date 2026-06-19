@@ -67,8 +67,8 @@ describe('Super Admin Routes', () => {
     }
   })
 
-  // Test 3: POST /admin/owners/:id/subscription → 200 + tier updated
-  it('updates owner subscription tier', async () => {
+  // Test 3: POST /admin/owners/:id/subscription → 200 + tier updated + expires_at calculated
+  it('updates owner subscription tier with duration_months', async () => {
     // First, get an owner
     const ownerRes = await request(app)
       .get('/api/v1/admin/owners')
@@ -79,21 +79,31 @@ describe('Super Admin Routes', () => {
 
     const ownerId = ownerRes.body.data[0].id
 
-    // Update subscription to 'pro'
+    // Update subscription to 'pro' with duration_months
     const updateRes = await request(app)
       .post(`/api/v1/admin/owners/${ownerId}/subscription`)
       .set('Authorization', `Bearer ${superAdminToken}`)
       .send({
         tier: 'pro',
-        max_tenants: 5,
-        max_admin_users: 10,
+        duration_months: 6,
       })
 
     expect(updateRes.status).toBe(201)
     expect(updateRes.body).toHaveProperty('tier')
     expect(updateRes.body.tier).toBe('pro')
-    expect(updateRes.body.max_tenants).toBe(5)
-    expect(updateRes.body.max_admin_users).toBe(10)
+    expect(updateRes.body).toHaveProperty('expires_at')
+    expect(updateRes.body.expires_at).not.toBeNull()
+
+    // Verify expires_at is roughly 6 months from now (within 5 minutes tolerance)
+    const expiresAt = new Date(updateRes.body.expires_at)
+    const expectedMin = new Date()
+    expectedMin.setMonth(expectedMin.getMonth() + 5)
+    expectedMin.setMinutes(expectedMin.getMinutes() - 5)
+    const expectedMax = new Date()
+    expectedMax.setMonth(expectedMax.getMonth() + 7)
+    expectedMax.setMinutes(expectedMax.getMinutes() + 5)
+    expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedMin.getTime())
+    expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedMax.getTime())
   })
 
   // Test 3b: GET /admin/users → 200 + list
@@ -155,6 +165,40 @@ describe('Super Admin Routes', () => {
 
     expect(response.status).toBe(200)
     expect(response.body.success).toBe(true)
+  })
+
+  // Test 3f: GET /admin/subscription-logs → 200 + logs + summary
+  it('returns subscription logs with summary', async () => {
+    const response = await request(app)
+      .get('/api/v1/admin/subscription-logs')
+      .set('Authorization', `Bearer ${superAdminToken}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body).toHaveProperty('logs')
+    expect(response.body).toHaveProperty('pagination')
+    expect(response.body).toHaveProperty('summary')
+    expect(Array.isArray(response.body.logs)).toBe(true)
+    expect(response.body.pagination).toHaveProperty('page')
+    expect(response.body.pagination).toHaveProperty('limit')
+    expect(response.body.pagination).toHaveProperty('total')
+    expect(response.body.pagination).toHaveProperty('total_pages')
+    expect(response.body.summary).toHaveProperty('total_subscriptions')
+    expect(response.body.summary).toHaveProperty('by_tier')
+    expect(response.body.summary).toHaveProperty('total_revenue')
+    expect(response.body.summary).toHaveProperty('active_subscriptions')
+    expect(response.body.summary).toHaveProperty('expired_subscriptions')
+
+    if (response.body.logs.length > 0) {
+      const log = response.body.logs[0]
+      expect(log).toHaveProperty('id')
+      expect(log).toHaveProperty('owner_id')
+      expect(log).toHaveProperty('owner_email')
+      expect(log).toHaveProperty('tier')
+      expect(log).toHaveProperty('price_per_month')
+      expect(log).toHaveProperty('duration_months')
+      expect(log).toHaveProperty('total_price')
+      expect(log).toHaveProperty('status')
+    }
   })
 
   // Test 4: Non super-admin hit super-admin route → 403
