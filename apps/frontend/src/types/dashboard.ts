@@ -37,6 +37,7 @@ export interface DashboardResponse {
   total_tenants: number;
   total_transactions: number;
   total_revenue: string;
+  total_subscription_revenue?: string;
   total_admin_users?: number;
   subscription_distribution?: SubscriptionDistribution;
   recent_activity?: ActivityItem[];
