@@ -87,6 +87,7 @@ export const tenantServices = pgTable('tenant_services', {
   service_id: uuid('service_id').notNull().references(() => services.id),
   price: numeric('price', { precision: 12, scale: 2 }).notNull().default('0'),
   is_active: boolean('is_active').notNull().default(true),
+  custom_name: varchar('custom_name', { length: 255 }),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updated_at: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   deleted_at: timestamp('deleted_at', { withTimezone: true }),
