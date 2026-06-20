@@ -14,6 +14,11 @@ import InputLabel from '@mui/material/InputLabel';
 import Alert from '@mui/material/Alert';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import CircularProgress from '@mui/material/CircularProgress';
 import MetricCard from '@/components/shared/MetricCard';
 import StatusPill from '@/components/shared/StatusPill';
 import { useToast } from '@/components/shared/ToastProvider';
@@ -95,6 +100,7 @@ export default function OwnerDetailPage() {
     duration_months: 1,
   });
   const [error, setError] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data: owner, isLoading } = useQuery<OwnerDetail>({
     queryKey: ['admin-owner', id],
@@ -159,6 +165,20 @@ export default function OwnerDetailPage() {
     onError: (err: unknown) => {
       const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
       setError(message ?? 'Gagal update subscription');
+    },
+  });
+
+  const { mutate: deleteOwner, isPending: isDeleting } = useMutation({
+    mutationFn: () => apiClient.delete(`/super-admin/owners/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-owners'] });
+      toast.showSuccess('Owner berhasil dihapus');
+      router.push('/admin/owners');
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      toast.showError(message ?? 'Gagal menghapus owner');
+      setDeleteDialogOpen(false);
     },
   });
 
@@ -379,11 +399,57 @@ export default function OwnerDetailPage() {
             <Button type="submit" variant="contained" disabled={isPending}>
               {isPending ? 'Menyimpan...' : 'Simpan Subscription'}
             </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              sx={{ ml: 'auto' }}
+              onClick={() => setDeleteDialogOpen(true)}
+              startIcon={<span className="material-symbols-outlined">delete</span>}
+            >
+              Hapus Owner
+            </Button>
           </Box>
           </Box>
         </form>
       </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => !isDeleting && setDeleteDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 800, color: '#dc2626' }}>
+          Hapus Owner Permanan
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography sx={{ fontWeight: 600, mb: 1 }}>⚠️ Tindakan Tidak Bisa Dibatalkan</Typography>
+            <Typography sx={{ fontSize: 14 }}>
+              Setelah dihapus, semua data owner, subscription, dan tenant akan hilang selamanya. Pastikan Anda yakin sebelum melanjutkan.
+            </Typography>
+          </Alert>
+          <Box sx={{ p: 2, borderRadius: 1, bgcolor: '#fef2f2', border: '1px solid #fecaca' }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#991b1b', mb: 1 }}>
+              Email Owner:
+            </Typography>
+            <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433' }}>
+              {owner?.email}
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+            Batal
+          </Button>
+          <Button
+            onClick={() => deleteOwner()}
+            variant="contained"
+            color="error"
+            disabled={isDeleting}
+            startIcon={isDeleting && <CircularProgress size={18} />}
+          >
+            {isDeleting ? 'Menghapus...' : 'Hapus Permanen'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
