@@ -2,20 +2,18 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import IconButton from '@mui/material/IconButton';
 import Switch from '@mui/material/Switch';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -26,6 +24,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import CircularProgress from '@mui/material/CircularProgress';
 import StatusPill from '@/components/shared/StatusPill';
 import { useToast } from '@/components/shared/ToastProvider';
 import apiClient from '@/lib/axios';
@@ -47,15 +46,115 @@ interface TenantDetail {
   created_at: string;
 }
 
+interface AddServiceForm {
+  service_id: string;
+  price: number;
+  is_active: boolean;
+}
+
+interface EditServiceForm {
+  price: number;
+  is_active: boolean;
+}
+
 export default function TenantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const toast = useToast();
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<TenantService | null>(null);
+  const [addForm, setAddForm] = useState<AddServiceForm>({
+    service_id: '',
+    price: 0,
+    is_active: true,
+  });
+  const [editForm, setEditForm] = useState<EditServiceForm>({
+    price: 0,
+    is_active: true,
+  });
 
   const { data: tenant, isLoading } = useQuery<TenantDetail>({
     queryKey: ['owner-tenant', id],
     queryFn: () =>
       apiClient.get(`/owner/tenants/${id}`).then((r) => r.data?.data ?? r.data),
   });
+
+  const { data: services = [], refetch, isLoading: isServicesLoading } = useQuery<TenantService[]>({
+    queryKey: ['tenant-services', id],
+    queryFn: () => apiClient.get(`/owner/tenants/${id}/services`).then((r) => r.data?.data ?? r.data),
+  });
+
+  const { data: masterServices = [] } = useQuery<MasterService[]>({
+    queryKey: ['master-services'],
+    queryFn: () => apiClient.get(`/admin/services`).then((r) => r.data?.data ?? r.data),
+  });
+
+  const { mutate: addService, isPending: isAddPending } = useMutation({
+    mutationFn: (payload: AddServiceForm) =>
+      apiClient.post(`/owner/tenants/${id}/services`, payload),
+    onSuccess: () => {
+      toast.showSuccess('Service berhasil ditambahkan');
+      refetch();
+      setIsAddModalOpen(false);
+      setAddForm({ service_id: '', price: 0, is_active: true });
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      toast.showError(message ?? 'Gagal menambahkan service');
+    },
+  });
+
+  const { mutate: updateService, isPending: isEditPending } = useMutation({
+    mutationFn: (payload: { price: number; is_active: boolean }) =>
+      apiClient.post(`/owner/tenants/${id}/services/${selectedService?.id}`, payload),
+    onSuccess: () => {
+      toast.showSuccess('Service berhasil diupdate');
+      refetch();
+      setIsEditModalOpen(false);
+      setSelectedService(null);
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      toast.showError(message ?? 'Gagal mengupdate service');
+    },
+  });
+
+  const { mutate: toggleStatus } = useMutation({
+    mutationFn: (svc: TenantService) =>
+      apiClient.post(`/owner/tenants/${id}/services/${svc.id}`, {
+        price: svc.price,
+        is_active: !svc.is_active,
+      }),
+    onSuccess: () => {
+      toast.showSuccess('Status service berhasil diubah');
+      refetch();
+    },
+    onError: (err: unknown) => {
+      const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
+      toast.showError(message ?? 'Gagal mengubah status service');
+    },
+  });
+
+  function handleOpenEdit(svc: TenantService) {
+    setSelectedService(svc);
+    setEditForm({ price: svc.price, is_active: svc.is_active });
+    setIsEditModalOpen(true);
+  }
+
+  function handleSubmitAdd() {
+    if (!addForm.service_id) {
+      toast.showError('Pilih service dari daftar');
+      return;
+    }
+    addService(addForm);
+  }
+
+  function handleSubmitEdit() {
+    if (!selectedService) return;
+    updateService(editForm);
+  }
 
   if (isLoading) {
     return (
@@ -260,6 +359,7 @@ export default function TenantDetailPage() {
           boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
           background: 'rgba(255,255,255,0.94)',
           p: 3,
+          mb: 4,
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -379,6 +479,233 @@ export default function TenantDetailPage() {
           </Box>
         )}
       </Box>
+
+      {/* ─── Services Section ─── */}
+      <Box
+        sx={{
+          borderRadius: '22px',
+          border: '1px solid #e5e9f3',
+          boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)',
+          background: 'rgba(255,255,255,0.94)',
+          p: 3,
+          mb: 4,
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Box>
+            <Typography sx={{ fontSize: 18, fontWeight: 800, color: '#1d2433', mb: 0.5 }}>
+              Daftar Jasa / Service
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              Jasa yang tersedia di tenant ini beserta harga
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => setIsAddModalOpen(true)}
+            startIcon={<span className="material-symbols-outlined">add</span>}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              bgcolor: 'var(--dash-primary)',
+              px: 2.5,
+              py: 1,
+              fontWeight: 700,
+              boxShadow: '0 8px 16px rgba(79, 70, 229, 0.2)',
+              '&:hover': {
+                bgcolor: 'var(--dash-primary-2)',
+                boxShadow: '0 10px 20px rgba(79, 70, 229, 0.25)',
+              },
+            }}
+          >
+            + Tambah Service
+          </Button>
+        </Box>
+
+        {isServicesLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress size={28} />
+          </Box>
+        ) : services.length > 0 ? (
+          <TableContainer>
+            <Table sx={{ minWidth: 600 }}>
+              <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                <TableRow sx={{ borderBottom: '2px solid #e5e9f3' }}>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Kode</TableCell>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Nama Service</TableCell>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Harga (Rp)</TableCell>
+                  <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Status</TableCell>
+                  <TableCell sx={{ py: 2 }}></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {services.map((svc) => (
+                  <TableRow
+                    key={svc.id}
+                    hover
+                    sx={{
+                      '& td': { borderBottom: '1px solid #f0f1f5', py: 2 },
+                      '&:hover': { bgcolor: '#f8f9fc' },
+                      '&:last-child td': { border: 0 },
+                    }}
+                  >
+                    <TableCell>
+                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#4f46e5', fontFamily: 'monospace' }}>
+                        {svc.code}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1d2433' }}>
+                        {svc.name}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography sx={{ fontSize: 14, fontWeight: 700, color: '#1d2433' }}>
+                        Rp {Number(svc.price).toLocaleString('id-ID')}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={svc.is_active}
+                        onChange={() => toggleStatus(svc)}
+                        size="small"
+                        color="success"
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => handleOpenEdit(svc)}
+                        startIcon={<span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>}
+                        sx={{
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          borderColor: '#e5e9f3',
+                          color: '#6b7280',
+                          '&:hover': { borderColor: '#4f46e5', color: '#4f46e5', bgcolor: '#eef2ff' },
+                        }}
+                      >
+                        Edit harga
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Box
+            sx={{
+              textAlign: 'center',
+              py: 6,
+              borderRadius: '16px',
+              border: '2px dashed #e5e9f3',
+              bgcolor: 'rgba(248, 249, 252, 0.3)',
+            }}
+          >
+            <Box
+              sx={{
+                width: 72,
+                height: 72,
+                borderRadius: '20px',
+                display: 'grid',
+                placeItems: 'center',
+                bgcolor: '#eef2ff',
+                mx: 'auto',
+                mb: 2,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 40, color: '#4f46e5' }}>
+                list_alt
+              </span>
+            </Box>
+            <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1d2433', mb: 0.5 }}>
+              Belum ada service
+            </Typography>
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>
+              Klik tombol di bawah untuk menambahkan.
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {/* ─── Add Service Modal ─── */}
+      <Dialog open={isAddModalOpen} onClose={() => !isAddPending && setIsAddModalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 800 }}>Tambah Service</DialogTitle>
+        <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <FormControl fullWidth required>
+            <InputLabel>Pilih Service</InputLabel>
+            <Select
+              value={addForm.service_id}
+              label="Pilih Service"
+              onChange={(e) => setAddForm({ ...addForm, service_id: e.target.value as string })}
+            >
+              {masterServices.map((ms) => (
+                <MenuItem key={ms.id} value={ms.id}>
+                  {ms.code} — {ms.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="Harga (Rp)"
+            type="number"
+            fullWidth
+            value={addForm.price}
+            onChange={(e) => setAddForm({ ...addForm, price: parseInt(e.target.value) || 0 })}
+            slotProps={{ htmlInput: { min: 0 } }}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Switch
+              checked={addForm.is_active}
+              onChange={(e) => setAddForm({ ...addForm, is_active: e.target.checked })}
+              color="success"
+            />
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>Aktif</Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setIsAddModalOpen(false)} disabled={isAddPending}>Batal</Button>
+          <Button onClick={handleSubmitAdd} variant="contained" disabled={isAddPending}>
+            {isAddPending ? 'Menyimpan...' : 'Simpan'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ─── Edit Service Modal ─── */}
+      <Dialog open={isEditModalOpen} onClose={() => !isEditPending && setIsEditModalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ fontWeight: 800 }}>
+          Edit Harga {selectedService?.name ?? ''}
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <TextField
+            label="Harga (Rp)"
+            type="number"
+            fullWidth
+            value={editForm.price}
+            onChange={(e) => setEditForm({ ...editForm, price: parseInt(e.target.value) || 0 })}
+            slotProps={{ htmlInput: { min: 0 } }}
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Switch
+              checked={editForm.is_active}
+              onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
+              color="success"
+            />
+            <Typography sx={{ fontSize: 14, color: '#6b7280' }}>Aktif</Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={() => setIsEditModalOpen(false)} disabled={isEditPending}>Batal</Button>
+          <Button onClick={handleSubmitEdit} variant="contained" disabled={isEditPending}>
+            {isEditPending ? 'Menyimpan...' : 'Simpan'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
