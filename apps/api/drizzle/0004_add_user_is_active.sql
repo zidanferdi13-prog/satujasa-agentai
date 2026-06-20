@@ -1,2 +1,5 @@
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
+
+ALTER TABLE tenants
+  ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
