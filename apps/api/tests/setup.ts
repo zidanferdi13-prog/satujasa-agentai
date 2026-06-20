@@ -26,6 +26,10 @@ async function bootstrapTestDatabase() {
     
     await sql`ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS expires_at timestamptz`
 
+    await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true`
+    await sql`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true`
+
+
     await sql`
       DO $$
       BEGIN
