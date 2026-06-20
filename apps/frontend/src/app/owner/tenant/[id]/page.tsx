@@ -88,7 +88,7 @@ export default function TenantDetailPage() {
 
   const { data: masterServices = [] } = useQuery<MasterService[]>({
     queryKey: ['master-services'],
-    queryFn: () => apiClient.get(`/admin/services`).then((r) => r.data?.data ?? r.data),
+    queryFn: () => apiClient.get(`/owner/services`).then((r) => r.data?.data ?? r.data),
   });
 
   const { mutate: addService, isPending: isAddPending } = useMutation({
