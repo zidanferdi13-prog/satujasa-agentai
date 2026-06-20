@@ -708,8 +708,9 @@ function relativeTime(date: Date): string {
       }
 
       const defaults = TIER_DEFAULTS[tier]
-      const finalMaxTenants = max_tenants ?? defaults.max_tenants
-      const finalMaxAdminUsers = max_admin_users ?? defaults.max_admin_users
+      // Only use custom limits for expert tier; other tiers use defaults
+      const finalMaxTenants = tier === 'expert' ? (max_tenants ?? defaults.max_tenants) : defaults.max_tenants
+      const finalMaxAdminUsers = tier === 'expert' ? (max_admin_users ?? defaults.max_admin_users) : defaults.max_admin_users
 
       // Calculate expires_at based on duration_months (default 1 month)
       const calculatedExpiresAt = tier === 'free'
@@ -757,6 +758,8 @@ function relativeTime(date: Date): string {
       }
 
       const defaults = TIER_DEFAULTS[tier]
+      const finalMaxTenants = tier === 'expert' ? (max_tenants ?? defaults.max_tenants) : defaults.max_tenants
+      const finalMaxAdminUsers = tier === 'expert' ? (max_admin_users ?? defaults.max_admin_users) : defaults.max_admin_users
 
       // Calculate expires_at based on duration_months if provided
       let finalExpiresAt: Date | null | undefined
@@ -771,8 +774,8 @@ function relativeTime(date: Date): string {
         .update(schema.subscriptions)
         .set({
           tier,
-          max_tenants: max_tenants ?? defaults.max_tenants,
-          max_admin_users: max_admin_users ?? defaults.max_admin_users,
+          max_tenants: finalMaxTenants,
+          max_admin_users: finalMaxAdminUsers,
           activated_by: req.user!.userId,
           activated_at: new Date(),
           ...(finalExpiresAt !== undefined && { expires_at: finalExpiresAt }),
