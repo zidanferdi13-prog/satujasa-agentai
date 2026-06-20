@@ -68,16 +68,6 @@ const PRICE_MAP: Record<string, number> = {
 
 const DURATION_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1);
 
-function getSubStatus(expiresAt: string | null): { label: string; color: string } {
-  if (!expiresAt) return { label: 'Permanent', color: '#4f46e5' };
-  const exp = new Date(expiresAt);
-  const now = new Date();
-  const daysLeft = Math.ceil((exp.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (daysLeft < 0) return { label: 'Expired', color: '#ef4444' };
-  if (daysLeft <= 7) return { label: `Expiring in ${daysLeft} days`, color: '#f59e0b' };
-  return { label: `Active until ${exp.toLocaleDateString('id-ID')}`, color: '#22c55e' };
-}
-
 function isActive(expiresAt: string | null): boolean {
   if (!expiresAt) return true; // permanent
   return new Date(expiresAt) > new Date();
@@ -102,7 +92,6 @@ export default function OwnerDetailPage() {
     tier: '',
     max_tenants: 0,
     max_admin_users: 0,
-    expires_at: '',
     duration_months: 1,
   });
   const [error, setError] = useState('');
@@ -128,9 +117,6 @@ export default function OwnerDetailPage() {
         tier: subscription.tier ?? 'free',
         max_tenants: subscription.max_tenants ?? 0,
         max_admin_users: subscription.max_admin_users ?? 0,
-        expires_at: subscription.expires_at
-          ? new Date(subscription.expires_at).toISOString().split('T')[0]
-          : '',
         duration_months: 1,
       });
     } else if (owner) {
@@ -139,7 +125,6 @@ export default function OwnerDetailPage() {
         tier: owner.subscription_tier ?? 'free',
         max_tenants: tierConfig?.max_tenants ?? 0,
         max_admin_users: tierConfig?.max_admin_users ?? 0,
-        expires_at: '',
         duration_months: 1,
       });
     }
@@ -193,12 +178,18 @@ export default function OwnerDetailPage() {
       setError('Pilih subscription tier');
       return;
     }
+    
+    // Calculate expires_at from duration_months
+    const expiresDate = new Date();
+    expiresDate.setMonth(expiresDate.getMonth() + form.duration_months);
+    const expiresAtIso = expiresDate.toISOString();
+
     updateSubscription({
       owner_id: id,
       tier: form.tier,
       max_tenants: form.max_tenants,
       max_admin_users: form.max_admin_users,
-      expires_at: form.expires_at ? `${form.expires_at}T00:00:00.000Z` : null,
+      expires_at: expiresAtIso,
       duration_months: form.duration_months,
     });
   }
@@ -306,30 +297,6 @@ export default function OwnerDetailPage() {
             Manajemen Subscription
           </Typography>
 
-          {(() => {
-            const status = getSubStatus(subscription?.expires_at ?? null);
-            return (
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 0.75,
-                  borderRadius: '50px',
-                  bgcolor: `${status.color}18`,
-                  border: `1.5px solid ${status.color}44`,
-                  mb: 3,
-                }}
-              >
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: status.color }} />
-                <Typography sx={{ fontSize: 13, fontWeight: 700, color: status.color }}>
-                  {status.label}
-                </Typography>
-              </Box>
-            );
-          })()}
-
           <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <FormControl fullWidth required>
@@ -378,13 +345,13 @@ export default function OwnerDetailPage() {
             }
           />
 
-          {/* Auto-calc: Expires At */}
+          {/* Auto-calc: Expires At (read-only) */}
           <TextField
-            label="Valid Until (estimasi)"
+            label="Valid Until"
             fullWidth
             value={estimatedExpiresAt}
             slotProps={{ input: { readOnly: true } }}
-            helperText={`Berdasarkan durasi ${form.duration_months} bulan dari sekarang`}
+            helperText={`Dihitung otomatis: sekarang + ${form.duration_months} bulan`}
           />
 
           <TextField
@@ -403,16 +370,6 @@ export default function OwnerDetailPage() {
             value={form.max_admin_users}
             onChange={(e) => setForm({ ...form, max_admin_users: parseInt(e.target.value) || 0 })}
             slotProps={{ htmlInput: { min: 1 } }}
-          />
-
-          <TextField
-            label="Berlaku Sampai (Expiry Date)"
-            type="date"
-            value={form.expires_at}
-            onChange={(e) => setForm({ ...form, expires_at: e.target.value })}
-            slotProps={{ inputLabel: { shrink: true } }}
-            helperText="Kosongkan untuk Permanent (no expiry)"
-            fullWidth
           />
 
           <Box sx={{ display: 'flex', gap: 2, pt: 2 }}>
