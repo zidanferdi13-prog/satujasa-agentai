@@ -1092,6 +1092,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
           service_name: schema.services.name,
           price: schema.tenantServices.price,
           is_active: schema.tenantServices.is_active,
+          custom_name: schema.tenantServices.custom_name,
         })
         .from(schema.tenantServices)
         .innerJoin(schema.services, eq(schema.services.id, schema.tenantServices.service_id))
@@ -1113,7 +1114,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     try {
       const ownerId = req.user!.userId
       const tenantId = (req.params.tenantId as string)!
-      const { service_id, price, is_active } = req.body as { service_id: string; price: number; is_active: boolean }
+      const { service_id, price, is_active, custom_name } = req.body as { service_id: string; price: number; is_active: boolean; custom_name?: string | null }
 
       const [tenant] = await db
         .select()
@@ -1141,7 +1142,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
       if (existing.length > 0) {
         const [updated] = await db
           .update(schema.tenantServices)
-          .set({ price: price.toString(), is_active, updated_at: new Date() })
+          .set({ price: price.toString(), is_active, custom_name: custom_name ?? null, updated_at: new Date() })
           .where(eq(schema.tenantServices.id, existing[0]!.id))
           .returning()
         res.json(updated)
@@ -1155,6 +1156,7 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
           service_id,
           price: price.toString(),
           is_active,
+          custom_name: custom_name ?? null,
         })
         .returning()
 
