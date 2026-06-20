@@ -50,6 +50,7 @@ interface AddServiceForm {
   service_id: string;
   price: number;
   is_active: boolean;
+  custom_name?: string;
 }
 
 interface EditServiceForm {
@@ -69,6 +70,7 @@ export default function TenantDetailPage() {
     service_id: '',
     price: 0,
     is_active: true,
+    custom_name: '',
   });
   const [editForm, setEditForm] = useState<EditServiceForm>({
     price: 0,
@@ -98,7 +100,7 @@ export default function TenantDetailPage() {
       toast.showSuccess('Service berhasil ditambahkan');
       refetch();
       setIsAddModalOpen(false);
-      setAddForm({ service_id: '', price: 0, is_active: true });
+      setAddForm({ service_id: '', price: 0, is_active: true, custom_name: '' });
     },
     onError: (err: unknown) => {
       const message = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
@@ -144,11 +146,15 @@ export default function TenantDetailPage() {
   }
 
   function handleSubmitAdd() {
-    if (!addForm.service_id) {
-      toast.showError('Pilih service dari daftar');
+    if (!addForm.service_id && !addForm.custom_name?.trim()) {
+      toast.showError('Pilih service dari daftar atau isi nama service custom');
       return;
     }
-    addService(addForm);
+
+    addService({
+      ...addForm,
+      custom_name: addForm.custom_name?.trim() || undefined,
+    });
   }
 
   function handleSubmitEdit() {
@@ -532,7 +538,6 @@ export default function TenantDetailPage() {
             <Table sx={{ minWidth: 600 }}>
               <TableHead sx={{ bgcolor: '#f8fafc' }}>
                 <TableRow sx={{ borderBottom: '2px solid #e5e9f3' }}>
-                  <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Kode</TableCell>
                   <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Nama Service</TableCell>
                   <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Harga (Rp)</TableCell>
                   <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Status</TableCell>
@@ -550,11 +555,6 @@ export default function TenantDetailPage() {
                       '&:last-child td': { border: 0 },
                     }}
                   >
-                    <TableCell>
-                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#4f46e5', fontFamily: 'monospace' }}>
-                        {svc.code}
-                      </Typography>
-                    </TableCell>
                     <TableCell>
                       <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1d2433' }}>
                         {svc.name}
@@ -651,6 +651,13 @@ export default function TenantDetailPage() {
               ))}
             </Select>
           </FormControl>
+          <TextField
+            label="Nama Service (Custom)"
+            placeholder="Kosongkan jika ingin pakai nama dari pilihan di atas"
+            fullWidth
+            value={addForm.custom_name ?? ''}
+            onChange={(e) => setAddForm({ ...addForm, custom_name: e.target.value })}
+          />
           <TextField
             label="Harga (Rp)"
             type="number"
