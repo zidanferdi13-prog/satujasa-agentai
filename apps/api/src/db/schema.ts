@@ -34,6 +34,7 @@ export const users = pgTable('users', {
   phone: varchar('phone', { length: 50 }).notNull().default(''),
   password_hash: varchar('password_hash', { length: 255 }).notNull(),
   role: roleEnum('role').notNull().default('owner'),
+  is_active: boolean('is_active').notNull().default(true),
   owner_id: uuid('owner_id'),
   tenant_id: uuid('tenant_id'),
   created_at: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
