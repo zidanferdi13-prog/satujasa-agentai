@@ -829,6 +829,46 @@ function relativeTime(date: Date): string {
     }
   })
 
+  // DELETE /admin/owners/:id — deactivate owner and cascade to admin-users + tenants
+  router.delete('/owners/:id', async (req, res) => {
+    try {
+      const ownerId = param(req.params['id'])
+
+      const [owner] = await db
+        .select({ id: schema.users.id, role: schema.users.role, deleted_at: schema.users.deleted_at })
+        .from(schema.users)
+        .where(eq(schema.users.id, ownerId))
+        .limit(1)
+
+      if (!owner || owner.deleted_at || owner.role !== 'owner') {
+        res.status(404).json({ error: 'owner_not_found' })
+        return
+      }
+
+      await db.transaction(async (tx) => {
+        await tx
+          .update(schema.users)
+          .set({ is_active: false, updated_at: new Date() })
+          .where(eq(schema.users.id, ownerId))
+
+        await tx
+          .update(schema.users)
+          .set({ is_active: false, updated_at: new Date() })
+          .where(and(eq(schema.users.owner_id, ownerId), isNull(schema.users.deleted_at)))
+
+        await tx
+          .update(schema.tenants)
+          .set({ is_active: false, updated_at: new Date() })
+          .where(and(eq(schema.tenants.owner_id, ownerId), isNull(schema.tenants.deleted_at)))
+      })
+
+      res.json({ success: true, owner_id: ownerId, deactivated: true })
+    } catch (error) {
+      console.error('Deactivate owner error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   // GET /admin/subscription-logs
   router.get('/subscription-logs', async (req, res) => {
     try {
