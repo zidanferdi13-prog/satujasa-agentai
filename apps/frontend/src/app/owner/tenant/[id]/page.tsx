@@ -642,22 +642,28 @@ export default function TenantDetailPage() {
             <Select
               value={addForm.service_id}
               label="Pilih Service"
-              onChange={(e) => setAddForm({ ...addForm, service_id: e.target.value as string })}
+              onChange={(e) => {
+                const val = e.target.value as string;
+                setAddForm({ ...addForm, service_id: val, custom_name: val === '__custom__' ? '' : addForm.custom_name });
+              }}
             >
               {masterServices.map((ms) => (
                 <MenuItem key={ms.id} value={ms.id}>
                   {ms.code} — {ms.name}
                 </MenuItem>
               ))}
+              <MenuItem value="__custom__">✦ Custom</MenuItem>
             </Select>
           </FormControl>
+          {addForm.service_id === '__custom__' && (
           <TextField
             label="Nama Service (Custom)"
-            placeholder="Kosongkan jika ingin pakai nama dari pilihan di atas"
+            placeholder="Tulis nama jasa custom kamu"
             fullWidth
             value={addForm.custom_name ?? ''}
             onChange={(e) => setAddForm({ ...addForm, custom_name: e.target.value })}
           />
+          )}
           <TextField
             label="Harga (Rp)"
             type="number"
