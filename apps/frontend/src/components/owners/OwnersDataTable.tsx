@@ -16,6 +16,10 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import StatusPill from '@/components/shared/StatusPill';
 import { Owner } from '@/types/owner';
 
@@ -28,6 +32,8 @@ interface OwnersDataTableProps {
 export default function OwnersDataTable({ data, onSearch, onTierChange }: OwnersDataTableProps) {
   const router = useRouter();
   const [search, setSearch] = useState('');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const getTierVariant = (tier: string | null): 'info' | 'success' | 'warning' | 'error' => {
     const t = (tier ?? 'FREE').toUpperCase();
@@ -103,9 +109,10 @@ export default function OwnersDataTable({ data, onSearch, onTierChange }: Owners
         </Select>
       </Box>
 
-      {/* Table */}
-      <TableContainer component={Paper} sx={{ borderRadius: '22px', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', border: '1px solid #e5e9f3', overflow: 'hidden', background: 'rgba(255,255,255,0.94)' }}>
-        <Table sx={{ minWidth: 860 }}>
+      {/* Table Desktop View */}
+      {!isMobile && (
+      <TableContainer component={Paper} sx={{ borderRadius: '22px', boxShadow: '0 12px 28px rgba(30, 41, 59, 0.06)', border: '1px solid #e5e9f3', overflow: 'auto', background: 'rgba(255,255,255,0.94)' }}>
+        <Table sx={{ minWidth: { xs: 640, sm: 860 } }}>
           <TableHead sx={{ bgcolor: '#f8fafc' }}>
             <TableRow sx={{ borderBottom: '2px solid #e5e9f3' }}>
               <TableCell sx={{ fontSize: 11, fontWeight: 800, color: '#394154', textTransform: 'uppercase', letterSpacing: '0.1em', py: 2 }}>Owner</TableCell>
@@ -204,6 +211,28 @@ export default function OwnersDataTable({ data, onSearch, onTierChange }: Owners
           </TableBody>
         </Table>
       </TableContainer>
+      )}
+
+      {/* Mobile Card View */}
+      {isMobile && (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {data.map((owner) => (
+            <Card key={owner.id} sx={{ borderRadius: '16px', boxShadow: '0 4px 12px rgba(30, 41, 59, 0.05)' }}>
+              <CardContent sx={{ '&:last-child': { pb: 2 } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <Typography sx={{ fontWeight: 700 }}>{owner.email}</Typography>
+                  <StatusPill status={(owner.subscription_tier ?? 'FREE').toUpperCase()} variant={getTierVariant(owner.subscription_tier)} />
+                </Box>
+                <Typography sx={{ fontSize: 12, color: 'var(--dash-muted)', mt: 0.5 }}>{owner.company_name}</Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                  <Typography sx={{ fontSize: 12 }}>Tenants: {owner.total_tenants}</Typography>
+                  <Typography sx={{ fontSize: 12, fontWeight: 700 }}>MRR: Rp {Number(owner.mrr ?? 0).toLocaleString('id-ID')}</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
+      )}
     </Box>
   );
 }
