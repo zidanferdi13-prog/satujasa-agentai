@@ -105,7 +105,7 @@ export function authRoutes(db: Database, config: AppConfig): Router {
         return
       }
 
-      if (user.deleted_at) {
+      if (user.deleted_at || !user.is_active) {
         res.status(401).json({ error: 'account_deactivated' })
         return
       }
