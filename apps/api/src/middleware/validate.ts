@@ -57,6 +57,7 @@ export const setTenantServiceSchema = z.object({
   service_id: z.string().uuid(),
   price: z.number().min(0),
   is_active: z.boolean(),
+  custom_name: z.string().trim().min(1).max(255).optional().nullable(),
 })
 
 // ─── Transaction Schemas ─────────────────────────────────────────────────────
