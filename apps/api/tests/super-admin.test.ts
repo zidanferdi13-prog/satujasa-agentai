@@ -46,8 +46,10 @@ describe('Super Admin Routes', () => {
     expect(response.body).toHaveProperty('total_tenants')
     expect(response.body).toHaveProperty('total_transactions')
     expect(response.body).toHaveProperty('total_revenue')
+    expect(response.body).toHaveProperty('total_subscription_revenue')
     expect(typeof response.body.total_owners).toBe('number')
     expect(typeof response.body.total_revenue).toBe('string')
+    expect(typeof response.body.total_subscription_revenue).toBe('string')
   })
 
   // Test 2: GET /admin/owners → 200 + array

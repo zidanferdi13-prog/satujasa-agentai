@@ -49,6 +49,7 @@ function relativeTime(date: Date): string {
     let totalTenants = 0
     let totalTransactions = 0
     let totalRevenue = '0'
+    let totalSubscriptionRevenue = '0'
     let totalAdminUsers = 0
     let monthlyRevenue: Array<{ month: string; revenue: string }> = []
     const subscriptionDistribution: Record<string, number> = { free: 0, pro: 0, plus: 0, expert: 0 }
@@ -109,7 +110,7 @@ function relativeTime(date: Date): string {
       console.error('Dashboard transaction count error:', e)
     }
 
-    // 4. Revenue
+    // 4. Revenue (Transactional)
     try {
       const [revenue] = await db
         .select({ total: sql<string>`COALESCE(sum(total_cost + additional_cost), 0)::text` })
@@ -121,6 +122,37 @@ function relativeTime(date: Date): string {
       totalRevenue = revenue?.total ?? '0'
     } catch (e) {
       console.error('Dashboard revenue error:', e)
+    }
+
+    // 4a. Subscription Revenue (from subscriptions table, same formula as /subscription-logs)
+    try {
+      const [subRevenue] = await db
+        .select({
+          total: sql<string>`COALESCE(sum(
+            CASE
+              WHEN ${schema.subscriptions.tier} = 'pro' THEN 49.999 * CASE
+                WHEN ${schema.subscriptions.expires_at} IS NULL OR ${schema.subscriptions.activated_at} IS NULL THEN 1
+                ELSE GREATEST(1, (
+                  (EXTRACT(YEAR FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at})) * 12) +
+                  EXTRACT(MONTH FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at}))
+                )::int)
+              END
+              WHEN ${schema.subscriptions.tier} = 'plus' THEN 99.999 * CASE
+                WHEN ${schema.subscriptions.expires_at} IS NULL OR ${schema.subscriptions.activated_at} IS NULL THEN 1
+                ELSE GREATEST(1, (
+                  (EXTRACT(YEAR FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at})) * 12) +
+                  EXTRACT(MONTH FROM age(${schema.subscriptions.expires_at}, ${schema.subscriptions.activated_at}))
+                )::int)
+              END
+              ELSE 0
+            END
+          ), 0)::text`
+        })
+        .from(schema.subscriptions)
+        .where(isNull(schema.subscriptions.deleted_at))
+      totalSubscriptionRevenue = subRevenue?.total ?? '0'
+    } catch (e) {
+      console.error('Dashboard subscription revenue error:', e)
     }
 
     // 4b. Monthly revenue (last 12 months)
@@ -304,8 +336,9 @@ function relativeTime(date: Date): string {
       total_tenants: totalTenants,
       total_transactions: totalTransactions,
       total_revenue: totalRevenue,
-      monthly_revenue: monthlyRevenue,
+      total_subscription_revenue: totalSubscriptionRevenue,
       total_admin_users: totalAdminUsers,
+      monthly_revenue: monthlyRevenue,
       subscription_distribution: subscriptionDistribution,
       recent_activity: recentActivity,
       platform_stats: platformStats,
