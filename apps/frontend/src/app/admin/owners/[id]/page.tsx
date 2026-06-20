@@ -17,6 +17,7 @@ import CardContent from '@mui/material/CardContent';
 import MetricCard from '@/components/shared/MetricCard';
 import StatusPill from '@/components/shared/StatusPill';
 import { useToast } from '@/components/shared/ToastProvider';
+import { TIER_DEFAULTS, subscriptionTiers, type SubscriptionTier } from '@stnk/contracts';
 import apiClient from '@/lib/axios';
 
 interface OwnerDetail {
@@ -51,12 +52,12 @@ interface UpdateSubscriptionPayload {
   duration_months?: number;
 }
 
-const TIERS = [
-  { value: 'free', label: 'Free', default_tenants: 1, default_admin_users: 1 },
-  { value: 'pro', label: 'Pro', default_tenants: 5, default_admin_users: 10 },
-  { value: 'plus', label: 'Plus', default_tenants: 20, default_admin_users: 50 },
-  { value: 'expert', label: 'Expert', default_tenants: 100, default_admin_users: 500 },
-];
+const TIER_LABELS: Record<SubscriptionTier, string> = {
+  free: 'Free',
+  pro: 'Pro',
+  plus: 'Plus',
+  expert: 'Expert',
+};
 
 const PRICE_MAP: Record<string, number> = {
   free: 0,
@@ -133,11 +134,11 @@ export default function OwnerDetailPage() {
         duration_months: 1,
       });
     } else if (owner) {
-      const tierConfig = TIERS.find((t) => t.value === (owner.subscription_tier ?? 'free'));
+      const tierConfig = TIER_DEFAULTS[owner.subscription_tier as SubscriptionTier ?? 'free'];
       setForm({
         tier: owner.subscription_tier ?? 'free',
-        max_tenants: tierConfig?.default_tenants ?? 1,
-        max_admin_users: tierConfig?.default_admin_users ?? 1,
+        max_tenants: tierConfig?.max_tenants ?? 0,
+        max_admin_users: tierConfig?.max_admin_users ?? 0,
         expires_at: '',
         duration_months: 1,
       });
@@ -177,12 +178,12 @@ export default function OwnerDetailPage() {
   });
 
   function handleTierChange(newTier: string) {
-    const tierConfig = TIERS.find((t) => t.value === newTier);
+    const tierConfig = TIER_DEFAULTS[newTier as SubscriptionTier];
     setForm({
       ...form,
       tier: newTier,
-      max_tenants: tierConfig?.default_tenants ?? 1,
-      max_admin_users: tierConfig?.default_admin_users ?? 1,
+      max_tenants: tierConfig?.max_tenants ?? 0,
+      max_admin_users: tierConfig?.max_admin_users ?? 0,
     });
   }
 
@@ -338,9 +339,9 @@ export default function OwnerDetailPage() {
               label="Subscription Tier"
               onChange={(e) => handleTierChange(e.target.value)}
             >
-              {TIERS.map((t) => (
-                <MenuItem key={t.value} value={t.value}>
-                  {t.label}
+              {subscriptionTiers.map((t) => (
+                <MenuItem key={t} value={t}>
+                  {TIER_LABELS[t]}
                 </MenuItem>
               ))}
             </Select>
