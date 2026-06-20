@@ -639,6 +639,27 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
     }
   })
 
+  // ─── Services ─────────────────────────────────────────────────────────────
+  router.get('/services', async (_req, res) => {
+    try {
+      const services = await db
+        .select({
+          id: schema.services.id,
+          code: schema.services.code,
+          name: schema.services.name,
+          created_at: schema.services.created_at,
+        })
+        .from(schema.services)
+        .where(isNull(schema.services.deleted_at))
+        .orderBy(schema.services.name)
+
+      res.json({ data: services })
+    } catch (error) {
+      console.error('List master services error:', error)
+      res.status(500).json({ error: 'internal_server_error' })
+    }
+  })
+
   // ─── Tenants ─────────────────────────────────────────────────────────────
   router.get('/tenants', async (req, res) => {
     try {
