@@ -653,7 +653,6 @@ export function ownerRoutes(db: Database, config: AppConfig): Router {
         .where(isNull(schema.services.deleted_at))
         .orderBy(schema.services.name)
 
-      console.log('DEBUG SERVICES:', services); // Log di server
       res.json({ data: services })
     } catch (error) {
       console.error('List master services error:', error)

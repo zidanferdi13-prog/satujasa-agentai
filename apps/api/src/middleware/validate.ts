@@ -58,6 +58,8 @@ export const setTenantServiceSchema = z.object({
   price: z.number().min(0),
   is_active: z.boolean(),
   custom_name: z.string().trim().min(1).max(255).optional().nullable(),
+}).superRefine((data, ctx) => {
+  // For now, allow any service_id as long as it's UUID. Validation for 'custom-service' is done in handler.
 })
 
 // ─── Transaction Schemas ─────────────────────────────────────────────────────

@@ -62,6 +62,7 @@ export const DEFAULT_SERVICES: ServiceDefinition[] = [
   { code: 'kendaraan-baru', name: 'Kendaraan Baru (Daftar Pertama)', description: 'Pendaftaran kendaraan baru pertama kali' },
   { code: 'blokir-unblokir', name: 'Blokir / Unblokir STNK', description: 'Proses blokir atau unblokir STNK kendaraan' },
   { code: 'nopol-pilihan', name: 'Nopol Pilihan (Plat Cantik)', description: 'Pengurusan nomor polisi pilihan atau plat cantik' },
+  { code: 'custom-service', name: 'Custom Service', description: 'Jasa custom dari owner' },
 ]
 
 // ─── API Response Types ──────────────────────────────────────────────────────
