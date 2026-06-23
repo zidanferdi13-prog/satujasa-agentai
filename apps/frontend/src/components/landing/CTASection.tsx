@@ -1,108 +1,33 @@
-'use client';
-
 import Link from 'next/link';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-
-const rail = ['Order', 'Proses', 'Siap ambil', 'Selesai'];
 
 export default function CTASection() {
   return (
-    <Box component="section" sx={{ py: { xs: 8, md: 12 }, position: 'relative', overflow: 'hidden', bgcolor: '#f5f6f8' }}>
-      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, textAlign: 'center', position: 'relative', zIndex: 10 }}>
-        <Box
-          sx={{
-            bgcolor: '#0b1f3a',
-            color: '#ffffff',
-            p: { xs: 4, md: 8 },
-            borderRadius: { xs: 4, md: 6 },
-            boxShadow: '0 30px 90px rgba(11, 31, 58, 0.22)',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              inset: 0,
-              background: 'radial-gradient(circle at 25% 20%, rgba(97, 97, 255, 0.42), transparent 34%), radial-gradient(circle at 78% 70%, rgba(255, 243, 191, 0.16), transparent 28%)',
-            },
-          }}
-        >
-          <Box sx={{ position: 'relative' }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 900,
-                letterSpacing: '-0.045em',
-                mb: 2,
-                color: '#ffffff',
-                fontSize: { xs: 30, md: 48 },
-                lineHeight: 1,
-              }}
+    <section className="py-24 relative overflow-hidden">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop text-center relative z-10">
+        <div className="bg-primary-container p-12 md:p-20 rounded-[3rem] text-on-primary soft-shadow">
+          <h2 className="font-headline-lg text-headline-lg md:text-[40px] mb-6">
+            Siap digitalisasi operasional jasa STNK Anda?
+          </h2>
+          <p className="text-body-lg text-on-primary-container/80 mb-10 max-w-2xl mx-auto">
+            Mulai rapikan transaksi, status dokumen, dan komunikasi pelanggan tanpa mengganti cara
+            kerja tim secara drastis.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/auth/signup"
+              className="bg-on-primary text-primary font-bold px-10 py-5 rounded-2xl hover:scale-105 transition-all shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim"
             >
-              Rapikan alur berkas STNK mulai hari ini.
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: { xs: 15, md: 18 },
-                lineHeight: 1.75,
-                color: 'rgba(255, 255, 255, 0.72)',
-                mb: 4,
-                maxWidth: 640,
-                mx: 'auto',
-              }}
-            >
-              Mulai dari transaksi pertama, lalu biarkan status, laporan, dan update pelanggan mengikuti alur yang sama.
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mb: 4 }}>
-              {rail.map((item, index) => (
-                <Box key={item} sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ borderRadius: 5, bgcolor: index === rail.length - 1 ? '#10b981' : 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.14)', px: 1.8, py: 0.8, fontSize: 12, fontWeight: 800 }}>
-                    {item}
-                  </Box>
-                  {index < rail.length - 1 && <Box sx={{ width: 18, height: 2, bgcolor: 'rgba(255,255,255,0.25)' }} />}
-                </Box>
-              ))}
-            </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 2 }}>
-              <Button
-                component={Link}
-                href="/auth/signup"
-                variant="contained"
-                sx={{
-                  bgcolor: '#ffffff',
-                  color: '#6161ff',
-                  fontWeight: 800,
-                  px: 5,
-                  py: 1.65,
-                  fontSize: 16,
-                  borderRadius: 10,
-                  '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.9)' },
-                }}
-              >
-                Daftar Sekarang
-              </Button>
-              <Button
-                component={Link}
-                href="/auth/signin"
-                variant="outlined"
-                sx={{
-                  borderColor: 'rgba(255, 255, 255, 0.28)',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  px: 5,
-                  py: 1.65,
-                  fontSize: 16,
-                  borderRadius: 10,
-                  '&:hover': { borderColor: 'rgba(255, 255, 255, 0.62)', bgcolor: 'rgba(255, 255, 255, 0.08)' },
-                }}
-              >
-                Masuk Dashboard
-              </Button>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Box>
+              Daftar Sekarang
+            </Link>
+            <Link href="/auth/help" className="bg-primary-fixed-dim/20 border border-on-primary/30 text-on-primary font-bold px-10 py-5 rounded-2xl hover:bg-on-primary/10 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim">
+              Bantuan Login
+            </Link>
+          </div>
+        </div>
+      </div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full -z-10 opacity-10">
+        <div className="w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary to-transparent" />
+      </div>
+    </section>
   );
 }
