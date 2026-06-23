@@ -1,222 +1,145 @@
-'use client';
-
-import Link from 'next/link';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import { visuallyHidden } from '@mui/utils';
-
 const plans = [
   {
-    name: 'Loket',
-    desc: 'Untuk biro jasa perorangan',
+    name: 'Free',
+    desc: 'Coba platform tanpa biaya',
     price: 'Gratis',
     period: '',
     features: [
-      { text: '1 Tenant / Loket', available: true },
-      { text: '1 Admin User', available: true },
-      { text: 'Link tracking pelanggan', available: true },
-      { text: 'Laporan harian', available: false },
+      { text: 'Akses login & lihat menu', available: true },
+      { text: '0 Tenant', available: true },
+      { text: '0 Admin User', available: true },
+      { text: 'Transaksi & laporan', available: false },
     ],
     cta: 'Daftar Gratis',
-    href: '/auth/signup',
     highlight: false,
   },
   {
-    name: 'Cabang',
-    desc: 'Untuk bisnis yang berkembang',
-    price: 'Rp 49rb',
-    period: '/bulan',
+    name: 'Pro',
+    desc: 'Untuk biro jasa 1 cabang',
+    price: 'Hubungi Kami',
+    period: '',
     features: [
-      { text: '1 Tenant / Cabang', available: true },
-      { text: 'Unlimited Transaksi', available: true },
-      { text: 'Input & kelola berkas', available: true },
-      { text: 'Dashboard operasional', available: true },
+      { text: '1 Tenant', available: true },
+      { text: '1 Admin User', available: true },
+      { text: 'Input & kelola transaksi', available: true },
+      { text: 'Monitoring link pelanggan', available: true },
     ],
-    cta: 'Pilih Cabang',
-    href: '/auth/signup?plan=cabang',
+    cta: 'Pilih Pro',
     highlight: false,
   },
   {
-    name: 'Owner',
-    desc: 'Paling pas untuk multi cabang',
-    price: 'Rp 99rb',
-    period: '/bulan',
+    name: 'Plus',
+    desc: 'Untuk biro jasa multi cabang',
+    price: 'Hubungi Kami',
+    period: '',
     features: [
-      { text: '3 Tenant / Cabang', available: true },
+      { text: '3 Tenant', available: true },
       { text: '3 Admin User (1/tenant)', available: true },
-      { text: 'Monitoring semua cabang', available: true },
-      { text: 'Laporan revenue detail', available: true },
+      { text: 'Semua fitur Pro', available: true },
+      { text: 'Laporan per cabang', available: true },
     ],
-    cta: 'Mulai Sekarang',
-    href: '/auth/signup?plan=owner',
+    cta: 'Pilih Plus',
     highlight: true,
     badge: 'Populer',
   },
   {
     name: 'Expert',
-    desc: 'Kustomisasi untuk skala besar',
+    desc: 'Kustomisasi penuh untuk skala besar',
     price: 'Custom',
     period: '',
     features: [
       { text: 'Unlimited Tenant', available: true },
       { text: 'Unlimited Admin User', available: true },
-      { text: 'Super admin access', available: true },
+      { text: 'Limit diset super admin', available: true },
       { text: 'Priority support', available: true },
     ],
     cta: 'Hubungi Kami',
-    href: '/auth/signup?plan=expert',
     highlight: false,
   },
 ];
 
 export default function PricingSection() {
   return (
-    <Box component="section" sx={{ bgcolor: '#f5f6f8', py: { xs: 8, md: 12 } }} id="pricing">
-      <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 } }}>
-        <Box sx={{ textAlign: 'center', mb: 10 }}>
-          <Typography
-            sx={{ fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.18em', color: '#6161ff', mb: 1.5 }}
-          >
-            Pilihan paket
-          </Typography>
-          <Typography component="h2" variant="h3" sx={{ fontWeight: 900, letterSpacing: '-0.04em', color: '#1d2433' }}>
-            Transparan, sesuai skala bisnis Anda.
-          </Typography>
-        </Box>
+    <section className="py-24 bg-surface-container-lowest" id="pricing">
+      <div className="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
+        <div className="text-center mb-16">
+          <h2 className="font-headline-lg text-headline-lg">
+            Pilih Paket Sesuai Kebutuhan Anda
+          </h2>
+          <p className="text-on-surface-variant mt-2">Transparan, tanpa biaya tersembunyi</p>
+        </div>
 
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
-            gap: 3,
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan) => (
-            <Card
+            <div
               key={plan.name}
-              sx={{
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 2,
-                border: plan.highlight ? '2px solid #6161ff' : '1px solid rgba(208, 212, 228, 0.72)',
-                boxShadow: plan.highlight ? '0 24px 60px rgba(97, 97, 255, 0.18)' : '0 16px 45px rgba(43, 50, 91, 0.06)',
-                overflow: plan.badge ? 'visible' : 'hidden',
-                ...(plan.highlight ? { transform: { lg: 'scale(1.05)' }, zIndex: 10 } : {}),
-              }}
+              className={
+                plan.highlight
+                  ? 'p-8 rounded-3xl bg-primary text-on-primary soft-shadow ring-4 ring-primary/20 relative z-10 flex flex-col'
+                  : 'p-8 rounded-3xl border border-outline-variant hover:border-primary transition-all flex flex-col'
+              }
             >
-              <CardContent sx={{ p: 3, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-                {plan.badge && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: -14,
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      bgcolor: '#6161ff',
-                      color: '#ffffff',
-                      px: 2.5,
-                      py: 0.6,
-                      borderRadius: 5,
-                      fontSize: 10,
-                      fontWeight: 800,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.12em',
-                    }}
+              {plan.badge && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-secondary text-on-secondary px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  {plan.badge}
+                </div>
+              )}
+
+              <h4 className="font-headline-md text-[20px] mb-2">{plan.name}</h4>
+              <p
+                className={`text-sm mb-6 ${plan.highlight ? 'text-on-primary/70' : 'text-on-surface-variant'}`}
+              >
+                {plan.desc}
+              </p>
+
+              <div className="mb-8">
+                <span className="text-headline-lg font-bold">{plan.price}</span>
+                {plan.period && (
+                  <span
+                    className={plan.highlight ? 'text-on-primary/70' : 'text-on-surface-variant'}
                   >
-                    {plan.badge}
-                  </Box>
+                    {plan.period}
+                  </span>
                 )}
+              </div>
 
-                <Typography component="h3" variant="h5" sx={{ fontWeight: 900, mb: 0.5, color: '#1d2433' }}>
-                  {plan.name}
-                </Typography>
-                <Typography sx={{ fontSize: 14, mb: 3, color: '#535768', fontWeight: 500 }}>
-                  {plan.desc}
-                </Typography>
-
-                <Box sx={{ mb: 4, display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                  <Typography variant="h3" sx={{ fontWeight: 900, color: '#1d2433' }}>
-                    {plan.price}
-                  </Typography>
-                  {plan.period && (
-                    <Typography sx={{ color: '#535768', fontSize: 14, fontWeight: 700 }}>
-                      {plan.period}
-                    </Typography>
-                  )}
-                </Box>
-
-                <Box
-                  component="ul"
-                  sx={{
-                    listStyle: 'none',
-                    p: 0,
-                    m: 0,
-                    mb: 4,
-                    flexGrow: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 1.5,
-                  }}
-                >
-                  {plan.features.map((f) => (
-                    <Box
-                      component="li"
-                      key={f.text}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.2,
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: f.available ? '#535768' : 'rgba(83, 87, 104, 0.4)',
-                      }}
+              <ul className="space-y-4 mb-10 flex-grow">
+                {plan.features.map((f) => (
+                  <li
+                    key={f.text}
+                    className={`flex items-center gap-2 text-sm ${!f.available ? 'opacity-50' : ''}`}
+                  >
+                    <span
+                      className={`material-symbols-outlined text-[20px] ${
+                        f.available
+                          ? plan.highlight
+                            ? 'text-on-primary'
+                            : 'text-secondary'
+                          : ''
+                      }`}
                     >
-                      <Box
-                        component="span"
-                        aria-hidden="true"
-                        className="material-symbols-outlined"
-                        sx={{
-                          fontSize: 18,
-                          color: f.available ? '#10b981' : 'rgba(83, 87, 104, 0.4)',
-                        }}
-                      >
-                        {f.available ? 'check_circle' : 'cancel'}
-                      </Box>
-                      <Box component="span" sx={visuallyHidden}>
-                        {f.available ? 'Termasuk: ' : 'Tidak termasuk: '}
-                      </Box>
-                      {f.text}
-                    </Box>
-                  ))}
-                </Box>
+                      {f.available ? 'check_circle' : 'cancel'}
+                    </span>
+                    {f.text}
+                  </li>
+                ))}
+              </ul>
 
-                <Button
-                  component={Link}
-                  href={plan.href}
-                  variant={plan.highlight ? 'contained' : 'outlined'}
-                  color="primary"
-                  fullWidth
-                  size="large"
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 8,
-                    fontWeight: 800,
-                    textTransform: 'none',
-                    fontSize: 15,
-                    ...(plan.highlight ? { boxShadow: '0 8px 24px rgba(97, 97, 255, 0.3)' } : { bgcolor: '#ffffff' }),
-                  }}
-                >
-                  {plan.cta}
-                </Button>
-              </CardContent>
-            </Card>
+              <button
+                className={
+                  plan.highlight
+                    ? 'w-full py-4 rounded-2xl bg-on-primary text-primary font-bold hover:bg-white/90 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-fixed-dim'
+                    : plan.name === 'Expert'
+                      ? 'w-full py-4 rounded-2xl border border-outline text-on-surface font-bold hover:bg-surface-container transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary'
+                      : 'w-full py-4 rounded-2xl border border-primary text-primary font-bold hover:bg-primary/5 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary'
+                }
+              >
+                {plan.cta}
+              </button>
+            </div>
           ))}
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+    </section>
   );
 }

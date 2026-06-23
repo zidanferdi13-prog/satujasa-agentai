@@ -1,111 +1,82 @@
-'use client';
-
-import Link from 'next/link';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-
-const productLinks = [
-  { label: 'Fitur', href: '/#features' },
-  { label: 'Solusi', href: '/#solutions' },
-  { label: 'Alur kerja', href: '/#workflow' },
-  { label: 'Harga', href: '/#pricing' },
-];
-
-const supportLinks = [
-  { label: 'FAQ', href: '/#faq' },
-  { label: 'Masuk', href: '/auth/signin' },
-  { label: 'Daftar', href: '/auth/signup' },
-];
-
 export default function Footer() {
   return (
-    <Box
-      component="footer"
-      sx={{ bgcolor: '#ffffff', borderTop: '1px solid', borderColor: 'rgba(208, 212, 228, 0.5)' }}
-    >
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 1.4fr' },
-          gap: 4,
-          px: { xs: 2, md: 4 },
-          py: { xs: 6, md: 8 },
-          maxWidth: 1200,
-          mx: 'auto',
-        }}
-      >
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 900, color: '#1d2433', mb: 1 }}>
-            SatuJasa
-          </Typography>
-          <Typography sx={{ color: '#535768', fontSize: 14, maxWidth: 320, mb: 3, lineHeight: 1.8 }}>
-            Ruang kendali biro jasa STNK untuk merapikan transaksi, status berkas, dan laporan cabang.
-          </Typography>
-          <Box sx={{ display: 'inline-flex', borderRadius: 5, bgcolor: '#fff3bf', color: '#8a5a00', px: 1.6, py: 0.8, fontSize: 11, fontWeight: 900, letterSpacing: '0.12em' }}>
-            B 1234 STJ
-          </Box>
-        </Box>
+    <footer className="bg-surface-container-lowest border-t border-outline-variant/30">
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-gutter px-margin-desktop py-16 max-w-container-max mx-auto">
+        {/* Brand */}
+        <div className="col-span-2">
+          <div className="text-headline-md font-headline-md font-bold text-primary mb-6">
+            STNK SatuJasa
+          </div>
+          <p className="text-on-surface-variant text-sm max-w-xs mb-8">
+            Pionir solusi digital manajemen biro jasa surat kendaraan bermotor di Indonesia.
+          </p>
+          <div className="flex gap-4">
+            <span className="material-symbols-outlined text-primary hover:scale-110 transition-transform cursor-pointer">
+              public
+            </span>
+            <span className="material-symbols-outlined text-primary hover:scale-110 transition-transform cursor-pointer">
+              smartphone
+            </span>
+            <span className="material-symbols-outlined text-primary hover:scale-110 transition-transform cursor-pointer">
+              alternate_email
+            </span>
+          </div>
+        </div>
 
-        <Box>
-          <Typography sx={{ fontWeight: 900, mb: 2, color: '#1d2433' }}>Produk</Typography>
-          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.4 }}>
-            {productLinks.map((item) => (
-              <Box component="li" key={item.href}>
-                <Typography
-                  component={Link}
-                  href={item.href}
-                  sx={{ color: '#535768', fontSize: 14, textDecoration: 'none', '&:hover': { color: '#6161ff' } }}
-                >
-                  {item.label}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+        {/* Product */}
+        <div>
+          <h5 className="font-bold mb-6">Product</h5>
+          <ul className="space-y-4 text-sm text-on-surface-variant">
+            <li>
+              <a className="hover:text-primary transition-colors" href="#">Features</a>
+            </li>
+            <li>
+              <a className="hover:text-primary transition-colors" href="#">Pricing</a>
+            </li>
+            <li>
+              <a className="hover:text-primary transition-colors" href="#">Updates</a>
+            </li>
+          </ul>
+        </div>
 
-        <Box>
-          <Typography sx={{ fontWeight: 900, mb: 2, color: '#1d2433' }}>Akses</Typography>
-          <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0, display: 'flex', flexDirection: 'column', gap: 1.4 }}>
-            {supportLinks.map((item) => (
-              <Box component="li" key={item.href}>
-                <Typography
-                  component={Link}
-                  href={item.href}
-                  sx={{ color: '#535768', fontSize: 14, textDecoration: 'none', '&:hover': { color: '#6161ff' } }}
-                >
-                  {item.label}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+        {/* Company */}
+        <div>
+          <h5 className="font-bold mb-6">Company</h5>
+          <ul className="space-y-4 text-sm text-on-surface-variant">
+            <li>
+              <a className="hover:text-primary transition-colors" href="#">About</a>
+            </li>
+            <li>
+              <a className="hover:text-primary transition-colors" href="#">Contact</a>
+            </li>
+            <li>
+              <a className="hover:text-primary transition-colors" href="#">Careers</a>
+            </li>
+          </ul>
+        </div>
 
-        <Box sx={{ borderRadius: 1, bgcolor: '#f5f6f8', p: 3 }}>
-          <Typography sx={{ fontWeight: 900, mb: 1, color: '#1d2433' }}>Status operasional</Typography>
-          <Typography sx={{ color: '#535768', fontSize: 14, lineHeight: 1.7, mb: 2 }}>
-            Order masuk → diproses → siap ambil → selesai. Semua tercatat di satu tempat.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 0.8 }}>
-            {['Draft', 'Proses', 'Selesai'].map((item, index) => (
-              <Box key={item} sx={{ borderRadius: 5, bgcolor: index === 2 ? '#10b981' : '#ffffff', color: index === 2 ? '#ffffff' : '#535768', px: 1.2, py: 0.6, fontSize: 11, fontWeight: 800 }}>
-                {item}
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Box>
+        {/* Subscribe */}
+        <div className="col-span-2">
+          <h5 className="font-bold mb-6">Subscribe</h5>
+          <p className="text-sm text-on-surface-variant mb-4">
+            Dapatkan tips manajemen bisnis langsung di email Anda.
+          </p>
+          <div className="flex gap-2">
+            <input
+              className="bg-surface-container border border-outline-variant rounded-xl px-4 py-2 w-full focus:ring-2 focus:ring-primary focus:outline-none"
+              placeholder="Email Anda"
+              type="email"
+            />
+            <button className="bg-primary text-on-primary p-2 rounded-xl">
+              <span className="material-symbols-outlined">send</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <Box
-        sx={{
-          borderTop: '1px solid rgba(208, 212, 228, 0.45)',
-          py: 3,
-          textAlign: 'center',
-          color: '#535768',
-          fontSize: 13,
-        }}
-      >
-        &copy; 2026 SatuJasa. Ruang kendali biro jasa STNK.
-      </Box>
-    </Box>
+      <div className="border-t border-outline-variant/10 py-8 text-center text-label-sm text-on-surface-variant">
+        © 2024 STNK SatuJasa. All rights reserved.
+      </div>
+    </footer>
   );
 }
