@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, X, FileCheck, Layers, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { Menu, X, Layers, ChevronRight, Download, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface NavbarProps {
@@ -55,12 +56,20 @@ export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
 
         {/* Action Buttons */}
         <div className="hidden md:flex items-center gap-3">
-          <button
-            onClick={() => handleLinkClick('tracking-sandbox')}
-            className="text-xs font-semibold text-slate-600 hover:text-slate-900 py-2 px-3 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+          <Link
+            href="/download"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 py-2 px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
-            Lacak Resi Demo
-          </button>
+            <Download className="h-3.5 w-3.5" />
+            Download App
+          </Link>
+          <Link
+            href="/auth/signin"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 py-2 px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+          >
+            <LogIn className="h-3.5 w-3.5" />
+            Masuk
+          </Link>
           <button
             onClick={() => onOpenDemo('Pro')}
             className="inline-flex items-center gap-1 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold text-white text-xs px-4 py-2.5 shadow-md shadow-blue-500/10 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -102,12 +111,18 @@ export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
                 </button>
               ))}
               <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
-                <button
-                  onClick={() => handleLinkClick('tracking-sandbox')}
-                  className="block w-full text-center rounded-lg border border-slate-200 py-2.5 font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                <Link
+                  href="/download"
+                  className="block w-full text-center rounded-lg border border-slate-200 py-2.5 font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                 >
-                  Uji Coba Lacak Berkas
-                </button>
+                  Download Aplikasi
+                </Link>
+                <Link
+                  href="/auth/signin"
+                  className="block w-full text-center rounded-lg border border-slate-200 py-2.5 font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  Masuk ke Akun
+                </Link>
                 <button
                   onClick={() => {
                     setIsOpen(false);

@@ -58,7 +58,7 @@ export default function Home() {
       </div>
 
       <Navbar onOpenDemo={handleOpenDemoModal} onScrollToSection={handleScrollToSection} />
-      <Hero onOpenDemo={handleOpenDemoModal} onScrollToSection={handleScrollToSection} />
+      <Hero onOpenDemo={handleOpenDemoModal} />
 
       <div className="relative bg-slate-900 border-t border-slate-800 py-10" id="trust-strip">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

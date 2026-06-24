@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Play, Sparkles, Building2, TrendingUp, Users, FileText, CheckCircle2, RefreshCw, Layers, ArrowUpRight } from 'lucide-react';
+import Link from 'next/link';
+import { Play, Sparkles, Building2, TrendingUp, CheckCircle2, RefreshCw, ArrowUpRight, Download, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { BranchTenant, StnkTransaction } from '@/types';
+import { StnkTransaction } from '@/types';
 import { mockTenants, mockTransactions } from '@/data';
 
 interface HeroProps {
   onOpenDemo: (plan: string) => void;
-  onScrollToSection: (sectionId: string) => void;
 }
 
-export default function Hero({ onOpenDemo, onScrollToSection }: HeroProps) {
+export default function Hero({ onOpenDemo }: HeroProps) {
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [transactions, setTransactions] = useState<StnkTransaction[]>(mockTransactions);
   const [justProcessedId, setJustProcessedId] = useState<string | null>(null);
@@ -106,14 +106,22 @@ export default function Hero({ onOpenDemo, onScrollToSection }: HeroProps) {
                 Minta Demo & Free Trial
                 <ArrowUpRight className="h-4 w-4" />
               </button>
-              <button
-                onClick={() => onScrollToSection('workflow')}
-                className="flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-sm px-6 py-3.5 transition-all shadow-sm cursor-pointer"
-                id="hero-learn-more-btn"
-              >
-                <Play className="h-4 w-4 text-blue-600 fill-blue-600" />
-                Lihat Cara Kerja
-              </button>
+              <div className="flex gap-4">
+                <Link
+                  href="/auth/signin"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-sm px-6 py-3.5 transition-all shadow-sm cursor-pointer"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Masuk
+                </Link>
+                <Link
+                  href="/download"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-sm px-6 py-3.5 transition-all shadow-sm cursor-pointer"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Link>
+              </div>
             </motion.div>
 
             {/* Micro value indicators */}
