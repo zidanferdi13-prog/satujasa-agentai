@@ -1,100 +1,127 @@
-'use client';
+import React, { useState } from 'react';
+import { Menu, X, FileCheck, Layers, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-import Link from 'next/link';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import icon from '../../../assets/icon.png';
+interface NavbarProps {
+  onOpenDemo: (plan: string) => void;
+  onScrollToSection: (sectionId: string) => void;
+}
 
-type NavbarProps = {
-  fixed?: boolean;
-};
+export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
-const navLinks = [
-  { label: 'Fitur', href: '/#features' },
-  { label: 'Solusi', href: '/#solutions' },
-  { label: 'Harga', href: '/#pricing' },
-  { label: 'Download', href: '/download' },
-  { label: 'FAQ', href: '/#faq' },
-];
+  const menuItems = [
+    { label: 'Fitur', id: 'features' },
+    { label: 'Alur Kerja', id: 'workflow' },
+    { label: 'Hak Role', id: 'roles' },
+    { label: 'Lacak Berkas', id: 'tracking-sandbox' },
+    { label: 'Harga', id: 'pricing' },
+    { label: 'FAQ', id: 'faq' },
+  ];
 
-export default function Navbar({ fixed = true }: NavbarProps) {
+  const handleLinkClick = (id: string) => {
+    setIsOpen(false);
+    onScrollToSection(id);
+  };
+
   return (
-    <Box
-      component="nav"
-      sx={{
-        position: fixed ? 'fixed' : 'static',
-        left: 0,
-        right: 0,
-        top: 16,
-        zIndex: 50,
-        px: { xs: 2, md: 5 },
-      }}
-    >
-      <Box
-        sx={{
-          maxWidth: 1200,
-          mx: 'auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderRadius: '9999px',
-          border: '1px solid',
-          borderColor: 'rgba(208, 212, 228, 0.7)',
-          bgcolor: 'rgba(255, 255, 255, 0.85)',
-          backdropFilter: 'blur(12px)',
-          px: { xs: 2, md: 3 },
-          py: 1.25,
-          boxShadow: 'rgba(205, 208, 223, 0.3) 0px 1px 24px 0px',
-        }}
-      >
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-          <Box component="img" src={icon.src} alt="" sx={{ width: 32, height: 32, borderRadius: 2 }} />
-          <Box sx={{ fontSize: 18, fontWeight: 800, letterSpacing: '-0.03em', color: '#6161ff' }}>
-            STNK SatuJasa
-          </Box>
-        </Link>
+    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+        {/* Logo and Brand */}
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/20">
+            <Layers className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-base font-bold tracking-tight text-slate-900 flex items-center gap-1 leading-none">
+              SatuJasa <span className="rounded bg-sky-100 px-1.5 py-0.5 text-[9px] font-bold text-sky-800 uppercase tracking-wider">STNK</span>
+            </div>
+            <span className="text-[9px] text-slate-400 font-medium tracking-wide">Multi-Tenant Platform</span>
+          </div>
+        </div>
 
-        <Box
-          sx={{
-            display: { xs: 'none', md: 'flex' },
-            alignItems: 'center',
-            gap: 3.5,
-            bgcolor: '#f5f6f8',
-            borderRadius: '9999px',
-            px: 3,
-            py: 1,
-          }}
-        >
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              style={{
-                fontSize: 14,
-                fontWeight: 500,
-                color: '#535768',
-                textDecoration: 'none',
-                transition: 'color 0.2s',
-              }}
-              onMouseEnter={(e) => { (e.target as HTMLElement).style.color = '#6161ff'; }}
-              onMouseLeave={(e) => { (e.target as HTMLElement).style.color = '#535768'; }}
+        {/* Desktop Menu */}
+        <nav className="hidden md:flex items-center gap-8">
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => handleLinkClick(item.id)}
+              className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors pointer-events-auto cursor-pointer"
             >
-              {link.label}
-            </Link>
+              {item.label}
+            </button>
           ))}
-        </Box>
+        </nav>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Link href="/auth/signin" style={{ fontSize: 14, fontWeight: 500, color: '#535768', textDecoration: 'none', display: 'none' }} className="sm:inline">
-            Masuk
-          </Link>
-          <Link href="/auth/signup">
-            <Button variant="contained" color="primary" size="small" sx={{ borderRadius: '9999px', px: 3 }}>
-              Daftar
-            </Button>
-          </Link>
-        </Box>
-      </Box>
-    </Box>
+        {/* Action Buttons */}
+        <div className="hidden md:flex items-center gap-3">
+          <button
+            onClick={() => handleLinkClick('tracking-sandbox')}
+            className="text-xs font-semibold text-slate-600 hover:text-slate-900 py-2 px-3 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer"
+          >
+            Lacak Resi Demo
+          </button>
+          <button
+            onClick={() => onOpenDemo('Pro')}
+            className="inline-flex items-center gap-1 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold text-white text-xs px-4 py-2.5 shadow-md shadow-blue-500/10 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Minta Demo
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {/* Mobile Hamburger toggle */}
+        <div className="flex md:hidden">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="rounded-lg p-2 text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+            aria-label="Toggle menu"
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden border-b border-slate-200 bg-white"
+          >
+            <div className="space-y-1 px-4 pb-4 pt-2">
+              {menuItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => handleLinkClick(item.id)}
+                  className="block w-full text-left rounded-lg px-3 py-2 text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  {item.label}
+                </button>
+              ))}
+              <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
+                <button
+                  onClick={() => handleLinkClick('tracking-sandbox')}
+                  className="block w-full text-center rounded-lg border border-slate-200 py-2.5 font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  Uji Coba Lacak Berkas
+                </button>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenDemo('Pro');
+                  }}
+                  className="block w-full text-center rounded-xl bg-blue-600 py-2.5 font-bold text-white shadow-lg shadow-blue-500/10 hover:bg-blue-700 cursor-pointer"
+                >
+                  Minta Demo Eksklusif
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </header>
   );
 }

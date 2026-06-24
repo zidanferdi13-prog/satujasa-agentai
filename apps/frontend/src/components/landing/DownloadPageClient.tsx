@@ -46,7 +46,7 @@ export default function DownloadPageClient() {
         }}
       />
 
-      <Navbar fixed={false} />
+      <Navbar onOpenDemo={() => {}} onScrollToSection={() => {}} />
 
       <Box
         sx={{
