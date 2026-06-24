@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Layers, ChevronRight, Download, LogIn } from 'lucide-react';
+import { Menu, X, ChevronRight, Download, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface NavbarProps {
@@ -27,11 +28,17 @@ export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-20">
         {/* Logo and Brand */}
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-sky-500 text-white shadow-md shadow-blue-500/20">
-            <Layers className="h-5 w-5" />
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <div className="relative h-11 w-11 overflow-hidden rounded-xl ring-1 ring-slate-200/80 bg-white shadow-sm">
+            <Image
+              src="/logo.png"
+              alt="Logo SatuJasa STNK"
+              fill
+              className="object-contain p-1"
+              priority
+            />
           </div>
           <div>
             <div className="text-base font-bold tracking-tight text-slate-900 flex items-center gap-1 leading-none">
@@ -42,12 +49,12 @@ export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
         </div>
 
         {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-10">
           {menuItems.map(item => (
             <button
               key={item.id}
               onClick={() => handleLinkClick(item.id)}
-              className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors pointer-events-auto cursor-pointer"
+              className="text-[15px] font-semibold text-slate-600 hover:text-blue-600 transition-colors pointer-events-auto cursor-pointer tracking-tight"
             >
               {item.label}
             </button>
@@ -55,24 +62,24 @@ export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
         </nav>
 
         {/* Action Buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-3.5 pl-6">
           <Link
             href="/download"
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 py-2 px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
             <Download className="h-3.5 w-3.5" />
             Download App
           </Link>
           <Link
             href="/auth/signin"
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 py-2 px-3 text-xs font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
             <LogIn className="h-3.5 w-3.5" />
             Masuk
           </Link>
           <button
             onClick={() => onOpenDemo('Pro')}
-            className="inline-flex items-center gap-1 rounded-xl bg-blue-600 hover:bg-blue-700 font-bold text-white text-xs px-4 py-2.5 shadow-md shadow-blue-500/10 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-md shadow-blue-500/10 transition-all hover:scale-[1.02] hover:bg-blue-700 active:scale-[0.98] cursor-pointer"
           >
             Minta Demo
             <ChevronRight className="h-3.5 w-3.5" />
@@ -105,7 +112,7 @@ export default function Navbar({ onOpenDemo, onScrollToSection }: NavbarProps) {
                 <button
                   key={item.id}
                   onClick={() => handleLinkClick(item.id)}
-                  className="block w-full text-left rounded-lg px-3 py-2 text-base font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-colors cursor-pointer"
+                  className="block w-full text-left rounded-lg px-3 py-3 text-[15px] font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-600 transition-colors cursor-pointer"
                 >
                   {item.label}
                 </button>
